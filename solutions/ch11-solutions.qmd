@@ -1,0 +1,525 @@
+---
+title: "Chapter 11 Exercises"
+subtitle: "Wainwright, High-Dimensional Statistics §11.6"
+description: "Exercise list locked from the textbook; solved independently"
+execute:
+  enabled: false
+---
+
+# How to use this file
+
+- **Textbook:** Martin J. Wainwright, *High-Dimensional Statistics: A Non-Asymptotic Viewpoint* (Cambridge Series in Statistical and Probabilistic Mathematics, No. 48; 2019).
+- **Range:** Chapter 11, Exercises 11.1–11.13 (all of §11.6).
+- **Pages:** printed pp. 378–382; PDF pp. 397–401 (offset **PDF = printed + 19**).
+- **Principle:** stems follow the textbook; solutions are independent. Identities printed in the book are recomputed.
+- **Companion notes:** [`ch11-notes.qmd`](../notes/ch11-notes.qmd).
+
+### Exercise 11.1
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $\mathcal S^{d\times d}$ be the symmetric matrices and $\mathcal S_+^{d\times d}$ the open cone of symmetric positive definite matrices. Define
+$$
+F(\Theta)
+=
+\begin{cases}
+-\sum_{j=1}^d \log\gamma_j(\Theta) & \text{if }\Theta\in\mathcal S_+^{d\times d},\\
++\infty & \text{otherwise},
+\end{cases}
+$$
+with $\gamma_j(\Theta)>0$ the eigenvalues of $\Theta$. (a) Show that $F$ is strictly convex on $\mathcal S_+^{d\times d}$. (b) For $\Theta\in\mathcal S_+^{d\times d}$, show $\nabla F(\Theta)=-\Theta^{-1}$. (c) Show $\nabla^2 F(\Theta)=\Theta^{-1}\otimes\Theta^{-1}$. (The printed $\nabla F^2$ is the Hessian.)
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Throughout, $\mathcal S_+^{d\times d}$ is open and convex in the Euclidean space of symmetric matrices.
+
+**(a).** Restrict $F$ to an arbitrary line $\Theta_t:=\Theta+tH$ with $\Theta\in\mathcal S_+^{d\times d}$, $H$ symmetric, and $t$ small enough that $\Theta_t\succ 0$. The eigenvalues of $\Theta^{-1/2}\Theta_t\Theta^{-1/2}=I+t\,\Theta^{-1/2}H\Theta^{-1/2}$ are $1+t\mu_j$, where $\mu_j$ are the eigenvalues of the symmetric matrix $\Theta^{-1/2}H\Theta^{-1/2}$. Hence
+$$
+F(\Theta_t)
+=
+F(\Theta)-\sum_{j=1}^d\log(1+t\mu_j)
+$$
+for small $t$. Differentiating twice,
+$$
+\frac{d^2}{dt^2}F(\Theta_t)
+=
+\sum_{j=1}^d\frac{\mu_j^2}{(1+t\mu_j)^2}
+=
+\bigl\|\Theta_t^{-1/2}H\Theta_t^{-1/2}\bigr\|_F^2.
+$$
+The right-hand side is nonnegative, and it vanishes if and only if $H=0$. Thus $F$ is strictly convex on $\mathcal S_+^{d\times d}$.
+
+**(b).** From the same expansion, $(d/dt)F(\Theta_t)\big|_{t=0}=-\sum_j\mu_j=-\mathrm{trace}(\Theta^{-1}H)=-\langle\!\langle\Theta^{-1},H\rangle\!\rangle$. The trace inner product identifies the Euclidean gradient as $\nabla F(\Theta)=-\Theta^{-1}$.
+
+**(c).** Differentiating $\Theta\mapsto\Theta^{-1}$ in the direction $H$ gives the Lyapunov identity $D(\Theta^{-1})[H]=-\Theta^{-1}H\Theta^{-1}$. Therefore
+$$
+D(\nabla F)(\Theta)[H]
+=
+\Theta^{-1}H\Theta^{-1}.
+$$
+Under the identification of linear maps on $\mathbb R^{d\times d}$ with Kronecker products via $\mathrm{vec}(AHB)=(B^T\otimes A)\mathrm{vec}(H)$, and using symmetry of $\Theta^{-1}$, this is multiplication by $\Theta^{-1}\otimes\Theta^{-1}$. Equivalently, the quadratic form of the Hessian is
+$$
+\langle\!\langle H,\nabla^2 F(\Theta)[H]\rangle\!\rangle
+=
+\langle\!\langle\Theta^{-1}H\Theta^{-1},H\rangle\!\rangle
+=
+\bigl\|\Theta^{-1/2}H\Theta^{-1/2}\bigr\|_F^2,
+$$
+which matches the second derivative computed in (a).
+:::
+
+### Exercise 11.2
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Show that the Gaussian MLE of the precision is $\widehat\Theta_{\mathrm{MLE}}=\widehat\Sigma^{-1}$ if $\widehat\Sigma\succ 0$, and is undefined otherwise. When $\widehat\Sigma$ is rank-deficient, exhibit a sequence along which the likelihood diverges to $+\infty$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Up to an additive constant independent of $\Theta$, the log-likelihood is $\ell(\Theta)=\log\det\Theta-\langle\!\langle\Theta,\widehat\Sigma\rangle\!\rangle$, to be maximised over $\Theta\succ 0$ (equivalently, $\mathcal L_n$ in (11.9) is to be minimised). The gradient is $\widehat\Sigma-\Theta^{-1}$, so any interior critical point satisfies $\Theta=\widehat\Sigma^{-1}$. This point lies in $\mathcal S_+^{d\times d}$ if and only if $\widehat\Sigma\succ 0$, in which case it is the unique maximiser by Exercise 11.1(a).
+
+Now suppose $\widehat\Sigma$ is singular, and let $v$ be a unit vector in $\ker(\widehat\Sigma)$. For $t>0$ set $\Theta_t:=I+t\,vv^T\succ 0$. Then
+$$
+\langle\!\langle\Theta_t,\widehat\Sigma\rangle\!\rangle
+=
+\mathrm{trace}(\widehat\Sigma)
+$$
+is independent of $t$, while
+$$
+\log\det\Theta_t
+=
+\log\det(I+t\,vv^T)
+=
+\log(1+t)\to+\infty
+$$
+as $t\to\infty$. Hence $\ell(\Theta_t)\to+\infty$, so the likelihood is unbounded above and the MLE is undefined. (The same conclusion holds along $\Theta_t=\widehat\Sigma^\dagger+t\,vv^T$ whenever the pseudoinverse is used as a baseline.) Whenever $n<d$, $\widehat\Sigma$ is always singular, so the unregularised MLE does not exist.
+:::
+
+### Exercise 11.3
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $X\in\mathbb R^d$ be zero-mean Gaussian with $\Sigma^*\succ 0$. Write $Z:=(X_j\mid X_{\backslash\{j\}})$. (a) Justify the decomposition (11.21). (b) Show $\theta^*_j=(\Sigma^*_{\backslash\{j\},\backslash\{j\}})^{-1}\Sigma_{\backslash\{j\},j}$. (c) Show $\theta^*_{jk}=0$ whenever $k\notin\mathcal N(j)$. Hint: the block-inverse formulae for $B=A^{-1}$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Partition $X=(X_{\backslash\{j\}},X_j)$ (after a coordinate permutation) and write
+$$
+\Sigma^*
+=
+\begin{pmatrix}
+\Sigma_{\backslash\{j\},\backslash\{j\}} & \Sigma_{\backslash\{j\},j}\\
+\Sigma_{j,\backslash\{j\}} & \Sigma_{jj}
+\end{pmatrix}
+=:
+\begin{pmatrix}
+A_{11} & A_{12}\\
+A_{21} & A_{22}
+\end{pmatrix},
+\qquad
+\Theta^*=(\Sigma^*)^{-1}
+=
+\begin{pmatrix}
+B_{11} & B_{12}\\
+B_{21} & B_{22}
+\end{pmatrix}.
+$$
+The hinted identities are $B_{22}=(A_{22}-A_{21}A_{11}^{-1}A_{12})^{-1}$ and $B_{12}=A_{11}^{-1}A_{12}(A_{21}A_{11}^{-1}A_{12}-A_{22})^{-1}$. The second is equivalent to $B_{12}=-A_{11}^{-1}A_{12}\,B_{22}$.
+
+**(a)–(b).** For jointly Gaussian zero-mean vectors, the conditional $X_j\mid X_{\backslash\{j\}}$ is Gaussian with
+$$
+\mathbb E[X_j\mid X_{\backslash\{j\}}]
+=
+\Sigma_{j,\backslash\{j\}}(\Sigma_{\backslash\{j\},\backslash\{j\}})^{-1}X_{\backslash\{j\}}
+=
+\langle X_{\backslash\{j\}},\,\theta^*_j\rangle,
+$$
+where $\theta^*_j=A_{11}^{-1}A_{12}$, and with conditional variance $A_{22}-A_{21}A_{11}^{-1}A_{12}=B_{22}^{-1}$. The residual $W_j:=X_j-\langle X_{\backslash\{j\}},\theta^*_j\rangle$ is uncorrelated with $X_{\backslash\{j\}}$, hence independent of it, and is zero-mean Gaussian. This is (11.21).
+
+**(c).** From $B_{12}=-A_{11}^{-1}A_{12}\,B_{22}$ we have $\theta^*_j=-B_{12}/B_{22}$, coordinatewise $\theta^*_{jk}=-\Theta^*_{jk}/\Theta^*_{jj}$. Hammersley–Clifford for a nondegenerate Gaussian gives $\Theta^*_{jk}=0$ whenever $(j,k)\notin E$, i.e. whenever $k\notin\mathcal N(j)$. Since $\Theta^*_{jj}=B_{22}>0$, the same vanishing holds for $\theta^*_{jk}$.
+:::
+
+### Exercise 11.4
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+The CLIME estimator is
+$$
+\widehat\Theta
+=
+\arg\min_{\Theta\in\mathbb R^{d\times d}}
+\|\Theta\|_1
+\qquad\text{subject to}\qquad
+\|\widehat\Sigma\Theta-I_d\|_{\max}\le\lambda_n.
+\tag{11.64}
+$$
+(a) Show that $\widehat\Theta$ is optimal for (11.64) iff each column $\widehat\Theta_j$ is optimal for
+$$
+\widehat\Gamma_j
+\in
+\arg\min_{\Gamma_j\in\mathbb R^d}
+\|\Gamma_j\|_1
+\qquad\text{subject to}\qquad
+\|\widehat\Sigma\Gamma_j-e_j\|_{\max}\le\lambda_n.
+\tag{11.65}
+$$
+(b) Show $\|\widehat\Gamma_j\|_1\le\|\Theta^*_j\|_1$ whenever $\lambda_n\ge\lvert\lvert\lvert\Theta^*\rvert\rvert\rvert_1\|\widehat\Sigma-\Sigma^*\|_{\max}$. (c) Give a high-probability bound on $\|\widehat\Sigma-\Sigma^*\|_{\max}$, assuming $\max_j\Sigma^*_{jj}\le 1$. (d) Deduce
+$$
+\|\widehat\Theta-\Theta^*\|_{\max}
+\le
+c\,\lvert\lvert\lvert\Theta^*\rvert\rvert\rvert_1^2\sqrt{\frac{\log d}{n}}
+\tag{11.66}
+$$
+with high probability, for a suitable $\lambda_n$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Write $\|\Theta\|_1:=\sum_{j,k}\lvert\Theta_{jk}\rvert$ for the entrywise $\ell_1$-norm, and write $\lvert\lvert\lvert\Theta\rvert\rvert\rvert_1:=\max_k\sum_j\lvert\Theta_{jk}\rvert$ for the $\ell_1$-operator (max column-sum) norm.
+
+**(a).** The objective and constraint of (11.64) separate across columns:
+$$
+\|\Theta\|_1=\sum_{j=1}^d\|\Theta_j\|_1,
+\qquad
+\|\widehat\Sigma\Theta-I_d\|_{\max}
+=
+\max_{1\le j\le d}\|\widehat\Sigma\Theta_j-e_j\|_{\max}.
+$$
+If $\widehat\Theta$ is feasible for (11.64), each column is feasible for (11.65). If some column failed to minimise (11.65), replacing it by a minimiser would strictly decrease $\|\Theta\|_1$ while preserving feasibility of (11.64), a contradiction. Conversely, stacking minimisers of (11.65) produces a feasible matrix for (11.64) whose objective is the sum of the column optima, hence a minimiser of (11.64).
+
+**(b).** The population precision is feasible for (11.64) as soon as
+$$
+\|\widehat\Sigma\Theta^*-I_d\|_{\max}
+=
+\|(\widehat\Sigma-\Sigma^*)\Theta^*\|_{\max}
+\le
+\|\widehat\Sigma-\Sigma^*\|_{\max}\,\lvert\lvert\lvert\Theta^*\rvert\rvert\rvert_1
+\le\lambda_n,
+$$
+where the first inequality uses $\lvert(({\widehat\Sigma-\Sigma^*})\Theta^*)_{jk}\rvert\le\|\widehat\Sigma-\Sigma^*\|_{\max}\sum_\ell\lvert\Theta^*_{\ell k}\rvert$. Thus each true column $\Theta^*_j$ is feasible for (11.65), and the objective comparison yields $\|\widehat\Gamma_j\|_1\le\|\Theta^*_j\|_1$.
+
+**(c).** Zero-mean Gaussian coordinates with $\Sigma^*_{jj}\le 1$ are sub-Gaussian with a universal parameter. Each product $X_{ij}X_{ik}$ is sub-exponential, so Bernstein's inequality gives
+$$
+\mathbb P\bigl[\lvert\widehat\Sigma_{jk}-\Sigma^*_{jk}\rvert\ge t\bigr]
+\le
+2\exp\bigl(-c\,n\min\{t^2,t\}\bigr)
+$$
+for a universal $c>0$. A union bound over $d^2$ entries produces, for $t\in(0,1]$,
+$$
+\mathbb P\bigl[\|\widehat\Sigma-\Sigma^*\|_{\max}\ge t\bigr]
+\le
+2d^2\exp(-c\,nt^2).
+$$
+Taking $t=C\sqrt{(\log d)/n}$ with $C$ large enough (and $n\gtrsim\log d$) yields $\|\widehat\Sigma-\Sigma^*\|_{\max}\le C\sqrt{(\log d)/n}$ with probability at least $1-O(d^{-2})$.
+
+**(d).** Fix a column $j$ and write $\Delta_j:=\widehat\Gamma_j-\Theta^*_j$. Then
+$$
+\Sigma^*\Delta_j
+=
+(\Sigma^*-\widehat\Sigma)\widehat\Gamma_j
++(\widehat\Sigma\widehat\Gamma_j-e_j).
+$$
+The second summand has $\ell_\infty$-norm at most $\lambda_n$ by feasibility. The first has
+$$
+\|(\widehat\Sigma-\Sigma^*)\widehat\Gamma_j\|_\infty
+\le
+\|\widehat\Sigma-\Sigma^*\|_{\max}\|\widehat\Gamma_j\|_1
+\le
+\|\widehat\Sigma-\Sigma^*\|_{\max}\|\Theta^*_j\|_1
+\le\lambda_n,
+$$
+using (b). Hence $\|\Sigma^*\Delta_j\|_\infty\le 2\lambda_n$, and
+$$
+\|\Delta_j\|_\infty
+\le
+\lvert\lvert\lvert(\Sigma^*)^{-1}\rvert\rvert\rvert_1\,\|\Sigma^*\Delta_j\|_\infty
+=
+\lvert\lvert\lvert\Theta^*\rvert\rvert\rvert_1\cdot 2\lambda_n.
+$$
+Choose $\lambda_n=C'\lvert\lvert\lvert\Theta^*\rvert\rvert\rvert_1\sqrt{(\log d)/n}$ large enough that (b) holds on the event of (c). Then
+$$
+\|\widehat\Theta-\Theta^*\|_{\max}
+=
+\max_j\|\Delta_j\|_\infty
+\le
+2C'\,\lvert\lvert\lvert\Theta^*\rvert\rvert\rvert_1^2\sqrt{\frac{\log d}{n}},
+$$
+which is (11.66).
+:::
+
+### Exercise 11.5
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Show that the general neighbourhood regression (11.37) reduces to linear regression (11.22) in the Gaussian case. Constants (prefactors or additive) that do not depend on the data may be ignored.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+For $X\sim N(0,(\Theta^*)^{-1})$, the conditional $X_j\mid X_{\backslash\{j\}}$ is Gaussian with mean $\langle X_{\backslash\{j\}},\theta^*_j\rangle$ and variance $\sigma_j^2=1/\Theta^*_{jj}$, where $\theta^*_{jk}=-\Theta^*_{jk}/\Theta^*_{jj}$ (Exercise 11.3). The conditional log-density of a sample is, up to the additive term $-\tfrac12\log(2\pi\sigma_j^2)$ which does not depend on the data $\{x_i\}$,
+$$
+\log p(x_{ij}\mid x_{i,\backslash\{j\}})
+=
+-\frac1{2\sigma_j^2}\bigl(x_{ij}-\langle x_{i,\backslash\{j\}},\theta\rangle\bigr)^2.
+$$
+Averaging over $n$ samples, the leading term of (11.37) is $(1/(2\sigma_j^2 n))\|X_j-X_{\backslash\{j\}}\theta\|_2^2$. The node and edge parameters in $\Theta_{j+}$ for a Gaussian are scalars, so the block penalty $\sum_k\lvert\lvert\lvert\Theta_{jk}\rvert\rvert\rvert$ is an $\ell_1$-penalty on the regression coefficients. Absorbing the positive prefactor $1/\sigma_j^2$ into the choice of $\lambda_n$ (permitted by the stem) recovers (11.22). The intercept / node potential vanishes for a zero-mean model and does not appear in (11.22).
+:::
+
+### Exercise 11.6
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+For a density of the form (11.32), show that the conditional likelihood of $X_j$ given $X_{\backslash\{j\}}$ depends only on $\Theta_{j+}:=\{\Theta_j,\Theta_{jk}:k\in V\setminus\{j\}\}$. Prove that $\Theta_{jk}=0$ whenever $(j,k)\notin E$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Write the unnormalised density (11.32) as $\exp(\Phi(x))$, with
+$$
+\Phi(x)
+=
+\sum_{\ell\in V}\phi_\ell(x_\ell;\Theta_\ell)
++
+\sum_{(\ell,m)\in E}\phi_{\ell m}(x_\ell,x_m;\Theta_{\ell m}).
+$$
+The terms that involve the coordinate $x_j$ are precisely $\phi_j(x_j;\Theta_j)$ and $\phi_{jk}(x_j,x_k;\Theta_{jk})$ for those $k$ with $(j,k)\in E$. All remaining potentials are functions of $x_{\backslash\{j\}}$ only. Therefore
+$$
+p(x_j\mid x_{\backslash\{j\}})
+=
+\frac{\exp\bigl(\phi_j(x_j;\Theta_j)+\sum_{k:(j,k)\in E}\phi_{jk}(x_j,x_k;\Theta_{jk})\bigr)}
+{\int\exp\bigl(\phi_j(u;\Theta_j)+\sum_{k:(j,k)\in E}\phi_{jk}(u,x_k;\Theta_{jk})\bigr)\,du},
+$$
+which depends on the parameters only through $\Theta_{j+}$. Parameters $\Theta_{jk}$ for $(j,k)\notin E$ do not appear in (11.32) at all, so they may be taken as zero (and the corresponding block penalty in (11.37) is then inactive at the true model).
+:::
+
+### Exercise 11.7
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+For $X\in\{-1,1\}^d$,
+$$
+p_\theta(x_1,\ldots,x_d)
+=
+\exp\Bigl\{\sum_{(j,k)\in E}\theta_{jk}x_j x_k-\Phi(\theta)\Bigr\}.
+\tag{11.67}
+$$
+(a) Show $\partial\Phi(\theta)/\partial\theta_{jk}=\mathbb E_\theta[X_j X_k]$ for each $(j,k)\in E$. (b) Compute the conditional distribution of $X_j$ given $X_{\backslash\{j\}}$, in terms of $f(t)=\log(1+e^t)$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** The log-partition is $\Phi(\theta)=\log\sum_{x\in\{\pm 1\}^d}\exp(\sum_{(j,k)\in E}\theta_{jk}x_j x_k)$. Differentiating under the finite sum,
+$$
+\frac{\partial\Phi}{\partial\theta_{jk}}
+=
+\frac{\sum_x x_j x_k\exp(\sum\theta_{\ell m}x_\ell x_m)}{\sum_x\exp(\sum\theta_{\ell m}x_\ell x_m)}
+=
+\mathbb E_\theta[X_j X_k].
+$$
+
+**(b).** The terms in the exponent that involve $x_j$ are $x_j\eta$ with $\eta:=\sum_{k\in\mathcal N(j)}\theta_{jk}x_k$. Thus $p(x_j\mid x_{\backslash\{j\}})\propto\exp(x_j\eta)$ on $\{\pm 1\}$, and
+$$
+\mathbb P(X_j=x_j\mid X_{\backslash\{j\}}=x_{\backslash\{j\}})
+=
+\frac{e^{x_j\eta}}{e^\eta+e^{-\eta}}
+=
+\frac1{1+\exp(-2x_j\eta)}.
+$$
+The negative log-conditional probability is therefore
+$$
+-\log p(x_j\mid x_{\backslash\{j\}})
+=
+\log\bigl(1+e^{-2x_j\eta}\bigr)
+=
+f(-2x_j\eta),
+$$
+with $f(t)=\log(1+e^t)$. (For the $\{0,1\}$ parameterisation (11.38)–(11.39), the same computation with $\eta=\theta_j+\sum_k\theta_{jk}x_k$ produces the logistic loss $f(\eta)-x_j\eta$; the textbook writes the $\{0,1\}$ estimator as an average of $f(x_{ij}\eta_i)$ and refers to this exercise for the $\{\pm 1\}$ algebra.)
+:::
+
+### Exercise 11.8
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $X$ be zero-mean Gaussian and Markov w.r.t. $G$, and let $Z=X+V$ with $V\sim N(0,\sigma^2 I_d)$ independent of $X$. Assuming $\sigma^2\lvert\lvert\lvert\Theta^*\rvert\rvert\rvert_2<1$, express the inverse covariance of $Z$ in powers of $\sigma^2\Theta^*$, and interpret the expansion in terms of weighted path lengths.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Independence and zero means give $\mathrm{cov}(Z)=\Sigma^*+\sigma^2 I_d=(\Theta^*)^{-1}+\sigma^2 I_d$. The Neumann series for $\lvert\lvert\lvert\sigma^2\Theta^*\rvert\rvert\rvert_2<1$ yields
+\begin{align*}
+\mathrm{cov}(Z)^{-1}
+&=
+\bigl((\Theta^*)^{-1}+\sigma^2 I\bigr)^{-1}
+=
+\Theta^*\bigl(I+\sigma^2\Theta^*\bigr)^{-1}\\
+&=
+\Theta^*\sum_{k=0}^\infty(-1)^k(\sigma^2\Theta^*)^k
+=
+\sum_{k=0}^\infty(-1)^k\sigma^{2k}(\Theta^*)^{k+1}.
+\end{align*}
+The entry $(\Theta^*)^{k+1}_{ij}$ is a sum, over walks of length $k+1$ from $i$ to $j$, of the products of precision weights along the walk. Consequently $\mathrm{cov}(Z)^{-1}_{ij}$ can be nonzero even when $\Theta^*_{ij}=0$, as soon as $i$ and $j$ are joined by some path in $G$. Additive noise therefore fills in longer paths and, in general, destroys the Markov property of $X$: the precision of $Z$ need not vanish off $E$. This is why the naïve graphical Lasso (11.41) is typically inconsistent for both $E$ and $\Theta^*$.
+:::
+
+### Exercise 11.9
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $\Sigma_x:=\mathrm{cov}(x)$. (a) Show that if $\lambda_n>\|\widehat\Gamma-\Sigma_x\|_{\max}$, then the corrected graphical Lasso (11.44) has a unique optimal solution. (b) Show what can go wrong when the condition is violated (a one-dimensional example suffices).
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Write $E:=\widehat\Gamma-\Sigma_x$ and $F(\Theta):=\langle\!\langle\Theta,\widehat\Gamma\rangle\!\rangle-\log\det\Theta+\lambda_n\lvert\lvert\lvert\Theta\rvert\rvert\rvert_{1,\mathrm{off}}$, taking the value $+\infty$ off $\mathcal S_+^{d\times d}$.
+
+**(a).** On $\mathcal S_+^{d\times d}$ the map $\Theta\mapsto-\log\det\Theta$ is strictly convex (Exercise 11.1), and the remaining terms are convex, so $F$ is strictly convex wherever it is finite. Thus a minimiser, if it exists, is unique.
+
+For existence, the first-order condition for (11.44) is $\Theta^{-1}=\widehat\Gamma+\lambda_n Z$ with $Z_{jj}=0$ and $\lvert\lvert\lvert Z\rvert\rvert\rvert_{\max,\mathrm{off}}\le 1$, together with the usual sign conditions on the support of the off-diagonal. Choose $Z_{jk}=-E_{jk}/\lambda_n$ for $j\neq k$ (valid because $\lambda_n>\|E\|_{\max}$) and $Z_{jj}=0$. Then
+$$
+\widehat\Gamma+\lambda_n Z
+=
+\Sigma_x+\mathrm{diag}(E).
+$$
+If in addition $\|E\|_{\max}<\lambda_{\min}(\Sigma_x)$, the matrix $\Sigma_x+\mathrm{diag}(E)$ is positive definite (Weyl), hence strictly dual feasible, and strict convexity plus Slater's condition yield a unique primal minimiser. In the statistical regime of §11.4.1 one has $\|E\|_{\max}\lesssim\sqrt{(\log d)/n}$, which is smaller than $\lambda_{\min}(\Sigma_x)$ with high probability; the printed condition $\lambda_n>\|E\|_{\max}$ is then the dual-feasibility requirement on the off-diagonal.
+
+**(b).** Take $d=1$, so there is no off-diagonal penalty and $F(\theta)=\theta\,\widehat\gamma-\log\theta$ for $\theta>0$. If $\widehat\gamma\le 0$, then $F(\theta)\to-\infty$ as $\theta\to+\infty$, so no minimiser exists. This can happen even when $\lambda_n>\lvert\widehat\gamma-\Sigma_x\rvert$ (the one-dimensional form of the condition in (a)), because that inequality does not constrain the sign of $\widehat\gamma$. The same mechanism, a non-positive curvature direction that the off-diagonal $\ell_1$ term cannot see, is what makes (11.44) potentially unattained when $\widehat\Gamma$ is too far from $\Sigma_x$.
+:::
+
+### Exercise 11.10
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Observe $y\in\mathbb R^n$ and $Z=X+V$ in the model $y=X\theta^*+w$. The naïve estimator is
+$$
+\widetilde\theta
+=
+\arg\min_{\theta\in\mathbb R^d}
+\frac1{2n}\|y-Z\theta\|_2^2.
+$$
+Rows of $X$ are i.i.d. with covariance $\Sigma$, rows of $V$ are i.i.d. independent of $X$ with covariance $\sigma^2 I$. Show that $\widetilde\theta$ is inconsistent even as $n\to\infty$ with $d$ fixed.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The naïve objective is $\tfrac12\theta^T(n^{-1}Z^TZ)\theta-\langle n^{-1}Z^Ty,\theta\rangle$. As $n\to\infty$ with $d$ fixed, the law of large numbers gives
+$$
+\frac1n Z^TZ
+\to
+\mathbb E[(X_1+V_1)(X_1+V_1)^T]
+=
+\Sigma+\sigma^2 I,
+\qquad
+\frac1n Z^Ty
+\to
+\mathbb E[(X_1+V_1)(X_1^T\theta^*+w_1)]
+=
+\Sigma\theta^*,
+$$
+almost surely (independence of $V$ from $(X,w)$ kills the cross terms). The limiting objective $\tfrac12\theta^T(\Sigma+\sigma^2 I)\theta-\langle\Sigma\theta^*,\theta\rangle$ is strongly convex for $\sigma^2\ge 0$, $\Sigma\succ 0$, and has unique minimiser
+$$
+\theta_\infty
+=
+(\Sigma+\sigma^2 I)^{-1}\Sigma\theta^*.
+$$
+Thus $\widetilde\theta\to\theta_\infty$ a.s. For $\sigma^2>0$ and $\theta^*\neq 0$ one has $\theta_\infty\neq\theta^*$ (the map $\Sigma\mapsto(\Sigma+\sigma^2 I)^{-1}\Sigma$ is a strict contraction in every eigen-direction). Hence the naïve estimator is inconsistent.
+:::
+
+### Exercise 11.11
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Show by a two-dimensional example that the corrected Lasso (11.48) may fail to attain its global minimum if an $\ell_1$-bound $\|\theta\|_1\le R$ is not imposed.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Take $d=2$, $\widehat\Gamma=\mathrm{diag}(1,-1)$ (indefinite, as occurs for (11.42)–(11.43) when $n<d$), and $\widehat\gamma=0$. The corrected objective without the $\ell_1$-ball constraint is
+$$
+\mathcal L_n(\theta)+\lambda_n\|\theta\|_1
+=
+\frac12\theta_1^2-\frac12\theta_2^2+\lambda_n\bigl(\lvert\theta_1\rvert+\lvert\theta_2\rvert\bigr).
+$$
+Along the ray $\theta=(0,t)$ with $t\to+\infty$ this equals $-\tfrac12 t^2+\lambda_n t\to-\infty$. The infimum is $-\infty$ and is not attained. The constraint $\|\theta\|_1\le R$ (in (11.48), $R=\sqrt{n/\log d}$) restores compactness, so a global minimiser exists even though the objective remains nonconvex. The $\ell_1$ penalty alone changes level sets but does not bound an indefinite quadratic from below.
+:::
+
+### Exercise 11.12
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Additive corruptions as in Example 11.16, with $y=X\theta^*+w$. (a) If $X$ and $V$ are independent, show that $\widehat\Gamma$ from (11.42) is unbiased for $\Sigma_x$ and that $\widehat\gamma=Z^Ty/n$ is unbiased for $\mathrm{cov}(x,y)$. (b) If rows of $X,V$ are i.i.d. zero-mean, entries $X_{ij},V_{ij}$ are $1$-sub-Gaussian, and $w$ has i.i.d. $N(0,\sigma^2)$ entries independent of $(X,V)$, show
+$$
+\|\widehat\Gamma\theta^*-\widehat\gamma\|_\infty
+\le
+c\bigl(\sigma+\|\theta^*\|_2\bigr)\sqrt{\frac{\log d}{n}}
+$$
+with high probability. (c) If additionally $\Sigma_v=\nu I_d$, show that $\widehat\Gamma$ satisfies the RE condition (11.50) with high probability. (Hint: Exercise 7.10.)
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** Independence and zero means give
+$$
+\mathbb E\bigl[n^{-1}Z^TZ\bigr]
+=
+\mathbb E[(X_1+V_1)(X_1+V_1)^T]
+=
+\Sigma_x+\Sigma_v,
+$$
+so $\mathbb E[\widehat\Gamma]=\Sigma_x$. Likewise
+$$
+\mathbb E[\widehat\gamma]
+=
+\mathbb E[(X_1+V_1)(X_1^T\theta^*+w_1)]
+=
+\Sigma_x\theta^*
+=
+\mathrm{cov}(x,y),
+$$
+using $\mathbb E[V_1 w_1]=0$ and $\mathbb E[V_1 X_1^T]=0$.
+
+**(b).** Substitute $Z=X+V$ and $y=X\theta^*+w$:
+$$
+\widehat\Gamma\theta^*-\widehat\gamma
+=
+n^{-1}Z^T(Z\theta^*-y)-\Sigma_v\theta^*
+=
+n^{-1}(X+V)^T(V\theta^*-w)-\Sigma_v\theta^*.
+$$
+Expanding, the four empirical processes are $n^{-1}X^TV\theta^*$, $n^{-1}X^Tw$, $n^{-1}V^TV\theta^*-\Sigma_v\theta^*$, and $n^{-1}V^Tw$. Each coordinate is an average of i.i.d. products of sub-Gaussians (hence sub-exponential), with sub-exponential parameters $O(\|\theta^*\|_2)$ for terms involving $V\theta^*$ and $O(\sigma)$ for terms involving $w$. A union bound over $d$ coordinates plus Bernstein's inequality produces the stated $\ell_\infty$ deviation with probability $1-O(d^{-2})$, for a universal $c$.
+
+**(c).** Write $\widehat\Gamma=\Sigma_x+E$ with
+$$
+E
+=
+\bigl(n^{-1}X^TX-\Sigma_x\bigr)
++n^{-1}(X^TV+V^TX)
++\bigl(n^{-1}V^TV-\nu I\bigr).
+$$
+Each summand, as a quadratic form, is small on $2s$-sparse unit vectors with high probability, by the same sub-Gaussian Wishart tails used for sample covariances in Chapter 7 (the cross term $X^TV$ is an independent rectangular product). Exercise 7.10 transfers a uniform bound $\lvert\theta^T E\theta\rvert\le\delta$ on $L_0(2s)$ into
+$$
+\lvert\theta^T E\theta\rvert
+\le
+C\delta\|\theta\|_2^2
+\qquad\text{on the cone }\|\theta\|_1\le\sqrt s\|\theta\|_2,
+$$
+and $\lvert\theta^T E\theta\rvert\le (C\delta/s)\|\theta\|_1^2$ off the cone. Taking $\delta\asymp\sqrt{(\log d)/n}$ (or the slightly smaller rate available from a net argument) and applying AM-GM in the form $2\sqrt{(\log d)/n}\,\|\Delta\|_2\|\Delta\|_1\le(\kappa/2)\|\Delta\|_2^2+(2/\kappa)(\log d)/n\|\Delta\|_1^2$ yields (11.50) with $\kappa=\tfrac12\lambda_{\min}(\Sigma_x)$, as soon as $n$ is large enough that the perturbation is smaller than $\lambda_{\min}(\Sigma_x)$. The same argument applies with $\Sigma_v=\nu I$ because $n^{-1}V^TV-\nu I$ is a centred Wishart fluctuation.
+:::
+
+### Exercise 11.13
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Missing data as in Example 11.17, with entries removed independently completely at random, and with i.i.d. zero-mean $1$-sub-Gaussian rows of $X$. (a) Show that $\widehat\Gamma$ from (11.43) is unbiased for $\Sigma_x$ and that $\widehat\gamma=n^{-1}\widetilde Z^Ty$ is unbiased for $\mathrm{cov}(x,y)$. (b) If $w$ has i.i.d. $N(0,\sigma^2)$ entries, show
+$$
+\|\widehat\Gamma\theta^*-\widehat\gamma\|_\infty
+\le
+c\bigl(\sigma+\|\theta^*\|_2\bigr)\sqrt{\frac{\log d}{n}}
+$$
+with high probability. (c) Show that $\widehat\Gamma$ satisfies RE (11.50) with high probability. (Hint: Exercise 7.10.)
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Let $\delta_{ij}\in\{0,1\}$ indicate that entry $(i,j)$ is observed, so $\mathbb P(\delta_{ij}=1)=1-\nu$, independently of $X$ and of each other, and $\widetilde Z_{ij}=\delta_{ij}X_{ij}/(1-\nu)$.
+
+**(a).** For $j\neq k$ and a single row,
+$$
+\mathbb E[\widetilde Z_{\cdot j}\widetilde Z_{\cdot k}]
+=
+\mathbb E\Bigl[\frac{\delta_j\delta_k}{(1-\nu)^2}X_j X_k\Bigr]
+=
+\mathbb E[X_j X_k]
+=
+(\Sigma_x)_{jk},
+$$
+since $\mathbb E[\delta_j\delta_k]=(1-\nu)^2$. For a diagonal entry, $\mathbb E[\widetilde Z_{\cdot j}^2]=\mathbb E[X_j^2]/(1-\nu)=(\Sigma_x)_{jj}/(1-\nu)$, and the diagonal correction in (11.43) subtracts $\nu$ times this quantity, recovering $(\Sigma_x)_{jj}$. Thus $\mathbb E[\widehat\Gamma]=\Sigma_x$. For the cross term, treating $y$ as fully observed (as in the discussion after (11.45): discard samples with missing response),
+$$
+\mathbb E[\widetilde Z_{\cdot k} y]
+=
+\mathbb E\Bigl[\frac{\delta_k}{1-\nu}X_k y\Bigr]
+=
+\mathbb E[X_k y]
+=
+\mathrm{cov}(x_k,y).
+$$
+
+**(b).** The deviation $\widehat\Gamma\theta^*-\widehat\gamma$ is again a vector of empirical averages of products of sub-exponential random variables: the inverse-probability weights $1/(1-\nu)$ are bounded for each fixed $\nu\in[0,1)$, and the indicators $\delta_{ij}$ are bounded. The same Bernstein-plus-union-bound argument as in Exercise 11.12(b) yields the $\ell_\infty$ bound, with a constant $c$ that may depend on $\nu$ but not on $(n,d)$.
+
+**(c).** As in Exercise 11.12(c), $\widehat\Gamma=\Sigma_x+E$ where $E$ is a centred matrix whose quadratic forms are uniformly small on $2s$-sparse unit vectors (missingness only multiplies entries by bounded independent weights). Exercise 7.10 plus AM-GM convert that sparse-control into the RE inequality (11.50) with $\kappa=\tfrac12\lambda_{\min}(\Sigma_x)$, with high probability.
+:::

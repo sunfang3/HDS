@@ -1,0 +1,616 @@
+---
+title: "Chapter 13 Exercises"
+subtitle: "Wainwright, High-Dimensional Statistics §13.6"
+description: "Exercise list locked from the textbook; solved independently"
+execute:
+  enabled: false
+---
+
+# How to use this file
+
+- **Textbook:** Martin J. Wainwright, *High-Dimensional Statistics: A Non-Asymptotic Viewpoint* (Cambridge Series in Statistical and Probabilistic Mathematics, No. 48; 2019).
+- **Range:** §13.6 Exercises 13.1–13.11 (printed pp. 449–452; PDF pp. 468–471).
+- **Pages:** offset **PDF = printed + 19**.
+- **Principle:** stems follow the textbook; solutions are independent. Identities printed in the book are recomputed.
+- **Companion notes:** [`ch13-notes.qmd`](../notes/ch13-notes.qmd).
+
+Locked list from the printed *Exercises* pages: 13.1 (a)(b)(c), 13.2, 13.3 (a)(b), 13.4 (a)(b), 13.5 (a)(b), 13.6 (a)(b), 13.7, 13.8, 13.9 (a)(b) including (13.70), 13.10 (a)(b), 13.11 (a)(b).
+
+### Exercise 13.1
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Characterization of the Bayes least-squares estimate.
+(a) If $Z$ has a finite second moment, show that $G(t)=\mathbb E[(Z-t)^2]$ is minimized at $t=\mathbb E[Z]$.
+(b) Show that the minimizer of the population MSE (13.1) is $f^*(x)=\mathbb E[Y\mid X=x]$.
+(c) If $\mathbb E_{X,Y}[(Y-f(X))^2]$ is finite, show that the excess risk of $f$ equals $\|f-f^*\|_2^2$ as in (13.4).
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) Expand
+$$
+G(t)
+=
+\mathbb E[Z^2]-2t\,\mathbb E[Z]+t^2
+=
+\mathrm{Var}(Z)+(\mathbb E[Z]-t)^2.
+$$
+The variance does not depend on $t$, and $(\mathbb E[Z]-t)^2\ge 0$ with equality if and only if $t=\mathbb E[Z]$.
+
+(b) Condition on $X$ and apply the tower property:
+$$
+\mathcal L_f
+=
+\mathbb E\bigl[\mathbb E[(Y-f(X))^2\mid X]\bigr].
+$$
+For each fixed $x$, the inner map $t\mapsto\mathbb E[(Y-t)^2\mid X=x]$ is of the form in (a), hence is minimized at $t=\mathbb E[Y\mid X=x]$. The resulting function $f^*$ is measurable as soon as the conditional expectation exists, which is assumed in (13.2).
+
+(c) Write $Y-f(X)=(Y-f^*(X))+(f^*(X)-f(X))$. Then
+$$
+\mathbb E[(Y-f(X))^2]
+=
+\mathbb E[(Y-f^*(X))^2]
++
+\mathbb E[(f^*(X)-f(X))^2]
++
+2\mathbb E\bigl[(Y-f^*(X))(f^*(X)-f(X))\bigr].
+$$
+The cross term vanishes: conditioning on $X$ and using $\mathbb E[Y-f^*(X)\mid X]=0$ gives
+$$
+\mathbb E\bigl[(Y-f^*(X))(f^*-f)(X)\bigr]
+=
+\mathbb E\bigl[\mathbb E[Y-f^*(X)\mid X]\,(f^*-f)(X)\bigr]
+=
+0.
+$$
+The first summand is $\mathcal L_{f^*}$, and the second is $\|f-f^*\|_{L^2(\mathbb P)}^2$. This is (13.4).
+:::
+
+### Exercise 13.2
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+In the linear model of Example 13.8 with fixed design, show by a direct argument that
+$$
+\mathbb E\bigl[\|f_{\widehat\theta}-f_{\theta^*}\|_n^2\bigr]
+\le
+\sigma^2\frac{\mathrm{rank}(\mathbf X)}{n}
+$$
+for any observation noise that is zero-mean with variance $\sigma^2$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Let $v=(v_1,\ldots,v_n)$ with $\mathbb E[v]=0$ and $\mathbb E[v_i^2]=\sigma^2$, and write $y=\mathbf X\theta^*+v$. Ordinary least squares on $\mathrm{range}(\mathbf X)$ produces the Euclidean projection $\widehat\mu=P_{\mathbf X} y$, so
+$$
+\mathbf X(\widehat\theta-\theta^*)
+=
+P_{\mathbf X} y-\mathbf X\theta^*
+=
+P_{\mathbf X} v.
+$$
+(If $\theta^*$ is identified only modulo $\ker(\mathbf X)$, the identity still holds for the fitted vectors.) Therefore
+$$
+\|f_{\widehat\theta}-f_{\theta^*}\|_n^2
+=
+\frac{\|P_{\mathbf X} v\|_2^2}{n}.
+$$
+Let $r=\mathrm{rank}(\mathbf X)$ and let $U\in\mathbb R^{n\times r}$ have orthonormal columns spanning $\mathrm{range}(\mathbf X)$. Then $P_{\mathbf X}=UU^T$ and
+$$
+\mathbb E\|P_{\mathbf X} v\|_2^2
+=
+\mathbb E\|U^T v\|_2^2
+=
+\mathbb E\bigl[v^T UU^T v\bigr]
+=
+\mathrm{tr}\bigl(UU^T\,\mathbb E[vv^T]\bigr).
+$$
+If the coordinates of $v$ are uncorrelated with common variance $\sigma^2$, then $\mathbb E[vv^T]=\sigma^2 I_n$ and the trace equals $\sigma^2 r$. Uncorrelatedness is the natural reading of “zero-mean with variance $\sigma^2$” in this model (the Gaussian case $v=\sigma w$ is included). Thus
+$$
+\mathbb E\bigl[\|f_{\widehat\theta}-f_{\theta^*}\|_n^2\bigr]
+=
+\frac{\sigma^2 r}{n}
+=
+\sigma^2\frac{\mathrm{rank}(\mathbf X)}{n}.
+$$
+The inequality in the stem is therefore an equality under uncorrelated noise. If one only assumes $\mathbb E[v_i^2]\le\sigma^2$ without uncorrelatedness, the same identity yields the bound $\mathrm{tr}(P_{\mathbf X}\mathbb E[vv^T])/n\le(\|\mathbb E[vv^T]\|_{\mathrm{op}}\,r)/n$, which recovers the claimed rate when the covariance operator is bounded by $\sigma^2$.
+:::
+
+### Exercise 13.3
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Cubic smoothing splines. Recall (13.10) and the kernel $\mathcal K(x,z)=\int_0^1(x-y)_+(z-y)_+\,dy$ from Example 12.29.
+(a) Show that any optimum has the form
+$$
+\widehat f(x)
+=
+\widehat\theta_0+\widehat\theta_1 x
++\frac1{\sqrt n}\sum_{i=1}^n\widehat\alpha_i\,\mathcal K(x,x_i)
+$$
+for some $\widehat\theta\in\mathbb R^2$ and $\widehat\alpha\in\mathbb R^n$.
+(b) Show that these vectors solve the quadratic program
+$$
+(\widehat\theta,\widehat\alpha)
+=
+\arg\min_{(\theta,\alpha)\in\mathbb R^2\times\mathbb R^n}
+\Bigl\{
+\frac1n\|y-\mathbf X\theta-\sqrt n\,\mathbf K\alpha\|_2^2
++\lambda_n\alpha^T\mathbf K\alpha
+\Bigr\},
+$$
+where $K_{ij}=\mathcal K(x_i,x_j)/n$ and $\mathbf X\in\mathbb R^{n\times 2}$ has $i$th row $[1\ x_i]$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) The penalty $\int_0^1(f'')^2$ vanishes on the two-dimensional space of linear functions, which is the null space of the second-derivative operator on $[0,1]$. The bilinear form $\langle f,g\rangle_{\mathrm{pen}}=\int f''g''$ is an inner product on the quotient by that null space. Example 12.29 identifies the reproducing kernel of the resulting Hilbert space (functions with $f(0)=f'(0)=0$, or any complementary boundary conditions) as
+$$
+\mathcal K(x,z)
+=
+\int_0^1(x-y)_+(z-y)_+\,dy.
+$$
+A general twice weakly differentiable $f$ therefore splits as $f=f_{\mathrm{poly}}+f_{\mathbb H}$ with $f_{\mathrm{poly}}(x)=\theta_0+\theta_1 x$ and $f_{\mathbb H}\in\mathbb H_{\mathcal K}$. The empirical loss plus penalty depends on $f_{\mathbb H}$ only through its values at $\{x_i\}$ and its $\mathbb H_{\mathcal K}$-norm. The representer theorem (Proposition 12.33) yields
+$$
+f_{\mathbb H}(\cdot)
+=
+\frac1{\sqrt n}\sum_{i=1}^n\alpha_i\,\mathcal K(\cdot,x_i)
+$$
+for some $\alpha\in\mathbb R^n$. Combining the two pieces is the claimed expansion.
+
+(b) Evaluate the expansion at the design: the vector of values of the kernel section is
+$$
+\Bigl(\frac1{\sqrt n}\sum_{j=1}^n\alpha_j\mathcal K(x_i,x_j)\Bigr)_{i=1}^n
+=
+\sqrt n\,\mathbf K\alpha,
+$$
+because $(\mathbf K\alpha)_i=n^{-1}\sum_j\alpha_j\mathcal K(x_i,x_j)$. The polynomial piece contributes $\mathbf X\theta$. Hence the empirical MSE is $n^{-1}\|y-\mathbf X\theta-\sqrt n\,\mathbf K\alpha\|_2^2$.
+
+For the penalty: if $f_{\mathbb H}=n^{-1/2}\sum_i\alpha_i\mathcal K(\cdot,x_i)$, reproducing gives
+$$
+\|f_{\mathbb H}\|_{\mathbb H_{\mathcal K}}^2
+=
+\frac1n\sum_{i,j}\alpha_i\alpha_j\mathcal K(x_i,x_j)
+=
+\alpha^T\mathbf K\alpha,
+$$
+and $\int(f'')^2=\|f_{\mathbb H}\|_{\mathbb H_{\mathcal K}}^2$ because $f_{\mathrm{poly}}$ does not contribute. Substituting into (13.10) produces the displayed quadratic program. The program is jointly convex in $(\theta,\alpha)$ because $\mathbf K$ is positive semidefinite.
+:::
+
+### Exercise 13.4
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Star-shaped sets and convexity.
+(a) $C$ is star-shaped around one of its points $x^*$ if and only if $\alpha x+(1-\alpha)x^*\in C$ for every $x\in C$ and every $\alpha\in[0,1]$.
+(b) $C$ is convex if and only if it is star-shaped around each of its points.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) By definition, $C$ is star-shaped around $x^*$ when $\alpha(x-x^*)\in C-\{x^*\}$ for all $x\in C$ and $\alpha\in[0,1]$, i.e. $x^*+\alpha(x-x^*)\in C$. The latter point is exactly $\alpha x+(1-\alpha)x^*$. Conversely, the same identity rewrites every convex combination of $x$ with the centre $x^*$ as a star-rescaling of $x-x^*$.
+
+(b) If $C$ is convex, then for every $x^*\in C$ and every $x\in C$ the segment $\alpha x+(1-\alpha)x^*$ lies in $C$, so $C$ is star-shaped around $x^*$ by (a). Conversely, if $C$ is star-shaped around every point, take arbitrary $x,y\in C$ and $\alpha\in[0,1]$. Star-shapedness around $y$ yields $\alpha x+(1-\alpha)y\in C$, which is convexity.
+
+A nonconvex set may still be star-shaped around some (but not all) of its points; Figure 13.3(b) is the geometric picture.
+:::
+
+### Exercise 13.5
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Lower bounds on the critical inequality, in the case $f^*=0$ so that $\mathcal F^*=\mathcal F$.
+(a) Show that (13.17) is always satisfied for $\delta^2=4\sigma^2$.
+(b) If a convex class $\mathcal F$ contains the constant function $f\equiv 1$, show that any $\delta\in(0,1]$ satisfying (13.17) obeys $\delta^2\ge\min\{1,(8/\pi)\sigma^2/n\}$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) Cauchy–Schwarz gives, for every $g$ with $\|g\|_n\le\delta$,
+$$
+\Bigl\lvert\frac1n\sum_{i=1}^n w_i g(x_i)\Bigr\rvert
+\le
+\frac{\|w\|_2}{\sqrt n}\,\|g\|_n
+\le
+\frac{\|w\|_2}{\sqrt n}\,\delta.
+$$
+Taking the supremum and then expectation,
+$$
+\mathcal G_n(\delta;\mathcal F)
+\le
+\delta\,n^{-1/2}\mathbb E\|w\|_2
+\le
+\delta,
+$$
+because $\mathbb E\|w\|_2\le(\mathbb E\|w\|_2^2)^{1/2}=\sqrt n$. Thus $\mathcal G_n(\delta)/\delta\le 1$. The critical inequality asks for $\mathcal G_n(\delta)/\delta\le\delta/(2\sigma)$, which holds as soon as $\delta\ge 2\sigma$, i.e. $\delta^2\ge 4\sigma^2$. In particular $\delta=2\sigma$ is always valid, irrespective of $\mathcal F$.
+
+(b) Convexity plus $1\in\mathcal F$ and $f^*=0$ imply that $\mathcal F$ is star-shaped around $0$, so the rescaled constants $\delta\cdot 1$ lie in $\mathcal F$ for every $\delta\in(0,1]$. For this choice $\|g\|_n=\delta$ and
+$$
+\frac1n\sum_{i=1}^n w_i g(x_i)
+=
+\delta\cdot n^{-1}\sum_{i=1}^n w_i.
+$$
+The average $n^{-1}\sum w_i$ is $N(0,1/n)$, and $\mathbb E|Z|=\sqrt{2/\pi}\,\tau$ for $Z\sim N(0,\tau^2)$. Hence
+$$
+\frac{\mathcal G_n(\delta)}{\delta}
+\ge
+\sqrt{\frac{2}{\pi n}}.
+$$
+The critical inequality then forces $\sqrt{2/(\pi n)}\le\delta/(2\sigma)$, i.e.
+$$
+\delta
+\ge
+2\sigma\sqrt{\frac{2}{\pi n}}
+=
+\sigma\sqrt{\frac{8}{\pi n}},
+\qquad
+\delta^2
+\ge
+\frac8\pi\frac{\sigma^2}{n}.
+$$
+Intersecting with the standing restriction $\delta\in(0,1]$ produces $\delta^2\ge\min\{1,(8/\pi)\sigma^2/n\}$.
+
+(The remark after Theorem 13.5 prints $\delta_n^2\ge(2/\pi)\sigma^2/n$. That constant is what one would obtain by writing $\mathcal G_n/\delta\le\delta/\sigma$ instead of $\delta/(2\sigma)$. The calculation above matches Exercise 13.5, not the remark.)
+:::
+
+### Exercise 13.6
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Local Gaussian complexity and adaptivity. Let $f_\theta(x)=\langle\theta,x\rangle$ and $\mathcal F_{\ell_1}(1)=\{f_\theta:\|\theta\|_1\le 1\}$. Observe
+$$
+y_i
+=
+f_{\theta^*}(e_i)+\frac{\sigma}{\sqrt n}w_i
+=
+\theta^*_i+\frac{\sigma}{\sqrt n}w_i,
+$$
+and let $\widehat\theta$ be $\ell_1$-constrained least squares.
+(a) For any $f_{\theta^*}\in\mathcal F_{\ell_1}(1)$, show $\mathcal G_n(\delta;\mathcal F_{\ell_1}^*(1))\le c_1\sqrt{\log n/n}$, and hence $\|\widehat\theta-\theta^*\|_2^2\le c_1'\sigma\sqrt{\log n/n}$ with high probability.
+(b) If $\theta^*\in\{e_1,\ldots,e_n\}$, show $\mathcal G_n(\delta;\mathcal F_{\ell_1}^*(1))\le c_2\delta\sqrt{\log n/n}$, and hence $\|\widehat\theta-\theta^*\|_2^2\le c_2'\sigma^2\log n/n$ with high probability.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The design points are the standard basis vectors of $\mathbb R^n$ (so the ambient dimension equals the sample size). Then $g(e_i)=\Delta_i$ for $\Delta=\theta-\theta^*$, and
+$$
+\|g\|_n
+=
+n^{-1/2}\|\Delta\|_2,
+\qquad
+\frac1n\sum_{i=1}^n w_i g(e_i)
+=
+n^{-1}\langle w,\Delta\rangle.
+$$
+The noise standard deviation in the notation of Theorem 13.5 is $\widetilde\sigma=\sigma/\sqrt n$, not $\sigma$. Also $\|\widehat\theta-\theta^*\|_2^2=n\|\widehat f-f^*\|_n^2$.
+
+(a) The shift $\mathcal F_{\ell_1}^*(1)$ is contained in $\{\Delta:\|\Delta\|_1\le 2\}$. Therefore
+$$
+\mathcal G_n(\delta)
+\le
+\mathbb E\Bigl[\sup_{\|\Delta\|_1\le 2}n^{-1}|\langle w,\Delta\rangle|\Bigr]
+=
+\frac2n\mathbb E\|w\|_\infty.
+$$
+For standard Gaussian coordinates, $\mathbb E\|w\|_\infty\le\sqrt{2\log n}+C$ (e.g. a union bound plus a Gaussian tail integral). Thus $\mathcal G_n(\delta)\le c_1\sqrt{\log n}/n$, uniformly in $\delta$. The critical inequality $\mathcal G_n(\delta)/\delta\le\delta/(2\widetilde\sigma)$ holds as soon as
+$$
+\frac{c\sqrt{\log n}}{n\delta}
+\le
+\frac{\delta}{2\widetilde\sigma}
+=
+\frac{\delta\sqrt n}{2\sigma}
+\quad\Rightarrow\quad
+\delta^2
+\gtrsim
+\sigma\frac{\sqrt{\log n}}{n^{3/2}}.
+$$
+Theorem 13.5 yields $\|\widehat f-f^*\|_n^2\lesssim\delta^2$ with high probability, hence
+$$
+\|\widehat\theta-\theta^*\|_2^2
+=
+n\|\widehat f-f^*\|_n^2
+\lesssim
+\sigma\sqrt{\frac{\log n}{n}}.
+$$
+This is the slow (global-complexity) rate: the $\ell_1$ constraint was used, but not the localization $\|g\|_n\le\delta$.
+
+(b) Take $\theta^*=e_1$ without loss of generality. For $\theta$ with $\|\theta\|_1\le 1$ write $\Delta=\theta-e_1$. Then $\Delta_1=\theta_1-1\le 0$ and
+$$
+\|\theta\|_1
+=
+|\theta_1|+\sum_{j=2}^n|\theta_j|
+=
+|1+\Delta_1|+\sum_{j=2}^n|\Delta_j|
+\le 1.
+$$
+For $\Delta_1\ge-1$ this rearranges as $\sum_{j=2}^n|\Delta_j|\le-\Delta_1$. In particular $\|\Delta\|_1\le 2|\Delta_1|$. Combined with $\|\Delta\|_2\le\delta\sqrt n$ (the localization $\|g\|_n\le\delta$),
+$$
+n^{-1}|\langle w,\Delta\rangle|
+\le
+n^{-1}\|w\|_\infty\|\Delta\|_1
+\le
+2n^{-1}\|w\|_\infty\cdot\|\Delta\|_2
+\le
+2n^{-1}\|w\|_\infty\cdot\delta\sqrt n.
+$$
+Taking expectations, $\mathcal G_n(\delta)\le c_2\delta\sqrt{\log n/n}$. (The same bound follows from the Gaussian width of the tangent cone of the $\ell_1$ ball at a vertex.) Now the critical inequality reads
+$$
+c\sqrt{\frac{\log n}{n}}
+\le
+\frac{\delta}{2\widetilde\sigma}
+=
+\frac{\delta\sqrt n}{2\sigma}
+\quad\Rightarrow\quad
+\delta
+\gtrsim
+\sigma\frac{\sqrt{\log n}}{n},
+\quad
+\delta^2
+\gtrsim
+\frac{\sigma^2\log n}{n^2}.
+$$
+Multiplying by $n$,
+$$
+\|\widehat\theta-\theta^*\|_2^2
+\lesssim
+\sigma^2\frac{\log n}{n}.
+$$
+Localization at a vertex therefore improves a $\sqrt{\log n/n}$ rate into the parametric rate $\log n/n$. This is the adaptivity advertised in the stem: the same constrained estimator automatically charges a smaller critical radius when $f^*$ sits at a simple point of $\mathcal F$.
+:::
+
+### Exercise 13.7
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Rates for polynomial regression. Let $\mathcal P_m=\{f_\theta:\theta\in\mathbb R^m\}$ with $f_\theta(x)=\sum_{j=0}^{m-1}\theta_j x^j$, and suppose $f^*\in\mathcal P_m$. Show that the least-squares estimator satisfies
+$$
+\mathbb P\Bigl[\|\widehat f-f^*\|_n^2
+\ge
+c_0\frac{\sigma^2 m\log n}{n}\Bigr]
+\le
+c_1 e^{-c_2 m\log n}.
+$$
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+$\mathcal P_m$ is an $m$-dimensional linear space, hence convex and star-shaped around every point; $\mathcal P_m^*=\mathcal P_m$. If one invokes Example 13.8 with $\mathbf X$ the $n\times m$ Vandermonde matrix, $\mathrm{rank}(\mathbf X)\le m$ already yields $\delta_n^2\asymp\sigma^2 m/n$ and a tail $e^{-c n\delta_n^2/\sigma^2}=e^{-c'm}$. The extra $\log n$ in the stem is what a metric-entropy argument produces if one does not use the linear structure beyond a crude sup-norm comparison.
+
+A convenient comparison: on any fixed design, an $m$-dimensional subspace $V\subset\mathbb R^n$ of function vectors satisfies the discrete Nikolskii bound
+$$
+\|g\|_\infty
+\le
+\sqrt n\,\|g\|_n
+\qquad\text{for all }g\in\mathcal P_m,
+$$
+simply because $\|g\|_\infty\le\|(g(x_i))_{i=1}^n\|_2$. Thus the $\delta$-ball in $\|\cdot\|_n$ is contained in an $\ell_\infty$ ball of radius $\delta\sqrt n$. Covering that Euclidean $m$-ball at resolution $t$ in $\|\cdot\|_n$ (equivalently, covering a Euclidean ball of radius $\delta\sqrt n$ in $\mathbb R^n\cap V$ at resolution $t\sqrt n$) costs
+$$
+\log N_n\bigl(t;\mathbb B_n(\delta;\mathcal P_m)\bigr)
+\le
+m\log\Bigl(1+\frac{C\delta}{t}\Bigr)
+\le
+m\log\Bigl(1+\frac{C\sqrt n\,\delta}{t}\Bigr)
+$$
+if one elects to pass through the $\ell_\infty$ covering of the range of the design (volume ratio in $\ell_\infty$ on $n$ coordinates, or a grid on an interval of length $O(\delta\sqrt n)$). Feeding the $m\log(n\delta/t)$ bound into Corollary 13.7,
+$$
+\frac1{\sqrt n}\int_{\delta^2/(4\sigma)}^\delta\sqrt{m\log(Cn\delta/t)}\,dt
+\lesssim
+\delta\sqrt{\frac{m\log n}{n}}
+$$
+for $\delta\in(0,\sigma]$. The critical condition holds for $\delta_n^2\asymp\sigma^2 m\log n/n$. Theorem 13.5 with $t=\delta_n$ then gives the stated tail, because
+$$
+\frac{n t\delta_n}{\sigma^2}
+=
+\frac{n\delta_n^2}{\sigma^2}
+\asymp
+m\log n.
+$$
+
+(The $\log n$ is an artefact of the $\ell_\infty$ route. The volume-ratio argument of Example 13.8 removes it and is sharp; the exercise asks for a bound that is valid uniformly over designs, at the price of $\log n$.)
+:::
+
+### Exercise 13.8
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Rates for twice-differentiable functions. Let $\mathcal F$ be the class of twice-differentiable $f:[0,1]\to\mathbb R$ with $\|f\|_\infty+\|f'\|_\infty+\|f''\|_\infty\le C$. Show that
+$$
+\mathbb P\Bigl[\|\widehat f-f^*\|_n^2
+\ge
+c_0\Bigl(\frac{\sigma^2}{n}\Bigr)^{4/5}\Bigr]
+\le
+c_1\exp\bigl(-c_2(n/\sigma^2)^{1/5}\bigr).
+$$
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The class is convex (an intersection of convex constraints) and bounded in $C^2$, hence star-shaped around every point. A standard covering estimate for Hölder balls (Example 5.10, or the Kolmogorov–Tikhomirov entropy of $\{f:\|f^{(k)}\|_\infty\le C\}$) gives
+$$
+\log N_\infty(\epsilon;\mathcal F)
+\lesssim
+\Bigl(\frac{C}{\epsilon}\Bigr)^{1/2}
+$$
+for $\epsilon>0$ small: two derivatives produce entropy exponent $1/k=1/2$. The same bound controls $N_n$, because $\|\cdot\|_n\le\|\cdot\|_\infty$. Corollary 13.7 therefore requires
+$$
+\frac1{\sqrt n}\int_{0}^\delta t^{-1/4}\,dt
+\lesssim
+\frac{\delta^{3/4}}{\sqrt n}
+\lesssim
+\frac{\delta^2}{\sigma},
+$$
+i.e. $\delta^{5/4}\gtrsim\sigma n^{-1/2}$, or $\delta^2\asymp(\sigma^2/n)^{4/5}$. (Constants depending on $C$ are absorbed into $c_0$.) Theorem 13.5 with $t=\delta_n$ yields the tail
+$$
+\exp\bigl(-c n\delta_n^2/\sigma^2\bigr)
+=
+\exp\bigl(-c'(n/\sigma^2)^{1/5}\bigr).
+$$
+This is the same exponent as the convex Lipschitz class in Example 13.11: a uniform bound on $f''$ is statistically comparable to convexity plus Lipschitzness, as the remarks after (13.35) suggest.
+:::
+
+### Exercise 13.9
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Rates for additive nonparametric models. Let $\mathcal G$ be a convex symmetric univariate class with a norm $\|\cdot\|_{\mathcal G}$, and
+$$
+\mathcal F_{\mathrm{add}}
+=
+\Bigl\{
+f:\mathbb R^d\to\mathbb R
+\Bigm|
+f=\sum_{j=1}^d g_j,\
+g_j\in\mathcal G,\
+\|g_j\|_{\mathcal G}\le 1
+\Bigr\}.
+\tag{13.70}
+$$
+Let $f^*=\sum_{j=1}^d g_j^*$ lie in $\mathcal F_{\mathrm{add}}$, and let $\widehat f$ be constrained least squares over $\mathcal F_{\mathrm{add}}$. For each coordinate define
+$$
+\mathcal G_{n,j}(\delta;2\mathcal G)
+=
+\mathbb E
+\Biggl[
+\sup_{\substack{\|g_j\|_{\mathcal G}\le 2\\\|g_j\|_n\le\delta}}
+\Biggl\lvert
+\frac1n\sum_{i=1}^n w_i g_j(x_{ij})
+\Biggr\rvert
+\Biggr],
+$$
+and let $\delta_{n,j}$ be the smallest positive solution of $\mathcal G_{n,j}(\delta;2\mathcal G)/\delta\le\delta/(2\sigma)$. Set $\delta_{n,\max}=\max_j\delta_{n,j}$.
+(a) For $t\ge\delta_{n,\max}$,
+$$
+\frac{\sigma}{n}\Bigl\lvert\sum_{i=1}^n w_i\widehat\Delta(x_i)\Bigr\rvert
+\le
+d t\delta_{n,\max}
++
+2\sqrt{t\delta_{n,\max}}\Bigl(\sum_{j=1}^d\|\widehat\Delta_j\|_n\Bigr)
+$$
+with probability at least $1-c_1 d\,e^{-c_2 nt\delta_{n,\max}}$, where $\widehat f=\sum_j\widehat g_j$ and $\widehat\Delta_j=\widehat g_j-g_j^*$.
+(b) Suppose $\sqrt{\sum_{j=1}^d\|g_j\|_n^2}\le\sqrt K\|\sum_{j=1}^d g_j\|_n$ for all $g_j\in\mathcal G$ (the printed first sum runs to $n$; see the remark). Deduce $\|\widehat f-f^*\|_n^2\le c_3 K d\,\delta_{n,\max}^2$ with high probability.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) Convexity and symmetry of $\mathcal G$ make each coordinate class star-shaped, and $\widehat\Delta_j\in 2\mathcal G$ because both $\widehat g_j$ and $g_j^*$ lie in the unit ball. Lemma 13.12 applied to coordinate $j$ with $u=\sqrt{t\delta_{n,\max}}$ (which is at least $\delta_{n,j}$) yields: on an event of probability $\ge 1-e^{-nt\delta_{n,\max}/(2\sigma^2)}$,
+$$
+\frac{\sigma}{n}\Bigl\lvert\sum_{i=1}^n w_i\widehat\Delta_j(x_{ij})\Bigr\rvert
+\le
+2\|\widehat\Delta_j\|_n\sqrt{t\delta_{n,\max}}
+$$
+whenever $\|\widehat\Delta_j\|_n\ge\sqrt{t\delta_{n,\max}}$, while if $\|\widehat\Delta_j\|_n$ is smaller the same lemma-plus-critical-radius argument as in Theorem 13.5 gives a bound of order $t\delta_{n,\max}$. In all, for each $j$,
+$$
+\frac{\sigma}{n}\Bigl\lvert\sum_{i=1}^n w_i\widehat\Delta_j(x_{ij})\Bigr\rvert
+\le
+t\delta_{n,\max}
++
+2\sqrt{t\delta_{n,\max}}\,\|\widehat\Delta_j\|_n.
+$$
+Sum over $j=1,\ldots,d$ and use $\widehat\Delta=\sum_j\widehat\Delta_j$ (so the left-hand side telescopes to the full inner product). A union bound costs a factor $d$ in the failure probability.
+
+(b) The printed display has $\sum_{j=1}^n\|g_j\|_n^2$ on the left and a stray right bracket after $\|\widehat f-f^*\|_n^2$. There are only $d$ additive components, and the target bound involves $Kd$, so the compatibility condition is
+$$
+\sqrt{\sum_{j=1}^d\|g_j\|_n^2}
+\le
+\sqrt K\Bigl\|\sum_{j=1}^d g_j\Bigr\|_n
+\qquad\text{for all }g_j\in\mathcal G.
+$$
+Cauchy–Schwarz then gives
+$$
+\sum_{j=1}^d\|\widehat\Delta_j\|_n
+\le
+\sqrt d\sqrt{\sum_{j=1}^d\|\widehat\Delta_j\|_n^2}
+\le
+\sqrt{dK}\,\|\widehat\Delta\|_n.
+$$
+The basic inequality (13.18) together with (a) at $t=\delta_{n,\max}$ becomes
+$$
+\frac12\|\widehat\Delta\|_n^2
+\le
+d\delta_{n,\max}^2
++
+2\delta_{n,\max}\sqrt{dK}\,\|\widehat\Delta\|_n.
+$$
+The quadratic inequality $u^2/2\le A+B u$ implies $u^2\le 4A+4B^2$. Here $A=d\delta_{n,\max}^2$ and $B=2\delta_{n,\max}\sqrt{dK}$, so
+$$
+\|\widehat\Delta\|_n^2
+\le
+c\,d\delta_{n,\max}^2
++
+c'\,K d\,\delta_{n,\max}^2
+\le
+c_3 K d\,\delta_{n,\max}^2,
+$$
+using $K\ge 1$. This is the claimed bound (without the extra `]`).
+
+The estimate is linear in $d$ and inherits the univariate critical radius $\delta_{n,\max}$. Additive structure therefore replaces the $d$-exponential covering numbers of a genuinely $d$-variate nonparametric class by $d$ copies of a univariate entropy.
+:::
+
+### Exercise 13.10
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Orthogonal series expansions. Let $\mathcal F_{\mathrm{ortho}}(1;T)$ be as in Example 13.14.
+(a) With $\Phi\in\mathbb R^{n\times T}$, $\Phi_{ij}=\phi_j(x_i)$, show that the constrained least-squares estimate over $\mathcal F_{\mathrm{ortho}}(1;T)$ is obtained by a ridge regression
+$$
+\min_{\theta\in\mathbb R^T}
+\Bigl\{\frac1n\|y-\Phi\theta\|_2^2+\lambda_n\|\theta\|_2^2\Bigr\}
+$$
+for a suitable $\lambda_n\ge 0$.
+(b) Show that $\inf_{f\in\mathcal F_{\mathrm{ortho}}(1;T)}\|f-f^*\|_2^2=\sum_{j=T+1}^\infty(\theta_j^*)^2$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) Every $f=\sum_{m=1}^T\beta_m\phi_m$ in the class has values $(f(x_i))_{i=1}^n=\Phi\beta$ and Hilbert constraint $\|\beta\|_2\le 1$. Constrained least squares is therefore
+$$
+\min_{\|\beta\|_2\le 1}\frac1n\|y-\Phi\beta\|_2^2.
+$$
+If an unconstrained minimizer already satisfies $\|\beta\|_2\le 1$, it is optimal and corresponds to $\lambda_n=0$. Otherwise the minimum is attained on the sphere $\|\beta\|_2=1$. Lagrange multipliers (or the KKT condition $n^{-1}\Phi^T(\Phi\beta-y)+\lambda\beta=0$ with $\lambda\ge 0$) rearrange as
+$$
+\Bigl(\frac1n\Phi^T\Phi+\lambda I_T\Bigr)\beta
+=
+\frac1n\Phi^T y,
+$$
+which is the normal equation of the ridge problem with $\lambda_n=\lambda$. Thus a single $\lambda_n\ge 0$ reproduces the constrained estimator. (If $\Phi$ does not have full column rank the same identity holds on the range, with the pseudoinverse.)
+
+(b) Orthonormality in $L^2(\mathbb P)$ and Parseval give $f^*=\sum_{m=1}^\infty\theta_m^*\phi_m$ with $\|f^*\|_2^2=\sum_m(\theta_m^*)^2$. For $f=\sum_{m=1}^T\beta_m\phi_m$,
+$$
+\|f-f^*\|_2^2
+=
+\sum_{m=1}^T(\beta_m-\theta_m^*)^2
++\sum_{m=T+1}^\infty(\theta_m^*)^2.
+$$
+The first sum is minimized, subject to $\|\beta\|_2\le 1$, by taking $\beta_m=\theta_m^*$ whenever $\sum_{m=1}^T(\theta_m^*)^2\le 1$ (which holds because the full $\ell_2$ sequence has norm at most $1$ in Example 13.14), and the minimum of that sum is then $0$. The remainder is exactly $\sum_{m>T}(\theta_m^*)^2$, attained at the truncated expansion $\widetilde f_T=\sum_{m=1}^T\theta_m^*\phi_m$.
+:::
+
+### Exercise 13.11
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Differentiable functions and Fourier coefficients. For integer $\alpha\ge 1$ and radius $R>0$, let $\mathcal F_\alpha(R)\subset L^2[0,1]$ consist of $\alpha$-times differentiable functions with $\int_0^1(f^{(\alpha)})^2\le R$ and $f^{(j)}(0)=f^{(j)}(1)=0$ for $j=0,\ldots,\alpha$.
+(a) For $f\in\mathcal F_\alpha(R)\cap\{\|f\|_2\le 1\}$, show that the Fourier coefficients from Example 13.15 satisfy $\beta_m^2+\widetilde\beta_m^2\le cR/m^{2\alpha}$ for all $m\ge 1$.
+(b) Verify the approximation bound (13.47).
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) Write $\phi_m=\sqrt 2\cos(2\pi m x)$ and $\widetilde\phi_m=\sqrt 2\sin(2\pi m x)$. The boundary conditions $f^{(j)}(0)=f^{(j)}(1)=0$ for $j=0,\ldots,\alpha-1$ kill every boundary term upon integrating by parts $\alpha$ times:
+$$
+\int_0^1 f(x)\,\phi_m(x)\,dx
+=
+(2\pi m)^{-\alpha}
+\int_0^1 f^{(\alpha)}(x)\,\phi_m^{(\mathrm{sign})}(x)\,dx,
+$$
+and likewise for $\widetilde\phi_m$, where $\phi_m^{(\mathrm{sign})}$ is $\pm\phi_m$ or $\pm\widetilde\phi_m$ according to the residue of $\alpha$ modulo $4$. Cauchy–Schwarz then yields
+$$
+\beta_m^2
+\le
+(2\pi m)^{-2\alpha}
+\int_0^1(f^{(\alpha)})^2
+\cdot
+\int_0^1(\phi_m^{(\mathrm{sign})})^2
+\le
+C_\alpha\, m^{-2\alpha} R,
+$$
+and the same bound for $\widetilde\beta_m^2$. Adding the two displays,
+$$
+\beta_m^2+\widetilde\beta_m^2
+\le
+\frac{cR}{m^{2\alpha}}.
+$$
+(The constraint $\|f\|_2\le 1$ is not required for this coefficient bound; it is used to place $f$ inside a rescaled copy of $\mathcal G(1;M)$ in Example 13.15.)
+
+(b) Let $f_M$ be the truncated Fourier series of $f$ up to frequency $M$ (including the constant term). Parseval and the identity $\int(f^{(\alpha)})^2\gtrsim\sum_{m\ge 1} m^{2\alpha}(\beta_m^2+\widetilde\beta_m^2)$ (again using that boundary terms vanish) give
+$$
+\|f-f_M\|_2^2
+=
+\sum_{m>M}(\beta_m^2+\widetilde\beta_m^2)
+\le
+M^{-2\alpha}\sum_{m>M} m^{2\alpha}(\beta_m^2+\widetilde\beta_m^2)
+\le
+\frac{c'R}{M^{2\alpha}}.
+$$
+This is (13.47). The truncated series lies in $\mathcal G(1;M)$ as soon as $\|f\|_2\le 1$, because the partial sum of squared coefficients is at most $\|f\|_2^2\le 1$.
+
+(The coefficient bound printed in Example 13.15 omits $R$. Part (a) shows that $R$ belongs in the numerator, in agreement with (13.47).)
+:::

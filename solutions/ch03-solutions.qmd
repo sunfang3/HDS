@@ -1,0 +1,668 @@
+---
+title: "Chapter 3 Exercises"
+subtitle: "Wainwright, High-Dimensional Statistics §3.6"
+description: "Exercise list locked from the textbook; solved independently"
+execute:
+  enabled: false
+---
+
+# How to use this file
+
+- **Textbook:** Martin J. Wainwright, *High-Dimensional Statistics: A Non-Asymptotic Viewpoint* (Cambridge Series in Statistical and Probabilistic Mathematics, No. 48; 2019).
+- **Range:** Exercises 3.1–3.16 in §3.6.
+- **Pages:** printed pp. 92–97; PDF pp. 111–116 (offset **PDF = printed + 19**).
+- **Principle:** stems follow the textbook; solutions are independent. Identities printed in the book are recomputed.
+- **Companion notes:** [`ch03-notes.qmd`](../notes/ch03-notes.qmd).
+
+### Exercise 3.1
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Shannon entropy $H(X):=-\sum_{x\in\mathcal X}p(x)\log p(x)$ versus the $\phi$-entropy (3.2) with $\phi(u)=u\log u$.
+(a) For $Z=p(U)$ with $U$ uniform on $\mathcal X$, show $H(Z)=\frac1{\lvert\mathcal X\rvert}\{\log\lvert\mathcal X\rvert-H(X)\}$.
+(b) Deduce that Shannon entropy of a discrete random variable is maximised by the uniform distribution.
+(c) Given pmfs $p$ and $q$, exhibit $Y$ with $H(Y)=D(p\Vert q)$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Write $m:=\lvert\mathcal X\rvert$.
+
+**(a).** $U$ is uniform, so $\mathbb E[Z]=m^{-1}\sum_x p(x)=m^{-1}$ and
+$$
+\mathbb E[Z\log Z]
+=
+m^{-1}\sum_x p(x)\log p(x)
+=
+-m^{-1}H(X).
+$$
+Hence
+$$
+H(Z)
+=
+\mathbb E[Z\log Z]-\mathbb E[Z]\log\mathbb E[Z]
+=
+-m^{-1}H(X)-m^{-1}\log(m^{-1})
+=
+m^{-1}\{\log m-H(X)\}.
+$$
+
+**(b).** Jensen (or $\phi$-convexity) gives $H(Z)\ge 0$, so $H(X)\le\log m$. Equality holds iff $Z$ is a.s. constant, i.e. $p$ is uniform.
+
+**(c).** Let $X\sim q$ and set $Y:=p(X)/q(X)$ (on $\{q>0\}$; the KL is $+\infty$ if $p\not\ll q$). Then $\mathbb E[Y]=\sum_x q(x)\cdot(p(x)/q(x))=1$ and
+$$
+\mathbb E[Y\log Y]
+=
+\sum_x p(x)\log\frac{p(x)}{q(x)}
+=
+D(p\Vert q),
+$$
+so $H(Y)=D(p\Vert q)-\,1\cdot\log 1=D(p\Vert q)$. (The symmetric choice $Y=q(X)/p(X)$ with $X\sim p$ yields $D(q\Vert p)$.)
+:::
+
+### Exercise 3.2
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Chain rule: $D(\mathbb Q\Vert\mathbb P)=D(\mathbb Q_1\Vert\mathbb P_1)+\sum_{j=2}^n\mathbb E_{\mathbb Q_1^{j-1}}\bigl[D(\mathbb Q_j(\cdot\mid X_1^{j-1})\Vert\mathbb P_j(\cdot\mid X_1^{j-1}))\bigr]$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Assume $\mathbb Q\ll\mathbb P$ (otherwise both sides are $+\infty$). On a countable space the joint pmfs factor as
+$$
+q(x_1^n)=q_1(x_1)\prod_{j=2}^n q_j(x_j\mid x_1^{j-1}),
+\qquad
+p(x_1^n)=p_1(x_1)\prod_{j=2}^n p_j(x_j\mid x_1^{j-1}),
+$$
+so
+$$
+\log\frac{q(x_1^n)}{p(x_1^n)}
+=
+\log\frac{q_1(x_1)}{p_1(x_1)}
++\sum_{j=2}^n\log\frac{q_j(x_j\mid x_1^{j-1})}{p_j(x_j\mid x_1^{j-1})}.
+$$
+Take $\mathbb E_{\mathbb Q}$. The first term is $D(\mathbb Q_1\Vert\mathbb P_1)$. For each $j\ge 2$ the tower property gives
+$$
+\mathbb E_{\mathbb Q}\Bigl[\log\frac{q_j(X_j\mid X_1^{j-1})}{p_j(X_j\mid X_1^{j-1})}\Bigr]
+=
+\mathbb E_{\mathbb Q_1^{j-1}}\bigl[D(\mathbb Q_j(\cdot\mid X_1^{j-1})\Vert\mathbb P_j(\cdot\mid X_1^{j-1}))\bigr].
+$$
+The same identity holds with densities against a dominating measure, replacing sums by integrals. If the coordinates are independent under $\mathbb P$, then $\mathbb P_j(\cdot\mid X_1^{j-1})=\mathbb P_j$ and the formula reduces to the one used in the proof of Proposition 3.20.
+:::
+
+### Exercise 3.3
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Show $H(e^{\lambda X})=\inf_{t\in\mathbb R}\mathbb E\bigl[\psi(\lambda(X-t))e^{\lambda X}\bigr]$ with $\psi(u):=e^{-u}-1+u$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Expand the integrand:
+$$
+\psi(\lambda(X-t))e^{\lambda X}
+=
+e^{\lambda t}-e^{\lambda X}+\lambda(X-t)e^{\lambda X}.
+$$
+Taking expectations and writing $\varphi(\lambda):=\mathbb E[e^{\lambda X}]$,
+$$
+\mathbb E\bigl[\psi(\lambda(X-t))e^{\lambda X}\bigr]
+=
+e^{\lambda t}-\varphi(\lambda)+\lambda\varphi'(\lambda)-\lambda t\,\varphi(\lambda).
+$$
+Differentiate in $t$: the critical point satisfies $\lambda e^{\lambda t}-\lambda\varphi(\lambda)=0$, i.e. $t_\ast=\lambda^{-1}\log\varphi(\lambda)$ (for $\lambda\neq 0$; the $\lambda=0$ case is $0=0$). Substitute $e^{\lambda t_\ast}=\varphi(\lambda)$:
+$$
+e^{\lambda t_\ast}-\varphi+\lambda\varphi'-\lambda t_\ast\varphi
+=
+\lambda\varphi'-\varphi\log\varphi
+=
+H(e^{\lambda X}),
+$$
+by (3.3). The second derivative in $t$ is $\lambda^2 e^{\lambda t}>0$ for $\lambda\neq 0$, so the critical point is a minimum. Thus the infimum equals the entropy.
+:::
+
+### Exercise 3.4
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+(a) $H(e^{\lambda(X+c)})=e^{\lambda c}H(e^{\lambda X})$.
+(b) If $X$ satisfies (3.5), so does $X+c$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** Let $Z:=e^{\lambda X}$ and $\varphi(\lambda):=\mathbb E[Z]$. Then $\mathbb E[e^{\lambda(X+c)}]=e^{\lambda c}\varphi(\lambda)$ and
+\begin{align*}
+H(e^{\lambda(X+c)})
+&=
+\mathbb E\bigl[\lambda(X+c)e^{\lambda(X+c)}\bigr]
+-e^{\lambda c}\varphi(\lambda)\cdot\bigl(\lambda c+\log\varphi(\lambda)\bigr)\\
+&=
+e^{\lambda c}\bigl(\lambda\mathbb E[X e^{\lambda X}]+\lambda c\,\varphi-\lambda c\,\varphi-\varphi\log\varphi\bigr)\\
+&=
+e^{\lambda c}H(e^{\lambda X}).
+\end{align*}
+
+**(b).** The bound (3.5) reads $H(e^{\lambda X})\le\tfrac12\sigma^2\lambda^2\varphi_X(\lambda)$. Multiply by $e^{\lambda c}$ and use (a):
+$$
+H(e^{\lambda(X+c)})
+\le
+\tfrac12\sigma^2\lambda^2 e^{\lambda c}\varphi_X(\lambda)
+=
+\tfrac12\sigma^2\lambda^2\varphi_{X+c}(\lambda).
+$$
+:::
+
+### Exercise 3.5
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $H_\varphi$ be the entropy for $\varphi(u)=u\log u-u$. Show $H_\varphi(e^{\lambda X})=H(e^{\lambda X})$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+For $Z\ge 0$,
+$$
+H_\varphi(Z)
+=
+\mathbb E[Z\log Z-Z]-\bigl(\mathbb E[Z]\log\mathbb E[Z]-\mathbb E[Z]\bigr)
+=
+\mathbb E[Z\log Z]-\mathbb E[Z]\log\mathbb E[Z]
+=
+H(Z).
+$$
+Apply this to $Z=e^{\lambda X}$.
+:::
+
+### Exercise 3.6
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Recentering and rescaling for Proposition 3.3.
+(a) $X$ satisfies (3.10) iff $\widetilde X:=X-\mathbb E[X]$ satisfies
+$$
+H(e^{\lambda X})
+\le
+\lambda^2\{b\varphi_x'(\lambda)+\varphi_x(\lambda)\sigma^2\}
+\qquad\lambda\in[0,1/b).
+\tag{3.90}
+$$
+(b) A zero-mean $X$ satisfies (3.90) iff $\widetilde X:=X/b$ satisfies $H(e^{\lambda\widetilde X})\le\lambda^2\{\varphi_{\widetilde X}'(\lambda)+\tilde\sigma^2\varphi_{\widetilde X}(\lambda)\}$ for $\lambda\in[0,1)$, with $\tilde\sigma^2=\sigma^2/b^2$.
+:::
+
+::: {.callout-note icon="false" title="Remark on (3.90)"}
+Printed (3.90) still writes $H(e^{\lambda X})$ and $\varphi_x$ after defining $\widetilde X=X-\mathbb E[X]$. The identity is the Bernstein entropy bound for the *centred* variable. The solution uses centred/rescaled symbols throughout. Flagged as `勘误待批`.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** Let $\mu:=\mathbb E[X]$ and $\widetilde X:=X-\mu$. Exercise 3.4 gives $H(e^{\lambda\widetilde X})=e^{-\lambda\mu}H(e^{\lambda X})$. Also $\varphi_{\widetilde X}(\lambda)=e^{-\lambda\mu}\varphi_X(\lambda)$ and
+$$
+\varphi_{\widetilde X}'(\lambda)
+=
+e^{-\lambda\mu}\bigl(\varphi_X'(\lambda)-\mu\varphi_X(\lambda)\bigr).
+$$
+Multiply (3.10) by $e^{-\lambda\mu}$:
+\begin{align*}
+e^{-\lambda\mu}H(e^{\lambda X})
+&\le
+\lambda^2 e^{-\lambda\mu}\bigl\{b\varphi_X'(\lambda)+\varphi_X(\lambda)(\sigma^2-b\mu)\bigr\}\\
+&=
+\lambda^2\bigl\{b\varphi_{\widetilde X}'(\lambda)+b\mu\varphi_{\widetilde X}(\lambda)+\varphi_{\widetilde X}(\lambda)(\sigma^2-b\mu)\bigr\}\\
+&=
+\lambda^2\bigl\{b\varphi_{\widetilde X}'(\lambda)+\sigma^2\varphi_{\widetilde X}(\lambda)\bigr\}.
+\end{align*}
+The converse is the same calculation run backwards (replace $X$ by $\widetilde X+\mu$).
+
+**(b).** Now $\mathbb E[X]=0$ and $Y:=X/b$, and write $\mu=\lambda/b$. Then $\varphi_Y(\lambda)=\varphi_X(\mu)$ and $\varphi_Y'(\lambda)=b^{-1}\varphi_X'(\mu)$. The $\phi$-entropy is a functional of the law of $e^{\lambda Y}=e^{\mu X}$, so $H(e^{\lambda Y})=H(e^{\mu X})$. The bound (3.90) at parameter $\mu\in[0,1/b)$ yields
+$$
+H(e^{\lambda Y})
+=
+H(e^{\mu X})
+\le
+\mu^2\bigl\{b\varphi_X'(\mu)+\sigma^2\varphi_X(\mu)\bigr\}.
+$$
+The right-hand side equals $\lambda^2\{\varphi_Y'(\lambda)+\tilde\sigma^2\varphi_Y(\lambda)\}$ because $\mu^2 b\varphi_X'(\mu)=\lambda^2\varphi_Y'(\lambda)$ and $\mu^2\sigma^2\varphi_X(\mu)=\lambda^2(\sigma^2/b^2)\varphi_Y(\lambda)$. The converse is the same rescaling with $b$ inverted.
+:::
+
+### Exercise 3.7
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Zero-mean $X$ supported on $[a,b]$: $H(e^{\lambda X})\le\frac{\lambda^2\sigma^2}{2}\varphi_x(\lambda)$ with $\sigma:=(b-a)/2$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Let $\varphi(\lambda):=\mathbb E[e^{\lambda X}]$ and $\psi(\lambda):=\log\varphi(\lambda)$. Then $\psi(0)=0$ and $\psi'(0)=\mathbb E[X]=0$. The second derivative is the variance under the exponentially tilted law $d\mathbb P_\lambda/d\mathbb P=e^{\lambda X}/\varphi(\lambda)$:
+$$
+\psi''(\lambda)
+=
+\mathrm{Var}_\lambda(X).
+$$
+Any random variable supported on $[a,b]$ has variance at most $(b-a)^2/4$ (Popoviciu: $\mathrm{Var}(X)=\mathbb E[(X-\frac{a+b}{2})^2]-\bigl(\mathbb E[X-\frac{a+b}{2}]\bigr)^2\le\sigma^2$). Thus $\psi''(\lambda)\le\sigma^2$ for every $\lambda$.
+
+From (3.3),
+$$
+\frac{H(e^{\lambda X})}{\varphi(\lambda)}
+=
+\lambda\psi'(\lambda)-\psi(\lambda)
+=
+\int_0^\lambda u\,\psi''(u)\,du
+\le
+\sigma^2\int_0^\lambda u\,du
+=
+\frac{\sigma^2\lambda^2}{2},
+$$
+which is the claim. (Exercise 3.3 is consistent with this: the infimum over $t$ equals $H$, and the second-derivative bound controls that infimum.)
+:::
+
+### Exercise 3.8
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Exponential family $p_\theta(y)=h(y)\exp(\langle\theta,T(y)\rangle-\Phi(\theta))$, with $\nabla\Phi$ $L$-Lipschitz in the Euclidean norm (the stem says “$\nabla A$ is Lipschitz”; the displayed bound (3.91) is on $\nabla\Phi$).
+(a) For $\lVert v\rVert_2=1$ and $X=\langle v,T(Y)\rangle$, show $H(e^{\lambda X})\le L\lambda^2\varphi_x(\lambda)$ and conclude that $X$ is sub-Gaussian with parameter $\sqrt{2L}$.
+(b) Gaussian $N(\mu,\sigma^2)$ and Bernoulli with $\theta=\tfrac12\log(\mathbb P[Y=1]/\mathbb P[Y=0])$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The log-partition $\Phi$ is used throughout (the undefined symbol $A$ in the stem is treated as $\Phi$).
+
+**(a).** The mgf of $X$ is
+$$
+\varphi_x(\lambda)
+=
+\mathbb E_\theta\bigl[e^{\lambda\langle v,T(Y)\rangle}\bigr]
+=
+\exp\bigl(\Phi(\theta+\lambda v)-\Phi(\theta)\bigr),
+$$
+because $p_{\theta+\lambda v}/p_\theta=\exp(\langle\lambda v,T\rangle-(\Phi(\theta+\lambda v)-\Phi(\theta)))$. Hence $\varphi_x'(\lambda)=\langle\nabla\Phi(\theta+\lambda v),v\rangle\,\varphi_x(\lambda)$ and
+$$
+\frac{H(e^{\lambda X})}{\varphi_x(\lambda)}
+=
+\lambda\langle\nabla\Phi(\theta+\lambda v),v\rangle-\Phi(\theta+\lambda v)+\Phi(\theta).
+$$
+Convexity of $\Phi$ gives $\Phi(\theta+\lambda v)\ge\Phi(\theta)+\langle\nabla\Phi(\theta),\lambda v\rangle$, so the display is at most
+$$
+\lambda\langle\nabla\Phi(\theta+\lambda v)-\nabla\Phi(\theta),v\rangle
+\le
+\lambda\cdot L\lvert\lambda\rvert\lVert v\rVert_2^2
+=
+L\lambda^2,
+$$
+by the Lipschitz assumption (3.91). Thus $H(e^{\lambda X})\le L\lambda^2\varphi_x(\lambda)$ for all $\lambda\in\mathbb R$. This is (3.5) with $\tfrac12\sigma^2=L$, i.e. $\sigma=\sqrt{2L}$. Proposition 3.2 yields the sub-Gaussian bound.
+
+**(b)(i).** Treat $\sigma^2$ as fixed and write $Y\sim N(\mu,\sigma^2)$ as a one-parameter exponential family with sufficient statistic $T(y)=y$ and natural parameter $\theta=\mu/\sigma^2$. Then $\Phi(\theta)=\sigma^2\theta^2/2$ up to a $\theta$-free constant, so $\nabla\Phi(\theta)=\sigma^2\theta$ is Lipschitz with $L=\sigma^2$. Part (a) gives that $Y$ is sub-Gaussian with parameter $\sqrt{2\sigma^2}=\sigma\sqrt 2$ (a valid but non-sharp constant; the exact parameter is $\sigma$).
+
+**(b)(ii).** The Bernoulli pmf may be written $p(y)=\exp(y\eta-\log(1+e^\eta))$ for $y\in\{0,1\}$, with $\eta=\log(p/(1-p))$. The given parameterisation $\theta=\eta/2$ corresponds to sufficient statistic $T(y)=2y$ and $\Phi(\theta)=\log(1+e^{2\theta})$. Then $\Phi'(\theta)=2e^{2\theta}/(1+e^{2\theta})=2p$ and $\Phi''(\theta)=4p(1-p)\le 1$, so $\nabla\Phi$ is Lipschitz with $L=1$. Part (a) yields that $T(Y)=2Y$ (hence $Y$) is sub-Gaussian.
+:::
+
+### Exercise 3.9
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+$H(e^{\lambda f(X)})=\sup\{\mathbb E[g(X)e^{\lambda f(X)}]:\mathbb E[e^{g(X)}]\le 1\}$. Exhibit a maximiser.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Write $Z:=e^{\lambda f(X)}$ and $\mu:=\mathbb E[Z]$, and let $\mathbb P_Z$ be the tilted law $d\mathbb P_Z/d\mathbb P=Z/\mu$. Donsker–Varadhan gives
+$$
+D(\mathbb P_Z\Vert\mathbb P)
+=
+\sup_g\bigl\{\mathbb E_{\mathbb P_Z}[g]-\log\mathbb E[e^g]\bigr\},
+$$
+so $\mathbb E_{\mathbb P_Z}[g]\le D(\mathbb P_Z\Vert\mathbb P)$ whenever $\mathbb E[e^g]\le 1$. Therefore
+$$
+\mathbb E[g Z]
+=
+\mu\,\mathbb E_{\mathbb P_Z}[g]
+\le
+\mu\,D(\mathbb P_Z\Vert\mathbb P).
+$$
+The KL equals $\mu^{-1}H(Z)$:
+$$
+D(\mathbb P_Z\Vert\mathbb P)
+=
+\mathbb E\Bigl[\frac Z\mu\log\frac Z\mu\Bigr]
+=
+\mu^{-1}\bigl(\mathbb E[Z\log Z]-\mu\log\mu\bigr)
+=
+\mu^{-1}H(Z).
+$$
+Hence $\mathbb E[g Z]\le H(Z)$. Equality holds at
+$$
+g_\ast
+=
+\log\frac{d\mathbb P_Z}{d\mathbb P}
+=
+\lambda f-\log\mu,
+$$
+which satisfies $\mathbb E[e^{g_\ast}]=1$ and $\mathbb E[g_\ast Z]=\lambda\mathbb E[f e^{\lambda f}]-\mu\log\mu=H(Z)$.
+
+(Alternatively: Exercise 3.5 identifies $H$ with the entropy of $\varphi(u)=u\log u-u$, whose convex conjugate is $e^t$; Young’s inequality $st\le s\log s-s+e^t$ with $s=Z$ recovers the same bound.)
+:::
+
+### Exercise 3.10
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Brunn–Minkowski.
+(a) (3.43) iff $\mathrm{vol}(A+B)^{1/n}\ge\mathrm{vol}(A)^{1/n}+\mathrm{vol}(B)^{1/n}$ for convex bodies $A,B$.
+(b) (3.43) $\Rightarrow$ (3.45).
+(c) (3.45) $\Rightarrow$ (3.43). Hint: rescale $C:=A/\mathrm{vol}(A)$ and $D:=B/\mathrm{vol}(B)$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** ($\Rightarrow$) $A+B=2\bigl(\tfrac12 A+\tfrac12 B\bigr)$, so
+$$
+\mathrm{vol}(A+B)^{1/n}
+=
+2\,\mathrm{vol}\bigl(\tfrac12 A+\tfrac12 B\bigr)^{1/n}
+\ge
+2\bigl(\tfrac12\mathrm{vol}(A)^{1/n}+\tfrac12\mathrm{vol}(B)^{1/n}\bigr)
+=
+\mathrm{vol}(A)^{1/n}+\mathrm{vol}(B)^{1/n},
+$$
+by (3.43) at $\lambda=1/2$. ($\Leftarrow$) Apply (3.92) to the bodies $\lambda C$ and $(1-\lambda)D$:
+$$
+\mathrm{vol}(\lambda C+(1-\lambda)D)^{1/n}
+\ge
+\lambda\,\mathrm{vol}(C)^{1/n}+(1-\lambda)\,\mathrm{vol}(D)^{1/n}.
+$$
+
+**(b).** Weighted AM–GM: $\lambda a+(1-\lambda)b\ge a^\lambda b^{1-\lambda}$ for $a,b\ge 0$. Raise (3.43) to the $n$-th power and apply AM–GM to $a=\mathrm{vol}(C)^{1/n}$, $b=\mathrm{vol}(D)^{1/n}$.
+
+**(c).** The printed hint writes $C:=A/\mathrm{vol}(A)$. The dimensionally correct (and standard) rescaling that produces unit volume is
+$$
+C
+:=
+\frac{A}{\mathrm{vol}(A)^{1/n}},
+\qquad
+D
+:=
+\frac{B}{\mathrm{vol}(B)^{1/n}},
+$$
+so that $\mathrm{vol}(C)=\mathrm{vol}(D)=1$. (The missing exponent $1/n$ is flagged as `勘误待批`.) Set
+$$
+\lambda
+:=
+\frac{\mathrm{vol}(A)^{1/n}}{\mathrm{vol}(A)^{1/n}+\mathrm{vol}(B)^{1/n}}.
+$$
+Then
+$$
+\lambda C+(1-\lambda)D
+=
+\frac{A+B}{\mathrm{vol}(A)^{1/n}+\mathrm{vol}(B)^{1/n}}.
+$$
+Inequality (3.45) yields $\mathrm{vol}(\lambda C+(1-\lambda)D)\ge 1$, which is (3.92). Part (a) upgrades (3.92) to (3.43).
+:::
+
+### Exercise 3.11
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Uniform measure on the Euclidean unit ball $\mathbb B_2^n$.
+(a) $\tfrac12\lVert a+b\rVert_2\le 1-\varepsilon^2/8$ for $a\in A$ and $b\in(A^\varepsilon)^c:=\mathbb B_2^n\setminus A^\varepsilon$.
+(b) $\mathbb P[A](1-\mathbb P[A^\varepsilon])\le(1-\varepsilon^2/8)^{2n}$ via (3.45).
+(c) $\alpha_{\mathbb P,(\mathcal X,\rho)}(\varepsilon)\le 2e^{-n\varepsilon^2/4}$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** Both $a$ and $b$ lie in the closed unit ball, and $\lVert a-b\rVert_2\ge\varepsilon$ because $b\notin A^\varepsilon$. Therefore
+$$
+\lVert a+b\rVert_2^2
+=
+2\lVert a\rVert_2^2+2\lVert b\rVert_2^2-\lVert a-b\rVert_2^2
+\le
+4-\varepsilon^2,
+$$
+so $\lVert a+b\rVert_2\le 2\sqrt{1-\varepsilon^2/4}$. The concavity bound $\sqrt{1-u}\le 1-u/2$ on $u\in[0,1]$ gives $\sqrt{1-\varepsilon^2/4}\le 1-\varepsilon^2/8$, which is the claim.
+
+**(b).** Part (a) says that every midpoint $(a+b)/2$ lies in $(1-\varepsilon^2/8)\mathbb B_2^n$. Brunn–Minkowski (3.45) at $\lambda=1/2$ yields
+$$
+\mathrm{vol}\bigl(\tfrac12 A+\tfrac12(A^\varepsilon)^c\bigr)
+\ge
+\sqrt{\mathrm{vol}(A)\,\mathrm{vol}((A^\varepsilon)^c)}.
+$$
+The left-hand side is at most $(1-\varepsilon^2/8)^n\mathrm{vol}(\mathbb B_2^n)$. Divide by $\mathrm{vol}(\mathbb B_2^n)$ (uniform measure) and square.
+
+**(c).** If $\mathbb P[A]\ge 1/2$, part (b) gives $\tfrac12(1-\mathbb P[A^\varepsilon])\le(1-\varepsilon^2/8)^{2n}\le\exp(-n\varepsilon^2/4)$. Thus $1-\mathbb P[A^\varepsilon]\le 2e^{-n\varepsilon^2/4}$. Take the supremum over such $A$.
+:::
+
+### Exercise 3.12
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Rademacher chaos. $Q\in\mathcal S_+^{d\times d}$ and $X=\sum_{i,j}Q_{ij}\varepsilon_i\varepsilon_j$.
+(a) $\mathbb P\bigl[X\ge(\sqrt{\mathrm{tr}\,Q}+t)^2\bigr]\le 2\exp\bigl(-t^2/(16\Vert\vert Q\Vert\vert_2)\bigr)$.
+(b) Decoupled chaos $Y=\sum_{i,j}M_{ij}\varepsilon_i\varepsilon_j'$: $\mathbb P[Y\ge\delta]\le 2\exp\bigl(-\delta^2/(4\Vert\vert M\Vert\vert_F^2+16\delta\Vert\vert M\Vert\vert_2)\bigr)$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** The square root $f(\varepsilon):=\sqrt{\varepsilon^T Q\varepsilon}=\lVert Q^{1/2}\varepsilon\rVert_2$ is a Euclidean norm in the coordinates $Q^{1/2}\varepsilon$, hence jointly convex. It is Lipschitz with constant $L=\lVert Q^{1/2}\rVert_{\mathrm{op}}=\sqrt{\Vert\vert Q\Vert\vert_2}$, because
+$$
+\bigl\lvert f(\varepsilon)-f(\varepsilon')\bigr\rvert
+\le
+\lVert Q^{1/2}(\varepsilon-\varepsilon')\rVert_2
+\le
+\lVert Q^{1/2}\rVert_{\mathrm{op}}\lVert\varepsilon-\varepsilon'\rVert_2.
+$$
+The coordinates $\varepsilon_i$ take values in $[-1,1]$. Theorem 3.4 therefore yields the one-sided bound
+$$
+\mathbb P\bigl[f(\varepsilon)\ge\mathbb E[f]+t\bigr]
+\le
+\exp\bigl(-t^2/(4L^2\cdot 4)\bigr)
+=
+\exp\bigl(-t^2/(16\Vert\vert Q\Vert\vert_2)\bigr).
+$$
+Jensen gives $\mathbb E[f]\le\sqrt{\mathbb E[f^2]}=\sqrt{\mathrm{tr}\,Q}$. Combining and inserting a slack factor $2$ produces (3.93). (Joint convexity plus Theorem 3.24, after the affine map $\varepsilon=2u-1$ onto $\{0,1\}^d$, also gives a two-sided bound of the same type.)
+
+**(b).** Condition on $\varepsilon'$. Then $Y=\langle\varepsilon,M\varepsilon'\rangle$ is linear in $\varepsilon$, hence convex and concave, with Euclidean Lipschitz constant $\sigma:=\lVert M\varepsilon'\rVert_2$. A linear function of independent Rademacher coordinates is sub-Gaussian with parameter $\sigma$, so
+$$
+\mathbb P[Y\ge\delta\mid\varepsilon']
+\le
+\exp\bigl(-\delta^2/(2\sigma^2)\bigr).
+$$
+Therefore, for any threshold $\tau>0$,
+$$
+\mathbb P[Y\ge\delta]
+\le
+\mathbb P[\sigma>\tau]+\exp\bigl(-\delta^2/(2\tau^2)\bigr).
+$$
+The random variable $\sigma^2=\varepsilon'^T(M^TM)\varepsilon'$ is a Rademacher chaos of the type in (a), with $\mathrm{tr}(M^TM)=\Vert\vert M\Vert\vert_F^2$ and $\Vert\vert M^TM\Vert\vert_2=\Vert\vert M\Vert\vert_2^2$. Part (a) gives
+$$
+\mathbb P\bigl[\sigma\ge\Vert\vert M\Vert\vert_F+s\bigr]
+\le
+2\exp\bigl(-s^2/(16\Vert\vert M\Vert\vert_2^2)\bigr).
+$$
+Write $F:=\Vert\vert M\Vert\vert_F$ and $\mathrm{op}:=\Vert\vert M\Vert\vert_2$, and choose $\tau^2:=2F^2+8\delta\,\mathrm{op}$ (so $\tau\ge F$). Then $\delta^2/(2\tau^2)=\delta^2/D$ with $D:=4F^2+16\delta\,\mathrm{op}$. The tail of $\sigma$ is at most $2\exp(-(\tau-F)^2/(16\mathrm{op}^2))$, and it remains to check $(\tau-F)^2/(16\mathrm{op}^2)\ge\delta^2/D$, i.e. $(\tau-F)^2\tau^2\ge 8\delta^2\mathrm{op}^2$. The identity $\tau-F=(\tau^2-F^2)/(\tau+F)=(F^2+8\delta\,\mathrm{op})/(\tau+F)$ together with $\tau+F\le 2\tau$ yields
+$$
+(\tau-F)^2\tau^2
+\ge
+\frac{(F^2+8\delta\,\mathrm{op})^2}{4}.
+$$
+The comparison $F^2+8\delta\,\mathrm{op}\ge 8\delta\,\mathrm{op}\ge\sqrt{32}\,\delta\,\mathrm{op}$ gives $(F^2+8\delta\,\mathrm{op})^2/4\ge 8\delta^2\mathrm{op}^2$. Combining the two exponential terms produces the displayed bound.
+:::
+
+### Exercise 3.13
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Hamming Wasserstein: $\inf_{\mathbb M}\mathbb M[X\neq Y]=\lVert\mathbb P-\mathbb Q\rVert_{\mathrm{TV}}=\sup_A\lvert\mathbb P(A)-\mathbb Q(A)\rvert$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+For any coupling $\mathbb M$ of $(\mathbb P,\mathbb Q)$ and any measurable $A$,
+$$
+\mathbb P(A)-\mathbb Q(A)
+=
+\mathbb M(X\in A,Y\notin A)-\mathbb M(X\notin A,Y\in A)
+\le
+\mathbb M(X\neq Y),
+$$
+and likewise with $\mathbb P$ and $\mathbb Q$ swapped. Hence $\inf_{\mathbb M}\mathbb M[X\neq Y]\ge\lVert\mathbb P-\mathbb Q\rVert_{\mathrm{TV}}$.
+
+For the matching upper bound, take a dominating measure $\nu=\tfrac12(\mathbb P+\mathbb Q)$ with densities $p,q$, and build the *maximal coupling*: on the overlap $\min(p,q)$ the two coordinates are equal, and the residual masses $(p-q)_+$ and $(q-p)_+$ are coupled arbitrarily. Then
+$$
+\mathbb M[X\neq Y]
+=
+\frac12\int\lvert p-q\rvert\,d\nu
+=
+\lVert\mathbb P-\mathbb Q\rVert_{\mathrm{TV}}.
+$$
+(The identity $\lVert\mathbb P-\mathbb Q\rVert_{\mathrm{TV}}=\sup_A\lvert\mathbb P(A)-\mathbb Q(A)\rvert$ is the definition (3.53); equivalently, $\sup\{\int f(d\mathbb P-d\mathbb Q):0\le f\le 1\}$.)
+:::
+
+### Exercise 3.14
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Alternative proof of Proposition 3.20, $n=2$.
+(a) Bound $W_\rho(\mathbb Q,\mathbb P)$ by
+$$
+\sup_{\lVert f\rVert_{\mathrm{Lip}}\le 1}
+\Biggl\{
+\int\Bigl[\int f(x_1,x_2)\,(d\mathbb Q_{2\mid 1}-d\mathbb P_2)\Bigr]d\mathbb Q_1
++\int\Bigl[\int f(x_1,x_2)\,d\mathbb P_2\Bigr](d\mathbb Q_1-d\mathbb P_1)
+\Biggr\}.
+$$
+(b) Deduce $W_\rho(\mathbb Q,\mathbb P)\le\int\sqrt{2\gamma_2 D(\mathbb Q_{2\mid 1}\Vert\mathbb P_2)}\,d\mathbb Q_1+\sqrt{2\gamma_1 D(\mathbb Q_1\Vert\mathbb P_1)}$.
+(c) Finish with Cauchy–Schwarz and Exercise 3.2. (The printed hint is missing a closing parenthesis.)
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** By definition,
+$$
+W_\rho(\mathbb Q,\mathbb P)
+=
+\sup_{\lVert f\rVert_{\mathrm{Lip}}\le 1}
+\Bigl(\int f\,d\mathbb Q-\int f\,d\mathbb P\Bigr).
+$$
+Disintegrate $\mathbb Q=\mathbb Q_1\otimes\mathbb Q_{2\mid 1}$ and use that $\mathbb P=\mathbb P_1\otimes\mathbb P_2$:
+\begin{align*}
+\int f\,d\mathbb Q-\int f\,d\mathbb P
+&=
+\int\Bigl(\int f\,d\mathbb Q_{2\mid 1}-\int f\,d\mathbb P_2\Bigr)d\mathbb Q_1\\
+&\qquad
++\int\Bigl(\int f\,d\mathbb P_2\Bigr)(d\mathbb Q_1-d\mathbb P_1).
+\end{align*}
+Take the supremum over $1$-Lipschitz $f$.
+
+**(b).** For each fixed $x_1$, the map $x_2\mapsto f(x_1,x_2)$ is $1$-Lipschitz for $\rho_2$, so
+$$
+\int f(x_1,\cdot)\,(d\mathbb Q_{2\mid 1}-d\mathbb P_2)
+\le
+W_{\rho_2}(\mathbb Q_{2\mid 1}(\cdot\mid x_1),\mathbb P_2)
+\le
+\sqrt{2\gamma_2 D(\mathbb Q_{2\mid 1}(\cdot\mid x_1)\Vert\mathbb P_2)},
+$$
+by the assumed TCI for $\mathbb P_2$. For the second term, $x_1\mapsto\int f(x_1,x_2)\,d\mathbb P_2(x_2)$ is $1$-Lipschitz for $\rho_1$:
+$$
+\Bigl\lvert\int f(x_1,x_2)\,d\mathbb P_2-\int f(x_1',x_2)\,d\mathbb P_2\Bigr\rvert
+\le
+\rho_1(x_1,x_1'),
+$$
+because $\lvert f(x_1,x_2)-f(x_1',x_2)\rvert\le\rho_1(x_1,x_1')$. The TCI for $\mathbb P_1$ therefore bounds the second term by $\sqrt{2\gamma_1 D(\mathbb Q_1\Vert\mathbb P_1)}$. Integrate the first bound against $\mathbb Q_1$.
+
+**(c).** Cauchy–Schwarz on the mixture of square roots,
+$$
+\int\sqrt{2\gamma_2 D(\mathbb Q_{2\mid 1}\Vert\mathbb P_2)}\,d\mathbb Q_1
+\le
+\sqrt{2\gamma_2}\sqrt{\mathbb E_{\mathbb Q_1}[D(\mathbb Q_{2\mid 1}\Vert\mathbb P_2)]},
+$$
+together with $\sqrt{2\gamma_2}\sqrt{U}+\sqrt{2\gamma_1}\sqrt{V}\le\sqrt{2(\gamma_1+\gamma_2)}\sqrt{U+V}$, yields
+$$
+W_\rho(\mathbb Q,\mathbb P)
+\le
+\sqrt{2(\gamma_1+\gamma_2)\bigl(D(\mathbb Q_1\Vert\mathbb P_1)+\mathbb E_{\mathbb Q_1}[D(\mathbb Q_{2\mid 1}\Vert\mathbb P_2)]\bigr)}.
+$$
+Exercise 3.2 identifies the parenthesis with $D(\mathbb Q\Vert\mathbb P)$.
+:::
+
+### Exercise 3.15
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+$Z=\sup_{f\in\mathcal F}\sum_{i=1}^n f(V_i)$ with $f: \mathcal X\to[0,1]$ and $V_i$ i.i.d. Prove $\log\mathbb E[e^{\lambda Z}]\le(e^\lambda-1)\mathbb E[Z]$ for $\lambda\ge 0$. Parts (a)–(f) as in the text.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Reduce to a finite class $\{f^1,\ldots,f^M\}$ and write $X_i=(f^1(V_i),\ldots,f^M(V_i))\in\mathbb R^M$, $Z(X)=\max_j\sum_{i=1}^n X_i^j$. Let $Z_k$ be $Z$ as a function of the $k$-th block, other blocks held fixed.
+
+**(a).** $Y_k(X):=(X_1,\ldots,X_{k-1},0,X_{k+1},\ldots,X_n)$ zeroes the $k$-th summand. Every coordinate of $X_k$ is nonnegative, so each partial sum $\sum_i X_i^j$ decreases (or stays) when $X_k$ is replaced by $0$. The maximum therefore cannot increase: $Z(X)-Z(Y_k(X))\ge 0$.
+
+**(b).** Tensorisation (Lemma 3.8) bounds $H(e^{\lambda Z})$ by the expected sum of univariate conditional entropies. For each coordinate, Exercise 3.3 with the comparison point $t=Z(Y_k)$ (a measurable function of $X^{\backslash k}$) yields
+$$
+H\bigl(e^{\lambda Z_k(X_k)}\mid X^{\backslash k}\bigr)
+\le
+\mathbb E\bigl[\psi\bigl(\lambda(Z(X)-Z(Y_k(X)))\bigr)e^{\lambda Z(X)}\mid X^{\backslash k}\bigr].
+$$
+Sum over $k$ and take $\mathbb E$.
+
+**(c).** On the (disjoint) attainment sets $\mathbb A_\ell=\{x:\sum_i x_i^\ell=\max_j\sum_i x_i^j\}$ one has $Z(X)=\sum_i X_i^\ell$ and $Z(Y_k(X))\ge\sum_{i\neq k}X_i^\ell$, so $Z(X)-Z(Y_k(X))\le X_k^\ell$. Therefore
+$$
+0
+\le
+\lambda\bigl(Z(X)-Z(Y_k(X))\bigr)
+\le
+\lambda\sum_{\ell=1}^M\mathbb I[X\in\mathbb A_\ell]X_k^\ell.
+$$
+
+**(d).** The function $\psi$ is convex, nonnegative, and $\psi(0)=0$. For $U\in[0,1]$ the chord inequality gives $\psi(\lambda U)\le U\psi(\lambda)$. The right-hand side of (c), divided by $\lambda$, is some $U\in[0,1]$, hence
+$$
+\psi\bigl(\lambda(Z-Z(Y_k))\bigr)
+\le
+\psi(\lambda)\sum_{\ell=1}^M\mathbb I[X\in\mathbb A_\ell]X_k^\ell.
+$$
+
+**(e).** Substitute into (b):
+$$
+H(e^{\lambda Z})
+\le
+\psi(\lambda)\sum_{k=1}^n\mathbb E\Bigl[\sum_{\ell=1}^M\mathbb I[X\in\mathbb A_\ell]X_k^\ell e^{\lambda Z}\Bigr].
+$$
+The double sum $\sum_k\sum_\ell\mathbb I[X\in\mathbb A_\ell]X_k^\ell$ equals $Z(X)$ by definition of $\mathbb A_\ell$. Thus $H(e^{\lambda Z})\le\psi(\lambda)\mathbb E[Z e^{\lambda Z}]$.
+
+**(f).** Write $\varphi(\lambda):=\mathbb E[e^{\lambda Z}]$, so $\varphi'(\lambda)=\mathbb E[Z e^{\lambda Z}]$ and $H(e^{\lambda Z})=\lambda\varphi'-\varphi\log\varphi$. Part (e) becomes $\lambda\varphi'-\varphi\log\varphi\le\psi(\lambda)\varphi'=(e^{-\lambda}-1+\lambda)\varphi'$, i.e.
+$$
+\varphi\log\varphi
+\ge
+(1-e^{-\lambda})\varphi'.
+$$
+For $\log\varphi>0$ this rearranges to
+$$
+(\log\varphi)'
+\le
+\frac{e^\lambda}{e^\lambda-1}\log\varphi,
+$$
+which is the stated differential inequality (and holds by continuity at points where $\log\varphi=0$). Equivalently, $\lambda\mapsto \log\varphi(\lambda)/(e^\lambda-1)$ is nonincreasing on $(0,\infty)$. Its limit as $\lambda\to 0^+$ is $\varphi'(0)/\varphi(0)=\mathbb E[Z]$. Therefore $\log\varphi(\lambda)\le(e^\lambda-1)\mathbb E[Z]$.
+:::
+
+### Exercise 3.16
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Bernstein tail $\mathbb P[Z\ge\mathbb E[Z]+\delta]\le\exp\bigl(-n\delta^2/(c_1\gamma^2+c_2 b\delta)\bigr)$.
+(a) $\mathbb P\bigl[Z\ge\mathbb E[Z]+\gamma\sqrt{c_1 t/n}+c_2 bt/n\bigr]\le e^{-t}$.
+(b) If $\gamma^2\le\sigma^2+c_3 b\mathbb E[Z]$, then
+$$
+\mathbb P\Bigl[Z\ge(1+\varepsilon)\mathbb E[Z]+\sigma\sqrt{\frac{c_1 t}n}+\Bigl(c_2+\frac{c_1 c_3}{2\varepsilon}\Bigr)\frac{bt}n\Bigr]
+\le e^{-t}.
+$$
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** Set $\delta:=\gamma\sqrt{c_1 t/n}+c_2 bt/n$ and write $A:=\gamma\sqrt{c_1 t/n}$, $B:=c_2 bt/n$, so $\delta=A+B$. Then
+$$
+n\delta^2
+=
+nA^2+2nAB+nB^2
+=
+c_1\gamma^2 t+2\gamma c_2 b t\sqrt{\frac{c_1 t}n}+\frac{c_2^2 b^2 t^2}n
+$$
+and
+$$
+c_1\gamma^2+c_2 b\delta
+=
+c_1\gamma^2+c_2 b\gamma\sqrt{\frac{c_1 t}n}+\frac{c_2^2 b^2 t}n.
+$$
+The difference $n\delta^2-t(c_1\gamma^2+c_2 b\delta)$ equals $\gamma c_2 b t\sqrt{c_1 t/n}\ge 0$. Hence $n\delta^2/(c_1\gamma^2+c_2 b\delta)\ge t$, and the Bernstein bound is at most $e^{-t}$.
+
+**(b).** The increment of part (a) satisfies
+$$
+\gamma\sqrt{\frac{c_1 t}n}
+\le
+\sqrt{\sigma^2+c_3 b\,\mathbb E[Z]}\sqrt{\frac{c_1 t}n}
+\le
+\sigma\sqrt{\frac{c_1 t}n}
++\sqrt{c_3 b\,\mathbb E[Z]\cdot\frac{c_1 t}n}.
+$$
+Young’s inequality in the form $\sqrt{uv}\le\varepsilon u+v/(2\varepsilon)$ (valid because the right-hand side is at least $\sqrt 2\sqrt{uv}$) with $u=\mathbb E[Z]$ and $v=c_1 c_3 bt/n$ gives
+$$
+\sqrt{c_3 b\,\mathbb E[Z]\cdot\frac{c_1 t}n}
+\le
+\varepsilon\,\mathbb E[Z]+\frac{c_1 c_3}{2\varepsilon}\frac{bt}n.
+$$
+Adding $c_2 bt/n$ produces the threshold in (3.95b).
+:::

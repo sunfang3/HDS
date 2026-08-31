@@ -1,0 +1,635 @@
+---
+title: "第 1 章　导论"
+subtitle: "Wainwright, High-Dimensional Statistics 伴读 Notes"
+description: "面向已学陈希孺本科概率统计的读者：从固定维数的 LLN/CLT 转到 (n,d) 同时变大时的非渐近分析，并用 LDA、协方差、非参数回归三个例子预告后文"
+execute:
+  enabled: false
+lang: zh-CN
+---
+
+# 本章导览
+
+陈希孺教材已经把大数定律、中心极限定理、多元正态与协方差、奈曼–皮尔逊检验讲清楚了。Wainwright 第 1 章不是再证一遍这些定理，而是指出：**一旦维数 $d$ 与样本量 $n$ 同阶，甚至 $d>n$，固定 $d$、$n\to\infty$ 的经典渐近往往给不出有用的预测，标准方法也会以戏剧性的方式失效。** 后面全书的非渐近尾界，就是给这种“有限 $(n,d)$”准备明确的概率不等式。
+
+本章用三个统计 vignette 把后面要证明的东西先摊开：
+
+- 线性判别：已知参数时误差是 $\Phi(-\gamma/2)$；插入样本均值后，若 $d/n\to\alpha>0$，Kolmogorov 极限把有效信噪比往 0 推；
+- 协方差：样本协方差无偏，但 $d/n\to\alpha\in(0,1)$ 时谱服从马尔琴科–帕斯图尔定律，算子范数不相合；非渐近上尾是 (1.11)；
+- 非参数回归：单位立方体上的 $\ell_\infty$ 近邻距离要低于 $\delta$，样本量必须对 $d$ 指数增长——维数灾难。
+
+出路不是更聪明的无结构方法，而是**低维结构**：向量稀疏（硬/软阈值）、协方差稀疏或特征值速降、回归的可加 / 稀疏可加 / 单指标。
+
+本章阅读主线：
+
+$$
+\text{固定 }d\text{ 的 LLN/CLT}
+\longrightarrow
+(n,d)\text{ 同阶时经典方法失效}
+\longrightarrow
+\text{低维结构把问题拉回可估}
+\longrightarrow
+\text{非渐近尾界（本书主语言）}.
+$$
+
+> 教材定位：第 1 章 §§1.1–1.6，印刷页 1–20，PDF 页 20–39。页码关系：**PDF 页 = 印刷页 + 19**。
+
+## 学习目标
+
+学完本章后，你应能：
+
+- **区分** 经典渐近、高维渐近与非渐近三种分析模式，并指出本书主攻哪一种；
+- **由** (1.1)–(1.2) **写出** 已知参数 LDA 的误差 $\Phi(-\gamma/2)$，并说明 $\alpha=0$ 时 Kolmogorov 极限 (1.6) 如何退回经典；
+- **陈述** 样本协方差在 $d/n\to\alpha>0$ 时的 MP 支撑 (1.10)，并写出最大特征值的非渐近上尾 (1.11)；
+- **用** (1.14)–(1.15) **解释** 维数灾难：要让 $\rho_\infty\le\delta$ 需要 $n$ 对 $d$ 指数增长；
+- **指出** 稀疏阈值、可加分解、单指标如何分别把三个 vignette 从“不可能”拉回“可能”。
+
+# 必要先修
+
+陈希孺书中的 i.i.d. 样本、大数定律、中心极限定理、多元正态分布、协方差矩阵、第 I、II 类错误，本章直接使用。下面只钉住第一次出现时容易卡壳的三处。
+
+::: {.callout-note title="为什么现在需要马哈拉诺比斯距离"}
+(1.2) 里的
+$$
+\gamma=\sqrt{(\mu_1-\mu_2)^T\Sigma^{-1}(\mu_1-\mu_2)}
+$$
+是两类均值的马哈拉诺比斯距离（Mahalanobis distance）。$\Sigma=I_d$ 时它就是欧氏距离 $\|\mu_1-\mu_2\|_2$。教材脚注（印刷页 4）写明了这一点。陈希孺里的“标准化距离”就是它的一维特例。
+:::
+
+::: {.callout-note title="作者解释：算子范数就是最大奇异值"}
+教材把 $\ell_2$-算子范数写成三竖线 (1.9)。对对称矩阵，它等于绝对值最大的特征值的绝对值。你只需记住：$\|M\|_{\mathrm{op}}\le\varepsilon$ 意味着 $M$ 在每个方向上的拉伸都不超过 $\varepsilon$。教材的三竖线与 $\|\cdot\|_{\mathrm{op}}$ 是同一对象。经典大数定律给的是逐元或 Frobenius 意义的相合；高维里真正会垮的是这个算子范数。
+:::
+
+::: {.callout-note title="作者解释：$\Phi$ 与尾概率"}
+$\Phi(t)=\mathbb P[Z\le t]$，$Z\sim N(0,1)$。$\Phi(-a)$ 随 $a$ 增大而减小，所以信噪比被“往 0 推”等于误差变大。本章所有分类误差公式都通过 $\Phi$ 来读。
+:::
+
+# 1 Introduction　导论
+
+> 教材定位：章首，印刷页 1，PDF 页 20。
+
+本书的对象是**高维统计的非渐近理论**。高维统计并不新——Rao、Wigner、Kolmogorov、Huber 从 1950 年代起就有工作。新的是近二十年的爆发：现代数据常常 $d$ 与 $n$ 同阶，甚至 $d>n$。这时经典渐近给不出有用预测，标准方法会失效。高维统计与机器学习、优化、数值分析、几何分析、信息论、逼近论、概率论都有接口。本书的目标是给这套工作一个自洽的导引。
+
+# 1.1 Classical versus high-dimensional theory　经典理论与高维理论
+
+> 教材定位：§1.1，印刷页 1–2，PDF 页 20–21。
+
+经典概率与统计的定理，是对**固定的模型类**、让指标 $n$（样本量）趋于无穷。最标准的两条：
+
+::: {.callout-important title="大数定律与中心极限定理（章首，印刷页 1）"}
+设 $\{X_i\}_{i=1}^n$ 为 i.i.d. 的 $d$ 维随机向量，$\mu=\mathbb E[X_1]$，方差有限。样本均值 $\hat\mu_n:=n^{-1}\sum_{i=1}^n X_i$ 依概率收敛到 $\mu$（相合）；$\sqrt n(\hat\mu_n-\mu)$ 依分布收敛到中心高斯 $N(0,\Sigma)$，$\Sigma=\mathrm{cov}(X_1)$（渐近正态）。
+:::
+
+这两条支撑了经典估计量的相合性与渐近正态。关键默认：**环境维数 $d$ 视为固定。**
+
+教材在印刷页 2 用一个问题把默认拆开：
+
+> 若 $n=1000$、$d=500$，要求 $n\to\infty$ 且 $d$ 固定的理论，还能给出有用的预测吗？
+
+没有模型细节无法一锤定音，但三点事实构成本书的动机：
+
+1. 许多现代数据带“高维味道”，$d$ 与 $n$ 同阶或更大；
+2. 对这些应用，经典“大 $n$、固定 $d$”理论常常失效；
+3. 经典方法在高维区制会戏剧性地垮掉。
+
+# 1.2 What can go wrong in high dimensions?　高维里会出什么错？
+
+> 教材定位：§1.2，印刷页 2–9，PDF 页 21–28。
+
+本节用三个短例子展示经典结论如何破裂。后面第 6、7、13、15 章会把它们做成定理。
+
+## 1.2.1 Linear discriminant analysis　线性判别分析
+
+> 教材定位：§1.2.1，印刷页 2–5，PDF 页 21–24。
+
+二元假设检验：观测 $x\in\mathbb R^d$ 来自 $\mathbb P_1$ 还是 $\mathbb P_2$。两类已知时，阈值化对数似然比 $\log(\mathbb P_2[x]/\mathbb P_1[x])$ 给出第 I、II 类错误的最优权衡——这就是奈曼–皮尔逊引理（Neyman–Pearson lemma）。
+
+两类为 $N(\mu_1,\Sigma)$ 与 $N(\mu_2,\Sigma)$（只差均值）时，对数似然比化成线性统计量
+
+::: {.callout-important title="(1.1) 已知参数的线性判别"}
+$$
+\Psi(x)
+:=
+\bigl\langle
+\mu_1-\mu_2,\;
+\Sigma^{-1}\bigl(x-\tfrac{\mu_1+\mu_2}{2}\bigr)
+\bigr\rangle,
+$$
+其中 $\langle\cdot,\cdot\rangle$ 是 $\mathbb R^d$ 的欧氏内积。最优判决是对 $\Psi(x)$ 取阈值。
+:::
+
+等先验时，错误概率
+$$
+\mathrm{Err}(\Psi)
+:=\tfrac12\mathbb P_1[\Psi(X')\le 0]
++\tfrac12\mathbb P_2[\Psi(X'')>0].
+$$
+高斯假设下它可以写成标准正态 cdf：
+
+::: {.callout-important title="(1.2) 已知参数的贝叶斯误差"}
+$$
+\mathrm{Err}(\Psi)
+=\Phi(-\gamma/2),
+\qquad
+\gamma
+=\sqrt{(\mu_1-\mu_2)^T\Sigma^{-1}(\mu_1-\mu_2)}.
+$$
+:::
+
+$\gamma$ 越大，两类分得越开，误差越小。
+
+实践中 $\mathbb P_j$ 未知。有标签样本 $\{x_1,\ldots,x_{n_1}\}\sim\mathbb P_1$、$\{x_{n_1+1},\ldots,x_{n_1+n_2}\}\sim\mathbb P_2$。高斯情形等于估 $\mu_1,\mu_2,\Sigma$：
+
+$$
+\hat\mu_1
+:=\frac1{n_1}\sum_{i=1}^{n_1}x_i,
+\qquad
+\hat\mu_2
+:=\frac1{n_2}\sum_{i=n_1+1}^{n_1+n_2}x_i,
+\tag{1.3a}
+$$
+
+$$
+\widehat\Sigma
+:=
+\frac1{n_1-1}\sum_{i=1}^{n_1}(x_i-\hat\mu_1)(x_i-\hat\mu_1)^T
++
+\frac1{n_2-1}\sum_{i=n_1+1}^{n_1+n_2}(x_i-\hat\mu_2)(x_i-\hat\mu_2)^T.
+\tag{1.3b}
+$$
+
+插入 (1.1) 得到费希尔线性判别函数（Fisher linear discriminant）
+
+$$
+\widehat\Psi(x)
+=
+\bigl\langle
+\hat\mu_1-\hat\mu_2,\;
+\widehat\Sigma^{-1}\bigl(x-\tfrac{\hat\mu_1+\hat\mu_2}{2}\bigr)
+\bigr\rangle.
+\tag{1.4}
+$$
+
+这里已经默认 $\widehat\Sigma$ 可逆，因而隐含 $n_i>d$。零阈值的误差 $\mathrm{Err}(\widehat\Psi)$ 本身是随机的，因为它是样本的函数。
+
+1960 年代 Kolmogorov 分析了一个简化版：$\Sigma=I_d$ 事先已知，于是
+
+$$
+\widehat\Psi_{\mathrm{id}}(x)
+=
+\bigl\langle
+\hat\mu_1-\hat\mu_2,\;
+x-\tfrac{\hat\mu_1+\hat\mu_2}{2}
+\bigr\rangle.
+\tag{1.5}
+$$
+
+高维渐近：$(n_1,n_2,d)$ 一齐趋于无穷，$d/n_i\to\alpha>0$，欧氏距离 $\|\mu_1-\mu_2\|_2\to\gamma>0$。此时误差依概率收敛到一个确定值：
+
+::: {.callout-important title="(1.6) Kolmogorov 高维极限"}
+$$
+\mathrm{Err}(\widehat\Psi_{\mathrm{id}})
+\ \xrightarrow{\ \mathrm{prob.}\ }
+\Phi\Bigl(
+-\frac{\gamma^2}{2\sqrt{\gamma^2+2\alpha}}
+\Bigr).
+$$
+:::
+
+### 关键核对
+
+$\alpha=0$（即 $d/n_i\to 0$）时，
+$$
+\frac{\gamma^2}{2\sqrt{\gamma^2}}
+=\frac{\gamma}{2},
+$$
+(1.6) 退回 (1.2) 的 $\Phi(-\gamma/2)$。$\alpha>0$ 时，分母里多了 $2\alpha$，分数被往 0 推，$\Phi$ 变大，误差严格坏于经典预测。
+
+::: {.callout-note title="直觉"}
+插入 $\hat\mu_j$ 等于在信号 $\mu_1-\mu_2$ 上叠了一层估计噪声。$\|\hat\mu_j-\mu_j\|_2^2$ 大约是 $d/n_j=\alpha$（印刷页 10；预告 Example 2.11）。$\alpha$ 是常数时，噪声不消失，有效信噪比从 $\gamma$ 变成 $\gamma^2/\sqrt{\gamma^2+2\alpha}$。
+:::
+
+Figure 1.1（印刷页 4）：$d=400$，$n_1=n_2=800$ 故 $\alpha=0.5$。经验误差贴着 (1.6)，经典曲线明显偏低。
+
+::: {.callout-warning title="适用边界与一处原文"}
+印刷页 5 正文写 “classical prediction $\Phi(-\gamma)$ drastically underestimates”。这与 (1.2)、Figure 1.1 以及 $\alpha=0$ 时的 (1.6) 不一致：经典式是 $\Phi(-\gamma/2)$。Notes 按 (1.2) 使用 $\Phi(-\gamma/2)$，并把原文记为待批勘误，不改教材。
+:::
+
+若两类比例不同，$d/n_i\to\alpha_i\ge 0$，对一般阈值 $t\in\mathbb R$，
+
+$$
+\mathrm{Err}_t(\widehat\Psi_{\mathrm{id}})
+=
+\tfrac12\mathbb P_1[\widehat\Psi_{\mathrm{id}}(X')\le t]
++
+\tfrac12\mathbb P_2[\widehat\Psi_{\mathrm{id}}(X'')>t].
+\tag{1.7}
+$$
+
+极限是（印刷页 5，原书未编号）
+$$
+\mathrm{Err}_t(\widehat\Psi_{\mathrm{id}})
+\ \xrightarrow{\ \mathrm{prob.}\ }
+\frac12\Phi\Bigl(
+-\frac{\gamma^2+2t+(\alpha_1-\alpha_2)}{2\sqrt{\gamma^2+\alpha_1+\alpha_2}}
+\Bigr)
++
+\frac12\Phi\Bigl(
+-\frac{\gamma^2-2t-(\alpha_1-\alpha_2)}{2\sqrt{\gamma^2+\alpha_1+\alpha_2}}
+\Bigr).
+$$
+$\alpha_1=\alpha_2=\alpha$、$t=0$ 时回到 (1.6)。因为 $\alpha_1-\alpha_2$ 在两项里符号相反，即使先验相等，$t=0$ 也不再渐近最优。最优阈值是
+$$
+t=\frac{\alpha_2-\alpha_1}{2},
+$$
+它补偿了两类样本量的差别。
+
+## 1.2.2 Covariance estimation　协方差估计
+
+> 教材定位：§1.2.2，印刷页 5–7，PDF 页 24–26。
+
+$x_1,\ldots,x_n$ i.i.d.、零均值，$d$ 维，估 $\Sigma=\mathrm{cov}(X)$。自然估计是样本协方差
+
+$$
+\widehat\Sigma
+:=\frac1n\sum_{i=1}^n x_i x_i^T.
+\tag{1.8}
+$$
+
+由构造，$\mathbb E[\widehat\Sigma]=\Sigma$（无偏）。
+
+经典分析让 $n\to\infty$、$d$ 固定。无论用哪种矩阵范数，$\widehat\Sigma$ 都相合。教材选用 $\ell_2$-算子范数
+
+::: {.callout-important title="(1.9) $\ell_2$-算子范数"}
+$$
+\|\widehat\Sigma-\Sigma\|_{\mathrm{op}}
+:=
+\sup_{u\neq 0}
+\frac{\|(\widehat\Sigma-\Sigma)u\|_2}{\|u\|_2}.
+$$
+教材把左端写成三竖线；以下用 $\|\cdot\|_{\mathrm{op}}$ 表示同一范数。
+:::
+
+温和矩条件下，经典大数定律给出 $\|\widehat\Sigma-\Sigma\|_{\mathrm{op}}\to 0$ 几乎必然，故样本协方差在经典设定下强相合。
+
+现在让 $(n,d)$ 一起变，比值 $d/n=\alpha\in(0,1)$ 固定。Figure 1.2 对 $\Sigma=I_d$、$X_i\sim N(0,I_d)$ 画样本特征值直方图：$\alpha=0.2$ 时 $(n,d)=(4000,800)$，$\alpha=0.5$ 时 $(4000,2000)$。若 $\widehat\Sigma\to I_d$，谱应堆在 1 附近；实际上直方图在 1 两侧大幅铺开，形状随 $\alpha$ 变。
+
+这些形状由马尔琴科–帕斯图尔定律（Marčenko–Pastur law）刻画：在 $d/n\to\alpha\in(0,1)$ 时，谱收敛到支撑在 $[t_{\min}(\alpha),t_{\max}(\alpha)]$ 上的严格正密度，其中
+
+::: {.callout-important title="(1.10) MP 谱边缘"}
+$$
+t_{\min}(\alpha):=(1-\sqrt\alpha)^2,
+\qquad
+t_{\max}(\alpha):=(1+\sqrt\alpha)^2.
+$$
+:::
+
+Figure 1.2 图注给出密度形状
+$$
+f_{\mathrm{MP}}(\gamma)
+\ \propto\
+\frac{\sqrt{(t_{\max}(\alpha)-\gamma)(\gamma-t_{\min}(\alpha))}}{\gamma}.
+$$
+
+::: {.callout-warning title="图注里的 $\Sigma$"}
+图注写 “$\gamma_{\max}(\Sigma)$ is very close to $(1+\sqrt\alpha)^2$”。总体若为 $I_d$，则 $\gamma_{\max}(\Sigma)=1$。正文和 (1.11) 讨论的是 $\gamma_{\max}(\widehat\Sigma)$。按样本特征值理解；此项为待批勘误。
+:::
+
+MP 定律仍是一种渐近——只是非经典，因为它允许 $(n,d)$ 同时发散。本书要的是**对一切有限 $(n,d)$ 都成立、且对感兴趣事件给出显式界**的结果。第 6 章将证明：在 Figure 1.2 的设定下，最大特征值满足上偏差不等式
+
+::: {.callout-important title="(1.11) 最大特征值的非渐近上尾"}
+$$
+\mathbb P
+\bigl[
+\gamma_{\max}(\widehat\Sigma)
+\ge
+(1+\sqrt{d/n}+\delta)^2
+\bigr]
+\le
+e^{-n\delta^2/2}
+\qquad\text{对一切 }\delta\ge 0.
+$$
+:::
+
+$n\ge d$ 时最小特征值有对称的下尾。这比 MP 更细：偏离 $(1+\sqrt{d/n})^2$ 的概率对 $n$ 指数小。由此可知：**只要 $d/n\to 0$，样本协方差在算子范数下相合**；$d/n$ 不趋于 0 则不行。
+
+## 1.2.3 Nonparametric regression　非参数回归
+
+> 教材定位：§1.2.3，印刷页 7–9，PDF 页 26–28。
+
+目标是估 $f:[0,1]^d\to\mathbb R$。把 $(X,Y)$ 看成随机对，最小二乘预测误差 $\mathbb E[(Y-f(X))^2]$ 的最优解是回归函数 $f(x)=\mathbb E[Y\mid x]$。联合分布未知，只有 i.i.d. 样本 $(X_i,Y_i)$。希望均方误差
+
+$$
+\|\widehat f-f\|_{L^2}^2
+:=
+\mathbb E_X\bigl[(\widehat f(X)-f(X))^2\bigr]
+\tag{1.12}
+$$
+尽量小。
+
+高维里这件事会变得极难，这就是维数灾难（curse of dimensionality）；精确版本在第 13 章。这里用一个几何代理：协变量 $X\sim\mathrm{Uni}([0,1]^d)$。若 $\widehat f$ 好，典型的新点 $X'$ 应该离某个样本不远。定义
+
+$$
+\rho_\infty(n,d)
+:=
+\mathbb E_{X',X}
+\Bigl[
+\min_{i=1,\ldots,n}
+\|X'-X_i\|_\infty
+\Bigr].
+\tag{1.13}
+$$
+
+多少样本才能让 $\rho_\infty$ 掉到某个 $\delta$（模拟里用 $\delta=1/3$）以下？$n=2d$ 或甚至 $n=d^2$，Figure 1.3 显示平均最近距离仍随 $d$ 上升，并停在 $1/3$ 上方。事实上需要**指数级**样本。这一点由下界确认：
+
+::: {.callout-important title="(1.14) 最近邻距离的下界"}
+$$
+\log\rho_\infty(n,d)
+\ge
+\log\frac{d}{2(d+1)}
+-\frac{\log n}{d}.
+$$
+因而要 $\rho_\infty(n,d)\le\delta$，必须 $n>(1/\delta)^d$。证明留给读者（见 Solutions）。
+:::
+
+::: {.callout-note title="直觉"}
+指数里是 $d$ 不是 $\log d$。$n=d^{100}$ 对固定的 $\delta$ 仍然不够：$(1/\delta)^d$ 比任何多项式都快。这与 LDA、协方差里“$d/n\to\alpha$”的多项式标度不是同一量级。
+:::
+
+确定性版本同样凶。任选 $n$ 个点 $\{x_i\}\subset[0,1]^d$，要使
+$$
+\sup_{x'\in[0,1]^d}
+\min_{i=1,\ldots,n}
+\|x'-x_i\|_\infty
+\le\delta,
+\tag{1.15}
+$$
+最直接的办法是把每条边切成 $\lceil 1/(2\delta)\rceil$ 段、每段长 $2\delta$，笛卡尔积给出 $\lceil 1/(2\delta)\rceil^d$ 个盒子，在每个盒子中心放一个点。这是单位立方体在 $\ell_\infty$ 下的一个 $\delta$-覆盖（$\delta$-covering），基数对 $d$ 指数增长。用 $\delta$-填装（$\delta$-packing）可以证明这个指数标度逃不掉。第 5 章专门讲覆盖与填装。
+
+# 1.3 What can help us in high dimensions?　高维里什么能帮忙？
+
+> 教材定位：§1.3，印刷页 9–14，PDF 页 28–33。
+
+上一节的三种现象都是**不可避免的**（第 5 章度量熵、第 15 章极小极大下界会把这句话变成定理）：
+
+- 分类：若 $d/n$ 严格离开 0，不可能达到 (1.2) 的最优速率；
+- 协方差：若 $d/n$ 不趋于 0，算子范数下不存在相合估计；
+- 非参数回归：可微回归函数的相合需要 $n$ 对 $d$ 指数增长。
+
+无免费午餐之后，唯一的希望是数据带有某种**低维结构**，使它比“名义上的 $d$ 维”更简单。高维统计的大量工作，就是给这种现象建模型，并量化利用结构带来的统计与计算收益。下面把三个 vignette 各改一刀。
+
+## 1.3.1 Sparsity in vectors　向量稀疏
+
+> 教材定位：§1.3.1，印刷页 10–11，PDF 页 29–30。
+
+回到 §1.2.1：$n=n_1=n_2$，$d/n_j=\alpha\in(0,\infty)$ 固定。经典预测失准的直接原因是
+$$
+\|\hat\mu_j-\mu_j\|_2^2
+\text{ 尖锐地集中在 }d/n_j=\alpha
+$$
+（$\chi^2$ 尾界，Example 2.11）。$\alpha>0$ 时有常数级误差，所以 (1.2) 过于乐观。
+
+若每个均值只有 $s\ll d$ 个非零坐标，阈值化样本均值会好得多。硬阈值（hard-thresholding）
+
+$$
+H_\lambda(x)
+=x\,\mathbb I[|x|>\lambda]
+=
+\begin{cases}
+x & |x|>\lambda,\\
+0 & \text{otherwise},
+\end{cases}
+\tag{1.16}
+$$
+
+是“保留或杀掉”。软阈值（soft-thresholding）
+
+$$
+T_\lambda(x)
+=
+\mathbb I[|x|>\lambda]\bigl(x-\lambda\,\mathrm{sign}(x)\bigr)
+=
+\begin{cases}
+x-\lambda\,\mathrm{sign}(x) & |x|>\lambda,\\
+0 & \text{otherwise},
+\end{cases}
+\tag{1.17}
+$$
+
+被平移成连续函数。分类里把 (1.5) 的 $\hat\mu_j$ 换成
+
+$$
+\widetilde\mu_j
+=H_{\lambda_n}(\hat\mu_j),
+\qquad
+\lambda_n:=\sqrt{\frac{2\log d}{n}},
+\tag{1.18}
+$$
+
+再做线性判别
+
+$$
+\widetilde\Psi(x)
+:=
+\bigl\langle
+\widetilde\mu_1-\widetilde\mu_2,\;
+x-\tfrac{\widetilde\mu_1+\widetilde\mu_2}{2}
+\bigr\rangle.
+\tag{1.19}
+$$
+
+::: {.callout-note title="作者解释：为何是 $\sqrt{2\log d/n}$"}
+标准正态的 $d$ 个坐标最大值大约是 $\sqrt{2\log d}$。样本均值每个坐标的噪声标准差是 $n^{-1/2}$，所以把阈值设在 $\sqrt{2\log d/n}$，才能在“不误杀真正的非零”和“把纯噪声坐标清零”之间站住。Exercise 2.12 会把这句话写成尾界。
+:::
+
+Figure 1.4(b)：与 Figure 1.1(a) 同样的 $(d,n)$，但 $\mu_j$ 只有 $s=5$ 个非零。硬阈值之后，经典曲线重新贴合经验误差。更精确地，只要 $(\log d)\,s/n\to 0$，经典极限就再次正确。第 7 章的稀疏向量估计给出严格证明。
+
+## 1.3.2 Structure in covariance matrices　协方差矩阵中的结构
+
+> 教材定位：§1.3.2，印刷页 11–12，PDF 页 30–31。
+
+§1.2.2 里 $d/n$ 不趋于 0 时，样本谱按 MP 铺开。能用什么结构？
+
+- **已知对角**：把 $\widehat\Sigma$ 的非对角元清零。
+- **未知位置的稀疏**：对 $\widehat\Sigma$ 做硬阈值，$\lambda_n=\sqrt{2\log d/n}$。Figure 1.5(a) 用与 Figure 1.2(a) 相同的 $(n,d)=(4000,800)$：阈值后的谱堆回 1。第 2、6 章的尾界给出
+  $$
+  \|\widetilde\Sigma-\Sigma\|_{\mathrm{op}}
+  \ \lesssim\
+  \sqrt{\frac{\log d}{n}}
+  $$
+  以高概率成立。
+- **特征值速降**：若一列协方差满足 $\mathrm{trace}(\Sigma)\le R$（与 $d$ 无关），则有序特征值必须比 $j^{-1}$ 降得稍快。Figure 1.5(b) 在 $d/n=0.2$、$\mathrm{trace}(\Sigma)\le 20$ 时，算子范数误差按 $n^{-1/2}$ 下降——即使 $d$ 与 $n$ 成比例。第 6、8、10 章会处理秩约束与特征值衰减。
+
+## 1.3.3 Structured forms of regression　有结构的回归
+
+> 教材定位：§1.3.3，印刷页 12–14，PDF 页 32–33。
+
+§1.2.3 的一般回归被维数灾难压住。过去和正在进行的工作研究过多种低维结构。
+
+**可加分解**（additive decomposition）
+
+$$
+f(x_1,\ldots,x_d)
+=\sum_{j=1}^d g_j(x_j),
+\tag{1.20}
+$$
+
+把问题降成估 $d$ 个一元函数。第 13、14 章的一般理论说明 (1.20) 在很大程度上绕开维数灾难（Exercise 13.9，Examples 14.11、14.14）。线性模型 $g_j(x_j)=\theta_j x_j$ 是特例；更一般地每个 $g_j$ 可以来自再生核希尔伯特空间（第 12 章）。
+
+**稀疏可加模型**（sparse additive model, SPAM）：存在 $S\subset\{1,\ldots,d\}$，$|S|=s$，使得
+
+$$
+f(x_1,\ldots,x_d)
+=\sum_{j\in S}g_j(x_j).
+\tag{1.21}
+$$
+
+要估的有两层：(i) 未知子集 $S$，共 $\binom{d}{s}$ 种；(ii) 这个子集上的一元函数。特例是稀疏线性模型 $f(x)=\sum_j\theta_j x_j$，$\theta$ 为 $s$-稀疏。第 7 章给出 $d\gg n$ 时仍能准确估计的条件。
+
+**多指标模型**（multiple-index model）
+
+$$
+f(x_1,\ldots,x_d)=h(Ax),
+\tag{1.22}
+$$
+
+$A\in\mathbb R^{s\times d}$，$h:\mathbb R^s\to\mathbb R$。$s=1$ 是单指标模型（single-index model）$f(x)=h(\langle a,x\rangle)$。SPAM 也是它的特例：把 $A$ 的行取成 $\{e_j:j\in S\}$，$h$ 取可加类。
+
+单指标求和得到投影寻踪回归（projection pursuit regression）
+
+$$
+f(x_1,\ldots,x_d)
+=\sum_{j=1}^M g_j(\langle a_j,x\rangle).
+\tag{1.23}
+$$
+
+只要项数 $M$ 能保持较小同时仍然拟合得好，维数灾难同样会被缓解。
+
+# 1.4 What is the non-asymptotic viewpoint?　什么是非渐近观点？
+
+> 教材定位：§1.4，印刷页 14–15，PDF 页 33–34。
+
+按样本量相对维数及其他参数的行为，至少可以区分三种分析：
+
+::: {.callout-important title="三种分析模式"}
+- **经典渐近**：$n\to\infty$，$d$ 及其他参数固定。标准 LLN 与 CLT 属于此类。
+- **高维渐近**：$(n,d)$ 同时趋于无穷，某个标度函数 $\Psi(n,d)$ 保持固定或收敛到 $\alpha\in[0,\infty]$。§1.2.1–1.2.2 用的是 $\Psi=d/n$。稀疏问题里常见 $\Psi=(\log\binom{d}{s})/n$，分子反映 $s$-子集的个数。
+- **非渐近界**：把 $(n,d)$ 及其他参数视为固定，给出作为它们函数的高概率陈述。(1.11) 是标准例子。估计量表现上的尾界与集中不等式，是本书的主焦点。
+:::
+
+三者紧密相连。尾界通常是几乎必然收敛等经典定理的证明引擎；非渐近理论可以推出某些高维渐近现象（例如 (1.6)，或样本谱以概率 1 落入 $[(1-\sqrt\alpha)^2,(1+\sqrt\alpha)^2]$）。非渐近分析里出现的函数，也会提示适合做高维渐近、从而看到极限分布的 $\Psi$。
+
+本书因篇幅不覆盖“高维估计量的低维函数的渐近”（例如稀疏向量某一个坐标的置信区间）。那些推导的核心仍是非渐近尾界；掌握本书技术后可以跟上。
+
+# 1.5 Overview of the book　全书概览
+
+> 教材定位：§1.5，印刷页 15–19，PDF 页 34–38。
+
+各章粗分成两类：**工具与技术**（TT）和**模型与估计量**（ME）。TT 章发展在高维统计里普遍能用的技术；ME 章针对一类估计问题，调用前面的工具。
+
+**必读。** 第 2 章（尾界与集中）是其余所有章的入口。第 4 章（一致大数定律、对称化、Rademacher 复杂度、VC 维）对绝大多数后续章也是必读。
+
+**可选加深。** 第 3 章（熵方法、对数 Sobolev、运输代价）不是后续章的前置，但 §3.4 的经验过程集中会用于非参数模型。
+
+**几何与非参数。** 第 5 章的覆盖 / 填装、离散化、Dudley 熵积分是第 13、14 章的前置；也包含高斯过程比较（Sudakov–Fernique、Gordon–Slepian）与 Sudakov 下界。第 12 章（RKHS）不是读第 13、14 章的前置，但是理解其中核例子所必需。第 14 章跟在第 4、13 章之后，处理 $L^2$ 范数的双边 / 单边一致定律。第 15 章（Le Cam、Fano、Yang–Barron）可独立阅读，但会对照其他章的上界。
+
+**模型章依赖（压缩）。** 第 6 章协方差需要 2、4、5；第 7 章稀疏线性大量用第 2 章；第 8 章 PCA 用 2 与 6；第 9 章可分解正则建立在第 7 章上，并用 2、4；第 10 章核范数直接用第 9 章及 2、6 的随机矩阵；第 11 章图模型需要 2 与 7；第 13 章非参数最小二乘用 2、4、5，以及第 3 章的一部分经验过程集中。
+
+§1.5.2 列出的本科先修是：线性代数（特征值 / 奇异值）、Rudin 程度的初等实分析、（不必测度论的）概率、一门经典数理统计。对本书读者：陈希孺覆盖了概率与经典统计；线性代数与 $\varepsilon$-$\delta$ 分析需要随时能用。教材强调**数学成熟度**——定理陈述常牺牲一般性以换证明清晰，真正要练的是技术，办法是把每章例子和习题做掉。习题从直接到极难都有。
+
+Figure 1.6 给出一条教学流图。短课：第 2 章 $\to$ 第 7 章 $\to$ 第 6 章片段。稍长：再加第 5 章到 Dudley 积分和第 13 章。一学期：2、4、§§5.1–5.3.3、6–8，再加 12、13，有时间则 15。
+
+# 1.6 Bibliographic details and background　文献与背景
+
+> 教材定位：§1.6，印刷页 19–20，PDF 页 38–39。文献条目指回教材，此处只留阅读锚点。
+
+两点检验用得上的史线：二元检验的高维效应可追到 Rao (1949)；§1.2.1 的高维 LDA 由 Kolmogorov 在 1960 年代提出，Deev 处理了一般 Fisher 判别。随机矩阵谱的 MP 定律属于 Marčenko–Pastur (1967)，在温和矩条件下相当稳健。Huber (1973) 的 Wald 演讲研究了 $d/n$ 为常数时的稳健回归。阈值与 $\ell_1$ 正则的文献在第 6、7 章展开；可加模型（Stone, 1985）、SPAM、单指标、投影寻踪（Friedman–Stuetzle, 1981）是 §1.3.3 的来源。
+
+# 常见错误
+
+1. **错误做法：** 把 (1.2) 的 $\gamma$ 读成 $(\mu_1-\mu_2)^T\Sigma^{-1}(\mu_1-\mu_2)$，而不是它的平方根。  
+   **为什么错：** 原页（印刷页 3）明确有平方根；$\Sigma=I_d$ 时 $\gamma$ 就是欧氏距离。若漏掉根号，$\alpha=0$ 时 (1.6) 也对不上 $\Phi(-\gamma/2)$。  
+   **正确判断：** $\gamma$ 是马哈拉诺比斯**距离**。
+
+2. **错误做法：** 认为样本协方差无偏，所以在任何范数下都相合。  
+   **为什么错：** 无偏是期望意义；算子范数相合要求 $d/n\to 0$。MP 定律说 $d/n\to\alpha>0$ 时谱停在 $[(1-\sqrt\alpha)^2,(1+\sqrt\alpha)^2]$ 上，不会堆到 1。  
+   **正确判断：** 先指定范数，再谈相合；高维默认问的是 (1.9)。
+
+3. **错误做法：** 用 $n\propto d$ 或 $n\propto d^2$ 去“解决”非参数回归的维数灾难。  
+   **为什么错：** (1.14) 的主导项是 $(\log n)/d$。$n=d^C$ 只给出 $(\log d)/d\to 0$，下界趋于一个与 $d$ 无关的正常数。  
+   **正确判断：** 无结构时需要 $n>(1/\delta)^d$；有结构时改模型，而不是把多项式样本硬堆上去。
+
+4. **错误做法：** 把 Kolmogorov 极限 (1.6) 和经典 $\Phi(-\gamma/2)$ 看成互斥的两个世界。  
+   **为什么错：** $\alpha\to 0$ 时 (1.6) 连续地退回 (1.2)。稀疏阈值把有效 $\alpha$ 换成 $(\log d)\,s/n$，同样可以让经典公式重新有效。  
+   **正确判断：** 高维公式是经典公式加上与 $d/n$ 有关的修正；结构决定修正项能不能消失。
+
+5. **错误做法：** 把“非渐近”理解成“不做任何 $n\to\infty$ 的想象”。  
+   **为什么错：** (1.11) 对每个有限 $(n,d,\delta)$ 都成立，但人们仍用它推出 $d/n\to 0$ 时的相合，或 $d/n=\alpha$ 时谱落入 MP 区间。  
+   **正确判断：** 非渐近是陈述方式（显式、有限样本、高概率）；它可以服务经典或高维渐近。
+
+# 轻量自测
+
+1. 用一句话说明：为什么 $\alpha=0$ 时 (1.6) 等于 (1.2) 的 $\Phi(-\gamma/2)$，而 $\alpha>0$ 时误差会变大？
+2. 从 (1.11) 推出：若 $d/n\to 0$，则 $\gamma_{\max}(\widehat\Sigma)\to 1$ 依概率（在 $\Sigma=I_d$ 的设定下）。写出需要的 $\delta$ 选法。
+3. 设 $d=10$、$n=100$。用 (1.14) 给出 $\rho_\infty$ 的数值下界，并与 $\delta=1/3$ 比较。
+4. 硬阈值 (1.16) 与软阈值 (1.17) 在 $|x|=\lambda$ 处有何不同？为什么分类 vignette 可以只用硬阈值？
+5. 指出 (1.20)、(1.21)、(1.22) 三者的包含关系。
+
+<details>
+<summary>查看参考答案</summary>
+
+1. $\alpha=0$ 时 $\gamma^2/(2\sqrt{\gamma^2})=\gamma/2$，故 $\Phi$ 的自变量与 (1.2) 相同。$\alpha>0$ 时分母 $2\sqrt{\gamma^2+2\alpha}>2\gamma$，分数的绝对值变小、向 0 移动，$\Phi$ 增大，误差变坏。
+2. 取 $\delta_n=(d/n)^{1/4}$（或任何满足 $\delta_n\to 0$ 且 $n\delta_n^2\to\infty$ 的序列）。则 $1+\sqrt{d/n}+\delta_n\to 1$，且 (1.11) 的右端 $\to 0$。因此 $\gamma_{\max}(\widehat\Sigma)$ 依概率被挤到 1 附近。对称的下尾（教材在 $n\ge d$ 时给出）控制 $\gamma_{\min}$。
+3. $\log\rho_\infty\ge\log(10/(2\cdot 11))-(\log 100)/10=\log(5/11)-2\log 10/10$。故 $\rho_\infty\ge (5/11)\cdot 100^{-1/10}=(5/11)\cdot 10^{-1/5}\approx 0.455\cdot 0.631\approx 0.29$。下界约 $0.29$，与 $1/3$ 同量级——即使 $n=10d$，几何近邻也没有真正变近。(1.14) 是下界，真实期望可以更大。
+4. 硬阈值在 $|x|=\lambda$ 处从 0 跳到 $\lambda$（不连续）；软阈值在该点连续，并把 $|x|>\lambda$ 的值向 0 收缩 $\lambda$。分类 vignette 的目标是把噪声坐标清零、保留大信号，跳跃可以接受；连续性更多是优化与 $\ell_1$ 的需要（第 7 章）。
+5. 线性模型 $\subset$ 可加模型 (1.20)。SPAM (1.21) 是可加模型加上支撑稀疏。单指标是多指标 (1.22) 的 $s=1$；SPAM 可通过把 $A$ 的行取成标准基向量嵌进多指标。投影寻踪 (1.23) 是多个单指标之和。
+
+</details>
+
+# 本章小结
+
+- 经典 LLN/CLT 把 $d$ 视为固定；当 $d$ 与 $n$ 同阶时，LDA、样本协方差、非参数回归都会以不同机制失效；
+- Kolmogorov 极限 (1.6)、MP 支撑 (1.10)、最近邻下界 (1.14) 分别给出这三种失效的定量形状；非渐近尾界 (1.11) 是本书后面要系统发展的语言；
+- 没有无结构的免费午餐（第 5、15 章）；稀疏、低秩 / 特征值速降、可加与单指标是把问题拉回可估的三条典型结构；
+- 三种分析模式互相服务，但本书的陈述默认是：**$(n,d)$ 固定，给出显式的高概率界**。
+
+## 术语对照
+
+| 中文 | English | 备注 |
+|---|---|---|
+| 高维统计学 | high-dimensional statistics | 名词委：高维统计学 |
+| 非渐近 | non-asymptotic | 本书主语言 |
+| 大数定律 | law of large numbers | 陈希孺同名 |
+| 中心极限定理 | central limit theorem | |
+| 相合性 | consistency | 名词委：相合性；陈希孺亦作相合 |
+| 渐近正态性 | asymptotic normality | |
+| 线性判别分析 | linear discriminant analysis | |
+| 奈曼–皮尔逊引理 | Neyman–Pearson lemma | |
+| 费希尔线性判别 | Fisher linear discriminant | (1.4) |
+| 马哈拉诺比斯距离 | Mahalanobis distance | (1.2) 的 $\gamma$；$\Sigma=I_d$ 时为欧氏距离 |
+| 样本协方差矩阵 | sample covariance matrix | (1.8)；零均值写法 |
+| 算子范数 | operator norm | 教材 $\ell_2$-operator norm，三竖线 |
+| 马尔琴科–帕斯图尔定律 | Marčenko–Pastur law | (1.10)；图注密度 |
+| 非参数回归 | nonparametric regression | |
+| 维数灾难 | curse of dimensionality | |
+| 覆盖 | covering | $\delta$-covering；(1.15) |
+| 填装 | packing | $\delta$-packing；第 5 章正式定义 |
+| 稀疏性 | sparsity | |
+| 硬阈值 | hard-thresholding | (1.16) |
+| 软阈值 | soft-thresholding | (1.17) |
+| 可加模型 | additive model | (1.20)；Stone (1985) |
+| 稀疏可加模型 | sparse additive model | SPAM；(1.21) |
+| 单指标模型 | single-index model | (1.22) 的 $s=1$ |
+| 多指标模型 | multiple-index model | (1.22) |
+| 投影寻踪回归 | projection pursuit regression | (1.23) |
+| 再生核希尔伯特空间 | reproducing kernel Hilbert space | 第 12 章 |
+| 极小极大 | minimax | 第 15 章 |
+| 拉德马赫复杂度 | Rademacher complexity | 第 4 章 |
+| VC 维 | Vapnik–Chervonenkis dimension | 第 4 章 |
+
+: 本章术语（中文从名词委；英文从教材或国际通行用法）
+
+## 来源定位
+
+- 教材：第 1 章 §§1.1–1.6，印刷页 1–20，PDF 页 20–39。
+- 页码关系：**PDF 页 = 印刷页 + 19**（印刷页 1 = PDF 页 20）。
+- 习题：无编号习题；正文 (1.14) 的证明见 [Solutions](../solutions/ch01-solutions.qmd)。

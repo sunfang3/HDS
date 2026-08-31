@@ -1,0 +1,891 @@
+---
+title: "第 8 章　高维主成分分析"
+subtitle: "Wainwright, High-Dimensional Statistics 伴读 Notes"
+description: "面向已学陈希孺本科概率统计的读者：从总体/样本特征向量接到 Weyl 与 Davis–Kahan 型扰动、尖刺协方差，以及 n 小于 d 时的稀疏主成分"
+execute:
+  enabled: false
+lang: zh-CN
+---
+
+# 本章导览
+
+第 6 章已经说明：样本协方差在算子范数下相合，需要 $d/n\to 0$。主成分分析（PCA）用的不是整张协方差，而是**最大的几个特征向量**。特征值本身相对稳定（Weyl），但特征向量会在特征间隙（eigengap）太小时被很小的扰动“搅混”。本章给出一组非渐近语言：先把问题写成二次型最大化，再控制扰动 $P=\widehat\Sigma-\Sigma$ 在特征基下的块，最后把 $P$ 换成尖刺模型里可以算尾界的三项。
+
+无结构时，尖刺模型的标度是 $\sqrt{d/n}/\nu$；一旦 $d/n$ 不趋于 0，经典 PCA 与总体方向渐近正交，而且第 15 章会证明**没有任何方法**能相合。出路与第 7 章相同：把特征向量本身做成稀疏的，把 $d$ 换成 $s\log d$。
+
+本章阅读主线：
+
+$$
+\text{总体 PCA（最大方差 / 低秩 / 压缩）}
+\longrightarrow
+\text{Weyl：特征值稳定；特征向量要间隙}
+\longrightarrow
+\text{Theorem 8.5（确定性 Davis–Kahan 型界）}
+\longrightarrow
+\text{尖刺模型：}\sqrt{d/n}
+\longrightarrow
+\text{稀疏 PCA：}\sqrt{s\log d/n}.
+$$
+
+> 教材定位：第 8 章 §§8.1–8.4，印刷页 236–256，PDF 页 255–275。习题 §8.5 印刷页 256–258，PDF 页 275–277，不进入 Notes。页码关系：**PDF 页 = 印刷页 + 19**。
+
+## 学习目标
+
+学完本章后，你应能：
+
+- **写出** 总体第一主成分 (8.1) 与经验版 (8.3)，并说明 Eckart–Young–Mirsky 的截断特征分解 (8.5)–(8.6)；
+- **陈述** Weyl 不等式 (8.9)，并用 Example 8.4 说明：没有特征间隙时特征向量可以极不稳定；
+- **应用** Theorem 8.5：在 $\|P\|_{\mathrm{op}}<\nu/2$ 下把 $\|\widehat\theta-\theta^*\|_2$ 写成 $2\|\tilde p\|_2/(\nu-2\|P\|_{\mathrm{op}})$；
+- **由** 尖刺模型 (8.18)–(8.19) **读出** Corollary 8.7 的标度 $\sqrt{(\nu+1)/\nu^2}\,\sqrt{d/n}$，并指出 $n>d$ 的必要性；
+- **区分** 约束稀疏 PCA (8.25a) 与惩罚形式 (8.25b)，并写出 Corollary 8.12 把 $d$ 换成 $s\log d$ 的误差。
+
+# 必要先修
+
+陈希孺里的协方差、特征分解、样本主成分，本章直接当定义用。第 6 章的算子范数与样本协方差尾界、第 2 章的次高斯 / 次指数，是把确定性扰动换成高概率误差的引擎。下面只钉三处本科课不一定写成这个样子的接口。
+
+::: {.callout-note title="为什么现在需要特征间隙"}
+对称矩阵 $Q=R+P$ 的特征值满足 Weyl：每个 $\gamma_j$ 的移动不超过 $\|P\|_{\mathrm{op}}$。特征向量没有这种廉价稳定性。两个接近的特征值对应的特征空间，会被量级与间隙相当的扰动完全搅混——Example 8.4 用 $2\times 2$ 矩阵把这件事算给你看。间隙 $\nu=\gamma_1(\Sigma)-\gamma_2(\Sigma)$ 是本章所有上界的分母。
+:::
+
+::: {.callout-note title="作者解释：教材的三竖线就是算子范数"}
+对称矩阵上，教材把 $\ell_2$-算子范数写成 $|||\cdot|||_2$。它等于谱半径，也等于 $\sup_{\|u\|_2=1}\|Mu\|_2$。Notes 统一写成 $\|\cdot\|_{\mathrm{op}}$。Frobenius 范数 $\|M\|_F=\bigl(\sum_{jk}M_{jk}^2\bigr)^{1/2}$ 由全体奇异值的 $\ell_2$ 给出，对低秩逼近更方便，但不能代替算子范数去控制特征空间。
+:::
+
+::: {.callout-note title="作者解释：符号不定性"}
+若 $\theta^*$ 是特征向量，$-\theta^*$ 也是。误差必须在 $\|\widehat\theta-\theta^*\|_2$ 与 $\|\widehat\theta+\theta^*\|_2$ 之间取小的那个；等价地，约定内积 $\varrho=\langle\widehat\theta,\theta^*\rangle\in[0,1]$。Theorem 8.5 在证明里先选符号，再写 $\|\widehat\theta-\theta^*\|_2$；稀疏 PCA 的 Theorem 8.10 把 $\min$ 写在定理表面上。
+:::
+
+# 8 Principal component analysis in high dimensions　高维主成分分析
+
+> 教材定位：章首，印刷页 236，PDF 页 255。
+
+PCA 寻找方差最大的方向，或等价地，捕捉大部分方差的低维子空间。有了 $n$ 个样本，经验 PCA 就是算样本协方差的若干个最大特征向量。本章的问题是：这些样本特征向量何时逼近总体特征向量张成的子空间——在高维、非渐近的框架下，先看无结构，再看有结构（稀疏）。
+
+# 8.1 Principal components and dimension reduction　主成分与降维
+
+> 教材定位：§8.1，印刷页 236–237，PDF 页 255–256。
+
+记 $\mathcal S_+^{d\times d}$ 为 $d$ 维半正定矩阵锥，单位球面 $\mathbb S^{d-1}=\{v\in\mathbb R^d:\|v\|_2=1\}$。零均值随机向量 $X$ 的协方差 $\Sigma\in\mathcal S_+^{d\times d}$ 有有序特征值
+
+$$
+\gamma_1(\Sigma)\ge\gamma_2(\Sigma)\ge\cdots\ge\gamma_d(\Sigma)\ge 0.
+$$
+
+第一主成分问：沿哪个单位向量，$v\mapsto\langle v,X\rangle$ 的方差最大？
+
+::: {.callout-important title="(8.1) 总体第一主成分"}
+$$
+v^*
+=
+\arg\max_{v\in\mathbb S^{d-1}}\mathrm{var}(\langle v,X\rangle)
+=
+\arg\max_{v\in\mathbb S^{d-1}}\mathbb E[\langle v,X\rangle^2]
+=
+\arg\max_{v\in\mathbb S^{d-1}}\langle v,\Sigma v\rangle.
+$$
+因此 $v^*$ 就是 $\Sigma$ 的最大特征向量（本章讨论时默认它唯一）。
+:::
+
+前 $r$ 个主成分：找列正交的 $V\in\mathbb R^{d\times r}$，最大化
+
+$$
+\mathbb E\|V^T X\|_2^2
+=
+\sum_{j=1}^r\mathbb E[\langle v_j,X\rangle^2].
+\tag{8.2}
+$$
+
+Exercise 8.4 将证明：最优列就是 $\Sigma$ 的前 $r$ 个特征向量。
+
+实践中 $\Sigma$ 未知。零均值样本 $\{x_i\}_{i=1}^n$ 给出
+
+$$
+\widehat\Sigma
+=
+\frac1n\sum_{i=1}^n x_i x_i^T.
+$$
+
+插入原则（plug-in）把 (8.1) 换成
+
+::: {.callout-important title="(8.3) 经验第一主成分"}
+$$
+\widehat v
+=
+\arg\max_{v\in\mathbb S^{d-1}}\langle v,\widehat\Sigma v\rangle.
+$$
+:::
+
+统计问题就是：这些经验最大化子在什么意义上逼近总体最大化子，也就是样本与总体协方差的**特征结构**如何相关。
+
+## 8.1.1 Interpretations and uses of PCA　PCA 的解释与用途
+
+> 教材定位：§8.1.1，印刷页 237–241，PDF 页 256–260。
+
+### 例：矩阵逼近（Example 8.1）
+
+对对称矩阵 $\Sigma$（这里不必半正定）和酉不变矩阵范数 $|||\cdot|||$，最佳秩至多 $r$ 的逼近是
+
+$$
+Z^*
+=
+\arg\min_{\mathrm{rank}(Z)\le r}
+\bigl\{
+|||\,\Sigma-Z\,|||^{2}
+\bigr\}.
+\tag{8.4}
+$$
+
+脚注 1：对称 $M$ 的范数称为酉不变，若对一切正交 $V$ 有 $|||M|||=|||V^TMV|||$。Exercise 8.2 讨论这一族范数。
+
+::: {.callout-important title="Eckart–Young–Mirsky"}
+最优解存在，并且就是截断特征分解：若 $\{v_j\}_{j=1}^d$ 是 $\Sigma$ 的标准正交特征基，对应有序特征值 $\{\gamma_j(\Sigma)\}$，则
+$$
+Z^*
+=
+\sum_{j=1}^r\gamma_j(\Sigma)\,(v_j\otimes v_j),
+\tag{8.5}
+$$
+其中 $v_j\otimes v_j:=v_j v_j^T$。对 Frobenius 范数 $\|M\|_F=\bigl(\sum_{j,k}M_{jk}^2\bigr)^{1/2}$，
+$$
+\|Z^*-\Sigma\|_F^2
+=
+\sum_{j=r+1}^d\gamma_j^2(\Sigma).
+\tag{8.6}
+$$
+:::
+
+Figure 8.1：先取 Toeplitz $T_{jk}=e^{-\alpha\sqrt{|j-k|}}$（$\alpha=0.95$，$d=100$），再中心化 $\Sigma=T-\gamma_{\min}(T)I_d$。特征值速降；图中用菱形标出 $r\in\{5,10,25,100\}$。$r=5$ 或 $10$ 的缺陷明显，$r=25$ 已经像样。$r=100$ 是原矩阵。
+
+### 例：数据压缩（Example 8.2）
+
+把零均值 $X$ 投影到 $r$ 维子空间 $\mathbb V$，用均方误差 $\mathbb E[\|X-\Pi_{\mathbb V}(X)\|_2^2]$ 选 $\mathbb V$。若 $\gamma_r(\Sigma)>\gamma_{r+1}(\Sigma)$，最优 $\mathbb V^*$ 由前 $r$ 个特征向量张成，$\Pi_{\mathbb V^*}(x)=V_r V_r^T x$。
+
+教材把最小重构误差写成
+
+$$
+\mathbb E\bigl[\|X-\Pi_{\mathbb V^*}(X)\|_2^2\bigr]
+=
+\sum_{j=r+1}^d\gamma_j^2(\Sigma).
+\tag{8.7}
+$$
+
+::: {.callout-warning title="勘误待批：(8.7) 的平方"}
+原页（印刷页 239，PDF 页 258）确有平方。但 $X$ 的线性重构误差是迹恒等式
+$$
+\mathbb E\|(I-\Pi)X\|_2^2
+=
+\mathrm{tr}((I-\Pi)\Sigma)
+=
+\sum_{j=r+1}^d\gamma_j(\Sigma),
+$$
+平方出现在 **Frobenius 矩阵**逼近 (8.6)，不该出现在向量的 $L^2$ 重构里。Notes 保留原文，按迹恒等式阅读；待教师批准。Exercise 8.4 会把正确的变分式写出来。
+:::
+
+Yale Face Database：每张灰度图 $243\times 320$，向量化后 $d=77760$，样本量 $n=165$。先算平均脸 $\bar x=n^{-1}\sum x_i$，再用无偏样本协方差
+$$
+\widehat\Sigma
+=
+\frac1{n-1}\sum_{i=1}^n(x_i-\bar x)(x_i-\bar x)^T.
+$$
+（注意：章首的一般写法是不中心化的 $n^{-1}\sum x_i x_i^T$，因为那里默认总体均值为零。）Figure 8.2：样本脸、前 100 个特征值的速降、前若干特征脸、以及平均脸加上前 24 个主成分的重构。图注写“前 25 张特征脸”，正文写平均脸加上前 24 张——25 张图里左上角是平均脸。
+
+### 例：高斯混合（Example 8.3）
+
+两成分各向同性高斯混合
+
+$$
+f(x;\theta)
+=
+\alpha\,\phi(x;-\theta^*,\sigma^2 I_d)
++(1-\alpha)\,\phi(x;\theta^*,\sigma^2 I_d),
+\tag{8.8}
+$$
+
+$\theta^*\in\mathbb R^d$ 参数化两类均值，$\alpha\in(0,1)$ 为混合权重，$\sigma>0$ 为尺度。Figure 8.3 用 $d=2$、$\theta^*=[0.6,-0.6]^T$、$\sigma=0.4$、$\alpha=0.4$ 画出密度与等高线。
+
+二阶矩（不必是协方差）
+
+$$
+\Gamma
+:=
+\mathbb E[X\otimes X]
+=
+\theta^*\otimes\theta^*+\sigma^2 I_d,
+$$
+
+因此 $\theta^*$ 与 $\Gamma$ 的最大特征向量成比例。自然的估计量是样本二阶矩 $\widehat\Gamma=n^{-1}\sum_i x_i x_i^T$ 的最大特征向量。脚注 2：$\alpha=0.5$ 时二阶矩与协方差重合（均值真的是零）。Exercise 8.6 分析这个估计量。
+
+::: {.callout-note title="直觉"}
+等高线沿 $\theta^*$ 被拉长：两类均值把质量堆在一条轴上，最大方差方向就是这条轴。各向同性噪声保证没有另一条“更长”的噪声方向来抢最大特征值。
+:::
+
+## 8.1.2 Perturbations of eigenvalues and eigenspaces　特征值与特征空间的扰动
+
+> 教材定位：§8.1.2，印刷页 241–242，PDF 页 260–261。
+
+PCA 永远作用在样本协方差上。核心问题是样本特征向量对总体特征向量的逼近。先离开统计，看对称矩阵 $Q=R+P$。
+
+最大特征值的变分式给出
+
+$$
+\gamma_1(Q)
+=
+\max_{v\in\mathbb S^{d-1}}\langle v,(R+P)v\rangle
+\le
+\gamma_1(R)+\|P\|_{\mathrm{op}}.
+$$
+
+对换 $Q$ 与 $R$，得到 $|\gamma_1(Q)-\gamma_1(R)|\le\|Q-R\|_{\mathrm{op}}$。更一般地：
+
+::: {.callout-important title="(8.9) Weyl 不等式"}
+$$
+\max_{j=1,\ldots,d}
+\bigl|\gamma_j(Q)-\gamma_j(R)\bigr|
+\le
+\|Q-R\|_{\mathrm{op}}.
+$$
+这是更一般的 Weyl 不等式的推论；证明见 Exercise 8.3（用 Exercise 8.1 的 Courant–Fischer 变分式）。
+:::
+
+特征值通常稳定；特征向量与特征空间则不然，除非再加上条件。
+
+### 例：特征向量的敏感性（Example 8.4）
+
+对 $\varepsilon\in[0,1]$，
+
+$$
+Q_\varepsilon
+:=
+\begin{pmatrix}1&\varepsilon\\\varepsilon&1.01\end{pmatrix}
+=
+\underbrace{\begin{pmatrix}1&0\\0&1.01\end{pmatrix}}_{Q_0}
++
+\varepsilon
+\underbrace{\begin{pmatrix}0&1\\1&0\end{pmatrix}}_{P}.
+\tag{8.10}
+$$
+
+$\|P\|_{\mathrm{op}}=1$，扰动大小由 $\varepsilon$ 直接控制。记 $a=1.01$，则 $\gamma(Q_0)=\{1,a\}$，且
+
+$$
+\gamma(Q_\varepsilon)
+=
+\Bigl\{
+\tfrac12\bigl[(a+1)+\sqrt{(a-1)^2+4\varepsilon^2}\bigr],
+\;
+\tfrac12\bigl[(a+1)-\sqrt{(a-1)^2+4\varepsilon^2}\bigr]
+\Bigr\}.
+$$
+
+因此
+
+$$
+\max_{j=1,2}
+\bigl|\gamma_j(Q_0)-\gamma_j(Q_\varepsilon)\bigr|
+=
+\tfrac12
+\bigl|(a-1)-\sqrt{(a-1)^2+4\varepsilon^2}\bigr|
+\le\varepsilon,
+$$
+
+与 Weyl 一致。但最大特征向量对小 $\varepsilon$ 已经很不一样：$\varepsilon=0$ 时 $v_0=[0,1]^T$；$\varepsilon=0.01$ 时 $v_\varepsilon\approx[0.53,0.85]^T$，且 $\|v_0-v_\varepsilon\|_2\gg\varepsilon$。
+
+根子是间隙 $\gamma_1(Q_0)-\gamma_2(Q_0)=0.01$ 太小，扰动在第一、第二特征空间之间制造混合。把间隙从零推开，特征向量才稳定。下面的理论就是干这件事。
+
+# 8.2 Bounds for generic eigenvectors　一般特征向量的界
+
+> 教材定位：§8.2，印刷页 242–248，PDF 页 261–267。
+
+先不假设特征向量有额外结构。§8.3 再加稀疏。
+
+## 8.2.1 A general deterministic result　一条确定性结果
+
+> 教材定位：§8.2.1，印刷页 242–245，PDF 页 261–264。
+
+$\Sigma$ 半正定，最大特征向量 $\theta^*\in\mathbb S^{d-1}$ 唯一，间隙 $\nu:=\gamma_1(\Sigma)-\gamma_2(\Sigma)>0$。扰动后 $\widehat\Sigma=\Sigma+P$。在 PCA 里 $P=\widehat\Sigma-\Sigma$，但本小节的结论对一般对称扰动成立。
+
+把 $P$ 变到 $\Sigma$ 的特征基上。$U$ 以 $\Sigma$ 的特征向量为列，
+
+$$
+\widetilde P
+:=
+U^T P U
+=
+\begin{pmatrix}
+\tilde p_{11} & \tilde p^T \\
+\tilde p & \widetilde P_{22}
+\end{pmatrix},
+\tag{8.11}
+$$
+
+其中 $\tilde p_{11}\in\mathbb R$，$\tilde p\in\mathbb R^{d-1}$，$\widetilde P_{22}\in\mathbb R^{(d-1)\times(d-1)}$。块 $\tilde p$ 衡量扰动把质量从第一特征方向“漏”到正交补的多少。
+
+::: {.callout-important title="Theorem 8.5"}
+$\Sigma$ 半正定，最大特征向量 $\theta^*\in\mathbb S^{d-1}$，间隙 $\nu=\gamma_1(\Sigma)-\gamma_2(\Sigma)>0$。对任何对称 $P$ 满足 $\|P\|_{\mathrm{op}}<\nu/2$，扰动矩阵 $\widehat\Sigma=\Sigma+P$ 有唯一最大特征向量 $\widehat\theta$，且
+$$
+\|\widehat\theta-\theta^*\|_2
+\le
+\frac{2\|\tilde p\|_2}{\nu-2\|P\|_{\mathrm{op}}}.
+\tag{8.12}
+$$
+:::
+
+::: {.callout-warning title="适用边界：$\|P\|_{\mathrm{op}}<\nu/2$ 不能放松"}
+取 $\Sigma=\mathrm{diag}\{2,1\}$，则 $\nu=1$。取 $P=\mathrm{diag}\{-1/2,+1/2\}$，则 $\widehat\Sigma=\tfrac32 I_2$ 不再有唯一最大特征向量。此时 $\|P\|_{\mathrm{op}}=1/2=\nu/2$，恰在定理假设的边界上。
+:::
+
+::: {.callout-note title="作者解释：这是 Davis–Kahan 型的变分界"}
+经典 Davis–Kahan 用 $\sin\Theta$ 度量两个子空间的夹角，分母里是间隙。Theorem 8.5 不引入角度记号，直接控制欧氏误差，并且把分子写成特征基下的**泄漏块** $\|\tilde p\|_2$，而不是整个 $\|P\|_{\mathrm{op}}$。若只有 $\|P\|_{\mathrm{op}}$ 的粗界，分子至多再放大一次，标度不变；尖刺模型里 $\|\tilde p\|_2$ 往往比 $\|P\|_{\mathrm{op}}$ 多一个有用的结构。
+:::
+
+### 关键推导
+
+记 $\widehat\Delta=\widehat\theta-\theta^*$，以及
+
+$$
+\Psi(\Delta;P)
+:=
+\langle\Delta,P\Delta\rangle+2\langle\Delta,P\theta^*\rangle.
+\tag{8.13}
+$$
+
+对任意 $C\subseteq\mathbb S^{d-1}$，设 $\theta^*$ 与 $\widehat\theta$ 分别最大化
+
+$$
+\max_{\theta\in C}\langle\theta,\Sigma\theta\rangle
+\qquad\text{与}\qquad
+\max_{\theta\in C}\langle\theta,\widehat\Sigma\theta\rangle.
+\tag{8.14}
+$$
+
+当前 $C=\mathbb S^{d-1}$。由符号不定性，可取 $\varrho:=\langle\widehat\theta,\theta^*\rangle\in[0,1]$。
+
+::: {.callout-important title="Lemma 8.6（PCA 基本不等式）"}
+间隙 $\nu>0$ 时，
+$$
+\nu\bigl(1-\langle\widehat\theta,\theta^*\rangle^2\bigr)
+\le
+\bigl|\Psi(\widehat\Delta;P)\bigr|.
+\tag{8.15}
+$$
+:::
+
+**Lemma 8.6 的证明。** 最优性给出 $\langle\theta^*,\widehat\Sigma\theta^*\rangle\le\langle\widehat\theta,\widehat\Sigma\widehat\theta\rangle$。写成迹内积 $\langle\langle A,B\rangle\rangle=\mathrm{tr}(A^TB)$，即
+
+$$
+\langle\langle\Sigma,\;\theta^*\otimes\theta^*-\widehat\theta\otimes\widehat\theta\rangle\rangle
+\le
+-\langle\langle P,\;\theta^*\otimes\theta^*-\widehat\theta\otimes\widehat\theta\rangle\rangle.
+$$
+
+按 (8.13) 展开，右端等于 $\Psi(\widehat\Delta;P)$（原页写“等于 $-\Psi$”，与定义差一个符号；随后取绝对值，Lemma 8.6 的结论不受影响，**勘误待批**）。剩下只要证明曲率下界 (8.17)。写 $\widehat\theta=\varrho\theta^*+\sqrt{1-\varrho^2}\,z$，$z\perp\theta^*$。令 $\Gamma=\Sigma-\gamma_1(\theta^*\otimes\theta^*)$，则 $\Gamma\theta^*=0$ 且 $\|\Gamma\|_{\mathrm{op}}\le\gamma_2$，于是
+
+$$
+\langle\langle\Sigma,\;\theta^*\otimes\theta^*-\widehat\theta\otimes\widehat\theta\rangle\rangle
+=
+(1-\varrho^2)\bigl\{\gamma_1-\langle\langle\Gamma,z\otimes z\rangle\rangle\bigr\}
+\ge
+(1-\varrho^2)\nu,
+$$
+
+因为 $|\langle\langle\Gamma,z\otimes z\rangle\rangle|\le\gamma_2$。再由 $\|\widehat\Delta\|_2^2=2(1-\varrho)$ 可知 $(1-\varrho^2)\nu\ge(\nu/2)\|\widehat\Delta\|_2^2$，即 (8.17)。与最优性合起来即 (8.15)。
+
+**回到 Theorem 8.5。** 把 $P=U\widetilde P U^T$ 代入 (8.13) 得 (8.16)。因为 $U$ 的第一列是 $\theta^*$，有 $U^T\theta^*=e_1$，且
+
+$$
+U^T\widehat\Delta
+=
+\bigl(
+\varrho-1,\;
+(1-\varrho^2)^{1/2}\,\tilde z
+\bigr)^T,
+\qquad
+\tilde z=U_2^T z.
+$$
+
+展开后
+
+$$
+\Psi(\widehat\Delta;P)
+=
+(\varrho^2-1)\tilde p_{11}
++
+2\varrho\sqrt{1-\varrho^2}\,\langle\tilde z,\tilde p\rangle
++
+(1-\varrho^2)\langle\tilde z,\widetilde P_{22}\tilde z\rangle.
+$$
+
+用 $\|\tilde z\|_2\le 1$ 与 $|\tilde p_{11}|\le\|\widetilde P\|_{\mathrm{op}}$，
+
+$$
+\bigl|\Psi(\widehat\Delta;P)\bigr|
+\le
+2(1-\varrho^2)\|P\|_{\mathrm{op}}
++
+2\varrho\sqrt{1-\varrho^2}\,\|\tilde p\|_2.
+$$
+
+代入 (8.15)：$\nu(1-\varrho^2)\le 2(1-\varrho^2)\|P\|_{\mathrm{op}}+2\varrho\sqrt{1-\varrho^2}\,\|\tilde p\|_2$。当 $\nu>2\|P\|_{\mathrm{op}}$ 时可消去，得到
+
+$$
+\sqrt{1-\varrho^2}
+\le
+\frac{2\varrho\|\tilde p\|_2}{\nu-2\|P\|_{\mathrm{op}}}.
+$$
+
+再由 $\|\widehat\Delta\|_2=\sqrt{2(1-\varrho)}$ 与 $2\varrho^2\le 1+\varrho$（$\varrho\in[0,1]$），即 (8.12)。
+
+## 8.2.2 Consequences for a spiked ensemble　对尖刺总体的推论
+
+> 教材定位：§8.2.2，印刷页 245–248，PDF 页 264–267。
+
+现在 $P$ 是样本与总体协方差之差。为看清标度，采用 Johnstone 的**尖刺协方差**（spiked covariance）。样本
+
+$$
+x_i
+\;\stackrel{d}{=}\;
+\sqrt{\nu}\,\xi_i\theta^*+w_i,
+\tag{8.18}
+$$
+
+其中 $\xi_i$ 零均值、单位方差，$w_i$ 与 $\xi_i$ 独立、零均值、协方差 $I_d$。于是
+
+$$
+\Sigma
+:=
+\nu\,\theta^*(\theta^*)^T+I_d.
+\tag{8.19}
+$$
+
+对任何 $\nu>0$，$\theta^*$ 是唯一最大特征向量，$\gamma_1(\Sigma)=\nu+1$，其余特征值全在 $1$，间隙正好是 $\nu$。若 $\xi_i$ 与 $w_i$ 都是参数至多为 $1$ 的次高斯，就说 $x_i$ 有次高斯尾。
+
+::: {.callout-important title="Corollary 8.7"}
+设 $\{x_i\}_{i=1}^n$ 为尖刺总体 (8.18) 的 i.i.d. 次高斯尾样本，且 $n>d$、
+$$
+\sqrt{\frac{\nu+1}{\nu^2}}\sqrt{\frac{d}{n}}
+\le
+\frac1{128}.
+$$
+则至少以概率 $1-c_1\exp\bigl(-c_2 n\min\{\sqrt{\nu}\,\delta,\,\nu\delta^2\}\bigr)$，样本协方差 $\widehat\Sigma=n^{-1}\sum_i x_i x_i^T$ 有唯一最大特征向量 $\widehat\theta$，满足
+$$
+\|\widehat\theta-\theta^*\|_2
+\le
+c_0\sqrt{\frac{\nu+1}{\nu^2}}\sqrt{\frac{d}{n}}+\delta.
+\tag{8.20}
+$$
+:::
+
+Figure 8.4：$n=500$，尖刺 $\nu\in[0.75,5]$，$T=100$ 次试验。实线是 $\sqrt{(\nu+1)/\nu^2}\sqrt{d/n}$（不带 $c_0$）；(a) $d=100$（比率 $d/n=0.2$），(b) $d=250$（比率 $0.5$）。经验均值跟着这条曲线走，定理的 $c_0>1$ 更松。
+
+::: {.callout-note title="直觉"}
+间隙 $\nu$ 既是信号强度，也是 Theorem 8.5 的分母。噪声协方差是 $I_d$，算子范数偏差的典型大小是 $\sqrt{d/n}$（第 6 章）。分子里的 $\sqrt{\nu+1}$ 来自 $x_i$ 的第二矩尺度。条件 $n>d$ 保证样本协方差的噪声块可逆、$\sqrt{d/n}$ 有意义；$\nu$ 太小时分母把误差推向常数阶，特征向量可以完全转过方向。
+:::
+
+### 证明纲要
+
+$P=\widehat\Sigma-\Sigma$ 分解成三项。记 $\bar w:=n^{-1}\sum_i\xi_i w_i$，
+
+$$
+P
+=
+\underbrace{\nu\Bigl(n^{-1}\sum_i\xi_i^2-1\Bigr)\theta^*(\theta^*)^T}_{P_1}
++
+\underbrace{\sqrt{\nu}\bigl(\bar w(\theta^*)^T+\theta^*\bar w^T\bigr)}_{P_2}
++
+\underbrace{n^{-1}\sum_i w_i w_i^T-I_d}_{P_3}.
+\tag{8.21}
+$$
+
+于是
+
+\begin{align}
+\|P\|_{\mathrm{op}}
+&\le
+\nu\Bigl|n^{-1}\sum_i\xi_i^2-1\Bigr|
++
+2\sqrt{\nu}\,\|\bar w\|_2
++
+\Bigl\|n^{-1}\sum_i w_i w_i^T-I_d\Bigr\|_{\mathrm{op}},
+\tag{8.22a}\\
+\|\tilde p\|_2
+&\le
+\sqrt{\nu}\,\|\bar w\|_2
++
+\Bigl\|n^{-1}\sum_i w_i w_i^T-I_d\Bigr\|_{\mathrm{op}}.
+\tag{8.22b}
+\end{align}
+
+(8.22b) 用到 $\tilde p=U_2^T P\theta^*$ 与 $U_2^T\theta^*=0$。Lemma 8.8（证明留作练习，是第 2、6 章次高斯尾界的直接应用）给出三条高概率界：
+
+\begin{align}
+\mathbb P\Bigl[\bigl|n^{-1}\sum_i\xi_i^2-1\bigr|\ge\delta_1\Bigr]
+&\le
+2e^{-c_2 n\min\{\delta_1,\delta_1^2\}},
+\tag{8.23a}\\
+\mathbb P\bigl[\|\bar w\|_2\ge 2\sqrt{d/n}+\delta_2\bigr]
+&\le
+2e^{-c_2 n\min\{\delta_2,\delta_2^2\}},
+\tag{8.23b}\\
+\mathbb P\Bigl[\bigl\|n^{-1}\sum_i w_i w_i^T-I_d\bigr\|_{\mathrm{op}}
+\ge c_3\sqrt{d/n}+\delta_3\Bigr]
+&\le
+2e^{-c_2 n\min\{\delta_3,\delta_3^2\}}.
+\tag{8.23c}
+\end{align}
+
+联合失败概率记为 $\phi(\delta_1,\delta_2,\delta_3)$，即 (8.24) 的三项之和。
+
+要应用 Theorem 8.5，需先有 $\|P\|_{\mathrm{op}}<\nu/4$（比 $\nu/2$ 更强，方便吸收常数）。取 $\delta_1=1/16$、$\delta_2=\delta/(4\sqrt{\nu})$、$\delta_3=\delta/16\in(0,1)$，得到
+
+$$
+\|P\|_{\mathrm{op}}
+\le
+\frac{\nu}{16}+8(\sqrt{\nu}+1)\sqrt{\frac{d}{n}}+\delta
+\le
+\frac{\nu}{16}+16(\sqrt{\nu}+1)\sqrt{\frac{d}{n}}+\delta.
+$$
+
+::: {.callout-warning title="勘误待批：$\phi$ 的三个自变量"}
+原页刚选定 $(\delta_1,\delta_2,\delta_3)=(1/16,\,\delta/(4\sqrt{\nu}),\,\delta/16)$，紧接着却把失败概率写成 $\phi(1/4,\,\delta/(3\sqrt{\nu}),\,\delta/16)$（印刷页 247，PDF 页 266）。标度结论不受影响。Notes 按选定的 $\delta_i$ 读，并记下原文的 $\phi$ 自变量。
+:::
+
+在 $\sqrt{(\nu+1)/\nu^2}\sqrt{d/n}\le 1/128$ 时，对 $\delta\in(0,\nu/16)$ 有 $\|P\|_{\mathrm{op}}\le 3\nu/16+\delta<\nu/4$。同样的 $(\delta_i)$ 给出 $\|\tilde p\|_2\le 2(\sqrt{\nu}+1)\sqrt{d/n}+\delta\le 4\sqrt{\nu+1}\sqrt{d/n}+\delta$。代入 (8.12) 即 (8.20)。
+
+# 8.3 Sparse principal component analysis　稀疏主成分分析
+
+> 教材定位：§8.3，印刷页 248–255，PDF 页 267–274。
+
+Corollary 8.7 要求 $n>d$。这是不是根本的？答案是戏剧性的**否**。对固定信噪比，若 $d/n$ 有下界离开 $0$，尖刺模型里样本特征向量与总体方向**渐近正交**——经典 PCA 并不比在球面上均匀乱画更好。第 15 章 Example 15.19 进一步证明：无结构尖刺模型上，**任何方法**都不能相合。
+
+有结构则另说。最简单的结构是特征向量稀疏：既给出 $n<d$ 时的相合，也提高可解释性。
+
+Example 8.9 回到 Yale 特征脸：$d=77760$，用阈值化矩阵幂法逼近至多 $s=\lfloor 0.25d\rfloor=19440$ 个非零的稀疏特征向量（普通幂法见 Exercise 8.5）。Figure 8.5：稀疏特征脸更局部；用 100 张稀疏特征脸（像素存储量相当于 25 张普通特征脸）做重构。
+
+## 8.3.1 A general deterministic result for sparse PCA　稀疏 PCA 的确定性结果
+
+> 教材定位：§8.3.1，印刷页 249–252，PDF 页 268–271。
+
+在经典二次型上加稀疏约束或惩罚。约束形式（SCOTLASS）
+
+$$
+\widehat\theta
+\in
+\arg\max_{\|\theta\|_2=1}
+\bigl\{\langle\theta,\widehat\Sigma\theta\rangle\bigr\}
+\quad\text{s.t.}\quad
+\|\theta\|_1\le R,
+\tag{8.25a}
+$$
+
+以及惩罚形式
+
+$$
+\widehat\theta
+\in
+\arg\max_{\|\theta\|_2=1}
+\bigl\{\langle\theta,\widehat\Sigma\theta\rangle-\lambda_n\|\theta\|_1\bigr\}
+\quad\text{s.t.}\quad
+\|\theta\|_1\le\bigl(n/\log d\bigr)^{1/4}.
+\tag{8.25b}
+$$
+
+分析 (8.25a) 时取 $R=\|\theta^*\|_1$。惩罚形式的好处是 $\lambda_n$ 不必知道 $\theta^*$。(8.25b) 里多出来的 $\ell_1$ 球是技术条件，用来保证可行集上的一致偏差。两者都不是凸的（半正定二次型的最大化）；统计行为仍然值得分析，凸松弛见 Exercise 8.8–8.9。
+
+扰动仍通过 $\Psi(\Delta;P)$ 进入。稀疏反映在对 $\Psi$ 的一致控制上：存在万有常数 $c_0>0$ 以及非负函数 $\varphi_\nu(n,d)$、$\psi_\nu(n,d)$，使得
+
+$$
+\sup_{\substack{\Delta=\theta-\theta^*\\ \|\theta\|_2=1}}
+\bigl|\Psi(\Delta;P)\bigr|
+\le
+c_0\nu\|\Delta\|_2^2
++\varphi_\nu(n,d)\|\Delta\|_1
++\psi_\nu^2(n,d)\|\Delta\|_1^2.
+\tag{8.26}
+$$
+
+对带次高斯尾的稀疏尖刺模型，高概率下 $\varphi_\nu^2(n,d)\asymp(\nu+1)(\log d)/n$，$\psi_\nu^2(n,d)\asymp\nu^{-1}(\log d)/n$。这是 Corollary 8.12 的内容。
+
+::: {.callout-important title="Theorem 8.10"}
+$\Sigma$ 有唯一的单位、 $s$-稀疏最大特征向量 $\theta^*$，间隙为 $\nu$。$\widehat\Sigma$ 对称且满足 (8.26)，其中 $c_0<1/6$ 且 $16s\,\psi_\nu^2(n,d)\le c_0\nu$。
+
+(a) 约束程序 (8.25a) 取 $R=\|\theta^*\|_1$ 的任何最优解满足
+$$
+\min\bigl\{\|\widehat\theta-\theta^*\|_2,\|\widehat\theta+\theta^*\|_2\bigr\}
+\le
+\frac{8}{\nu(1-4c_0)}\sqrt{s}\,\varphi_\nu(n,d).
+\tag{8.27}
+$$
+
+(b) 惩罚程序 (8.25b) 若
+$$
+\lambda_n
+\ge
+4\bigl(n/\log d\bigr)^{1/4}\psi_\nu^2(n,d)+2\varphi_\nu(n,d),
+$$
+则任何最优解满足
+$$
+\min\bigl\{\|\widehat\theta-\theta^*\|_2,\|\widehat\theta+\theta^*\|_2\bigr\}
+\le
+\frac{2\bigl(\lambda_n/\varphi_\nu(n,d)+4\bigr)}{\nu(1-4c_0)}\sqrt{s}\,\varphi_\nu(n,d).
+\tag{8.28}
+$$
+:::
+
+### 证明纲要（约束）
+
+$\|\widehat\theta\|_1\le R=\|\theta^*\|_1$ 且 $\theta^*_{S^c}=0$。把 $\ell_1$ 拆成 $S$ 与 $S^c$，有 $\|\widehat\Delta_{S^c}\|_1\le\|\widehat\Delta_S\|_1$（计算留作练习，细节与第 7 章相同）。后面为了与惩罚形式统一，只用较弱的锥不等式 $\|\widehat\Delta_{S^c}\|_1\le 3\|\widehat\Delta_S\|_1$，从而 $\|\widehat\Delta\|_1\le 4\sqrt{s}\,\|\widehat\Delta\|_2$。代入 (8.26) 得
+
+$$
+\bigl|\Psi(\widehat\Delta;P)\bigr|
+\le
+c_0\nu\|\widehat\Delta\|_2^2
++4\sqrt{s}\,\varphi_\nu(n,d)\|\widehat\Delta\|_2
++16s\,\psi_\nu^2(n,d)\|\widehat\Delta\|_2^2.
+\tag{8.29}
+$$
+
+再代入基本不等式 (8.15)：
+
+$$
+\nu\Bigl\{\underbrace{\tfrac12-c_0-16\frac{s}{\nu}\psi_\nu^2(n,d)}_{\kappa}\Bigr\}
+\|\widehat\Delta\|_2^2
+\le
+4\sqrt{s}\,\varphi_\nu(n,d)\|\widehat\Delta\|_2.
+$$
+
+假设推出 $\kappa>\tfrac12(1-4c_0)>0$，约去 $\|\widehat\Delta\|_2$ 即 (8.27)。
+
+### 惩罚形式与锥
+
+正则项把 (8.15) 改成
+
+$$
+\frac{\nu}{2}\|\widehat\Delta\|_2^2-\bigl|\Psi(\widehat\Delta;P)\bigr|
+\le
+\lambda_n\bigl(\|\theta^*\|_1-\|\widehat\theta\|_1\bigr)
+\le
+\lambda_n\bigl(\|\widehat\Delta_S\|_1-\|\widehat\Delta_{S^c}\|_1\bigr).
+\tag{8.30}
+$$
+
+::: {.callout-important title="Lemma 8.11（锥不等式）"}
+在 Theorem 8.10 的条件下，
+$$
+\|\widehat\Delta_{S^c}\|_1
+\le
+3\|\widehat\Delta_S\|_1,
+\qquad\text{从而}\qquad
+\|\widehat\Delta\|_1
+\le
+4\sqrt{s}\,\|\widehat\Delta\|_2.
+\tag{8.31}
+$$
+:::
+
+因此 (8.29) 对惩罚估计量同样可用，代入后
+
+$$
+\nu\Bigl\{\tfrac12-c_0-16\frac{s}{\nu}\psi_\nu^2(n,d)\Bigr\}
+\|\widehat\Delta\|_2^2
+\le
+\sqrt{s}\,(\lambda_n+4\varphi_\nu(n,d))\|\widehat\Delta\|_2,
+$$
+
+即 (8.28)。
+
+Lemma 8.11 的证明：把 (8.26) 与 (8.30) 合起来，正的曲率项扔到左边，得到
+
+$$
+0
+\le
+\nu\bigl(\tfrac12-c_0\bigr)\|\Delta\|_2^2
+\le
+\varphi_\nu\|\Delta\|_1+\psi_\nu^2\|\Delta\|_1^2
++\lambda_n\bigl(\|\widehat\Delta_S\|_1-\|\widehat\Delta_{S^c}\|_1\bigr).
+$$
+
+可行集给出 $\|\widehat\Delta\|_1\le 2R$，其中 $R=(n/\log d)^{1/4}$。再由 $\lambda_n$ 的下界，$\varphi_\nu+2R\psi_\nu^2\le\lambda_n/2$，于是
+
+$$
+0
+\le
+\lambda_n\Bigl\{\tfrac32\|\widehat\Delta_S\|_1-\tfrac12\|\widehat\Delta_{S^c}\|_1\Bigr\},
+$$
+
+重排即锥。
+
+::: {.callout-note title="直觉"}
+与第 7 章 Lasso 相同：最优性把误差推进一个锥，锥上 $\|\Delta\|_1\lesssim\sqrt{s}\|\Delta\|_2$，于是 (8.26) 里的 $\ell_1$ 项变成 $\sqrt{s}\,\varphi_\nu\|\Delta\|_2$，除以间隙 $\nu$ 就出现 (8.27)。$\psi_\nu^2$ 项是 $\ell_1^2$ 的二次扰动，必须小到能被 $c_0\nu\|\Delta\|_2^2$ 吸收，否则曲率 $\kappa$ 会丢号。
+:::
+
+## 8.3.2 Consequences for the spiked model with sparsity　带稀疏的尖刺模型
+
+> 教材定位：§8.3.2，印刷页 252–255，PDF 页 271–274。
+
+回到 (8.18)，现在 $\theta^*\in\mathbb S^{d-1}$ 是 $s$-稀疏的，$\xi_i$ 与 $w_i$ 独立、次高斯参数 $1$。
+
+::: {.callout-important title="Corollary 8.12"}
+设 $n$ 个 i.i.d. 样本来自 $s$-稀疏尖刺协方差，间隙 $\nu>0$，且
+$$
+\frac{s\log d}{n}
+\le
+c\min\Bigl\{1,\,\frac{\nu^2}{\nu+1}\Bigr\}
+$$
+对充分小的万有 $c>0$ 成立。则对任何 $\delta\in(0,1)$，约束程序 (8.25a)（$R=\|\theta^*\|_1$）或惩罚程序 (8.25b)（$\lambda_n=c_3\sqrt{\nu+1}\{\sqrt{(\log d)/n}+\delta\}$）的任何最优解满足
+$$
+\min\bigl\{\|\widehat\theta-\theta^*\|_2,\|\widehat\theta+\theta^*\|_2\bigr\}
+\le
+c_4\sqrt{\frac{\nu+1}{\nu^2}}
+\Bigl\{\sqrt{\frac{s\log d}{n}}+\delta\Bigr\},
+\tag{8.32}
+$$
+概率至少 $1-c_1\exp\bigl(-c_2(n/s)\min\{\delta^2,\nu^2,\nu\}\bigr)$。
+:::
+
+与 Corollary 8.7 对照：$\sqrt{d/n}$ 换成 $\sqrt{s\log d/n}$。稀疏把有效维数从 $d$ 降到 $s\log d$；$\log d$ 来自对坐标（或子矩阵）做并的代价。
+
+### 证明主线
+
+目标是验证 (8.26)。断言：一致地，
+
+$$
+\bigl|\Psi(\Delta;P)\bigr|
+\le
+\underbrace{\tfrac18}_{c_0}\nu\|\Delta\|_2^2
++
+\underbrace{16\sqrt{\nu+1}\Bigl\{\sqrt{\frac{\log d}{n}}+\delta\Bigr\}}_{\varphi_\nu(n,d)}
+\|\Delta\|_1
++
+\underbrace{\frac{c_3'}{\nu}\frac{\log d}{n}}_{\psi_\nu^2(n,d)}
+\|\Delta\|_1^2,
+\tag{8.33}
+$$
+
+概率至少 $1-c_1 e^{-c_2 n\min\{\delta^2,\nu^2\}}$。由此 $c_0=1/8<1/6$。条件 $s\log d/n$ 足够小保证 $16s\psi_\nu^2\le c_0\nu$，于是约束形式直接引用 Theorem 8.10。惩罚形式还需 $\theta^*$ 落在 (8.25b) 的可行集里，以及 $\lambda_n$ 盖住 $4R\psi_\nu^2+2\varphi_\nu$。
+
+::: {.callout-warning title="勘误待批：(8.25b) 的 $R$ 与 Corollary 8.12 证明"}
+(8.25b) 与 Theorem 8.10 把技术球写成 $\|\theta\|_1\le(n/\log d)^{1/4}$。Corollary 8.12 的证明（印刷页 253，PDF 页 272）改去核对 $\|\theta^*\|_1\le\nu\sqrt{n/\log d}$，并由 $s\log d/n\lesssim\nu^2$ 推出它；随后的 $\lambda_n$ 计算也用了这个更大的 $R$。两种取法下 $4R\psi_\nu^2$ 都不超过 $\varphi_\nu$ 的量级，标度结论不受影响。Notes 按各处原文转写。
+:::
+
+$\Psi$ 对第二变元线性，按 (8.21) 分成三项。
+
+- **$P_1$：** Lemma 8.8 给出 $|n^{-1}\sum\xi_i^2-1|\le 1/16$ 高概率，从而
+  $$
+  \bigl|\Psi(\Delta;P_1)\bigr|
+  \le
+  \frac{\nu}{32}\|\Delta\|_2^2.
+  \tag{8.34}
+  $$
+- **$P_2$：**
+  $$
+  \bigl|\Psi(\Delta;P_2)\bigr|
+  \le
+  4\sqrt{\nu}\,\|\Delta\|_1\|\bar w\|_\infty
+  +
+  2\sqrt{\nu}\,\lvert\langle\theta^*,\bar w\rangle\rvert\,\frac{\|\Delta\|_2^2}{2}.
+  \tag{8.35}
+  $$
+  Lemma 8.13（第 2 章次高斯尾，留作练习）控制 $\|\bar w\|_\infty$ 与 $\langle\theta^*,\bar w\rangle$，汇合成 (8.37)。
+- **$P_3$：** $P_3=n^{-1}W^TW-I_d$，
+  $$
+  \bigl|\Psi(\Delta;P_3)\bigr|
+  \le
+  \lvert\langle\Delta,P_3\Delta\rangle\rvert
+  +
+  2\|P_3\theta^*\|_\infty\|\Delta\|_1.
+  \tag{8.38}
+  $$
+  Lemma 8.14 给出 $\|P_3\theta^*\|_\infty$ 的坐标尾 (8.39a)，以及二次型的一致界 (8.39b)；汇合成 (8.40)。(8.39b) 的证明用子矩阵并、Theorem 6.5 与 Exercise 7.10，细节指回教材印刷页 254–255。
+
+三项相加即 (8.33)。
+
+# 8.4 Bibliographic details and background　文献与背景
+
+> 教材定位：§8.4，印刷页 255–256，PDF 页 274–275。文献条目指回教材。
+
+阅读锚点：Anderson / Jolliffe / Muirhead 的经典 PCA；Horn–Johnson 与 Bhatia 的矩阵分析；Stewart–Sun 的扰动。Johnstone (2001) 引入尖刺模型 (8.18)；Baik–Silverstein、Paul 给出高维渐近。Johnstone–Lu (2009) 引入稀疏尖刺，并分析对角阈值。d’Aspremont 等 (2007) 的 SDP 松弛在 Exercise 8.8；Amini–Wainwright (2009) 分析该 SDP 与变量选择。非凸 (8.25a) 是 Jolliffe 等的 SCOTLASS；Witten 等给出交替算法；Ma、Yuan–Zhang 把幂法与阈值结合。Corollary 8.7 与 8.12 的上界在第 15 章对照极小极大下界（Examples 15.19–15.20，Exercise 15.16）。Berthet–Rigollet 把稀疏 PCA 检测连到种植 $k$-团的平均情形硬度。
+
+# 常见错误
+
+1. **错误做法：** 认为 Weyl 已经控制了特征向量，因为“特征分解是连续的”。  
+   **为什么错：** Weyl 只钉特征值。Example 8.4 里 $\varepsilon=0.01$ 时特征值移动 $\le\varepsilon$，特征向量已经转过大约 $32^\circ$。  
+   **正确判断：** 特征向量的分母是间隙 $\nu$。没有 $\nu>2\|P\|_{\mathrm{op}}$，唯一性都可以丢。
+
+2. **错误做法：** 把 (8.7) 的 $\sum_{j>r}\gamma_j^2(\Sigma)$ 当成向量重构的均方误差。  
+   **为什么错：** 平方属于 Frobenius 矩阵逼近 (8.6)。$X$ 的投影剩余是 $\mathrm{tr}((I-\Pi)\Sigma)=\sum_{j>r}\gamma_j(\Sigma)$。  
+   **正确判断：** 先问误差是矩阵范数还是 $\mathbb E\|X-\Pi X\|_2^2$，再决定要不要平方。
+
+3. **错误做法：** $n<d$ 时仍跑普通 PCA，指望样本最大特征向量指向 $\theta^*$。  
+   **为什么错：** 无结构尖刺上，$d/n$ 不趋于 $0$ 时样本方向与总体方向渐近正交；Example 15.19 说没有任何估计量能相合。  
+   **正确判断：** 要么 $n\gg d$，要么给 $\theta^*$ 加稀疏（或其它低维结构）。
+
+4. **错误做法：** 用 $\|P\|_{\mathrm{op}}$ 代替 Theorem 8.5 分子里的 $\|\tilde p\|_2$，并丢掉 $\nu/2$ 条件。  
+   **为什么错：** 对角反例恰好在 $\|P\|_{\mathrm{op}}=\nu/2$ 处失去唯一最大特征向量。分子用 $\tilde p$ 是因为正交补上的泄漏才转动 $\theta^*$；$P_1$ 那种沿 $\theta^*$ 的缩放主要移动特征值。  
+   **正确判断：** 先检查 $\|P\|_{\mathrm{op}}<\nu/2$，再界 $\tilde p$。
+
+5. **错误做法：** 把稀疏 PCA 的 $\sqrt{s\log d/n}$ 读成“把 $d$ 换成 $s$”，忘掉 $\log d$。  
+   **为什么错：** 支撑未知，要对 $\binom{d}{s}$ 种坐标子集（或坐标最大值）做并，第 2 章给出 $\sqrt{\log d}$。  
+   **正确判断：** 有效样本量条件是 $s\log d/n$ 小，不是 $s/n$ 小。
+
+# 轻量自测
+
+1. 用 Example 8.4 的数字说明：Weyl 给出的特征值移动上界是多少？$\varepsilon=0.01$ 时最大特征向量的欧氏移动大约是多少？
+2. 从 $\|\widehat\theta\|_2=\|\theta^*\|_2=1$ 推出 $\|\widehat\theta-\theta^*\|_2^2=2(1-\varrho)$。Theorem 8.5 为什么还需要 $\nu>2\|P\|_{\mathrm{op}}$？
+3. 尖刺模型 (8.19) 的 $\gamma_1$、$\gamma_2$ 与间隙各是什么？Corollary 8.7 要求 $n>d$ 的哪一步用到了它？
+4. 约束稀疏 PCA 为什么要知道 $R=\|\theta^*\|_1$？惩罚形式怎样避开这一点？
+5. 比较 (8.20) 与 (8.32)：把哪一个量换成了哪一个量？若 $s=\lfloor 0.25d\rfloor$ 且 $n\ll d$，稀疏 PCA 是否自动相合？
+
+<details>
+<summary>查看参考答案</summary>
+
+1. Weyl：移动 $\le\varepsilon$（因为 $\|P\|_{\mathrm{op}}=1$，扰动是 $\varepsilon P$）。$\varepsilon=0.01$ 时 $v_0=[0,1]^T$、$v_\varepsilon\approx[0.53,0.85]^T$，欧氏距离 $\sqrt{0.53^2+(0.85-1)^2}\approx 0.55\gg 0.01$。
+2. 展开 $\|\widehat\theta-\theta^*\|_2^2=2-2\langle\widehat\theta,\theta^*\rangle$。间隙条件保证扰动后最大特征值仍然简单，从而最大特征向量唯一；证明里用它把 $1-\varrho^2$ 从不等式两边消去且保持正号。对角反例说明等号处唯一性已经失败。
+3. $\gamma_1=\nu+1$，$\gamma_2=1$，间隙 $\nu$。$n>d$ 出现在样本协方差噪声块 $P_3$ 的算子范数尾（Lemma 8.8 / 第 6 章）：$n<d$ 时 $\widehat\Sigma$ 必有零特征值，普通 PCA 的最大方向会被各向同性噪声淹没。
+4. (8.25a) 的可行集必须包含 $\theta^*$，所以 $R$ 至少 $\|\theta^*\|_1$；分析里取等号。惩罚形式用 $\lambda_n$ 代替 $R$，只要 $\lambda_n$ 盖住 (8.26) 的 $\varphi_\nu$ 与 $\psi_\nu^2$ 项（以及那个 $(n/\log d)^{1/4}$ 的技术球）。
+5. $\sqrt{d/n}$ 换成 $\sqrt{s\log d/n}$。$s=0.25d$ 时 $s\log d/n\asymp (d\log d)/n$，若 $n\ll d$ 这个量并不小——稀疏必须真正稀疏（$s\log d=o(n)$），只砍掉四分之三的坐标不够。
+
+</details>
+
+# 本章小结
+
+- 总体 PCA 是最大方差方向，也是酉不变范数下的最佳低秩逼近，也是最小均方线性压缩；经验 PCA 把 $\Sigma$ 换成 $\widehat\Sigma$；
+- 特征值服从 Weyl，移动不超过 $\|P\|_{\mathrm{op}}$；特征向量需要间隙 $\nu$，确定性界是 Theorem 8.5 的 $2\|\tilde p\|_2/(\nu-2\|P\|_{\mathrm{op}})$；
+- 尖刺模型把 $P$ 拆成三项次高斯噪声，给出 $\|\widehat\theta-\theta^*\|_2\lesssim\sqrt{(\nu+1)/\nu^2}\sqrt{d/n}$，并且 $n>d$ 是普通 PCA 的本质门槛；
+- 无结构时 $d/n\not\to 0$ 则相合不可能；稀疏把门槛换成 $s\log d/n$，约束与惩罚两种非凸程序在 (8.26) 的一致偏差下给出同一标度。
+
+## 术语对照
+
+| 中文 | English | 备注 |
+|---|---|---|
+| 主成分分析 | principal component analysis | 名词委：主成分分析；PCA |
+| 第一主成分 | first principal component | (8.1) |
+| 半正定锥 | positive semidefinite cone | $\mathcal S_+^{d\times d}$ |
+| 单位球面 | unit sphere | $\mathbb S^{d-1}$ |
+| 插入原则 | plug-in principle | (8.3) |
+| 酉不变范数 | unitarily invariant norm | 脚注 1；Exercise 8.2 |
+| 弗罗贝尼乌斯范数 | Frobenius norm | (8.6)；名词委：弗罗贝尼乌斯 |
+| 核范数 | nuclear norm | Exercise 8.2；亦称迹范数 |
+| 埃卡特定理 | Eckart–Young–Mirsky theorem | (8.5)；低秩截断 |
+| 特征脸 | eigenface | Example 8.2；Yale |
+| 高斯混合模型 | Gaussian mixture model | Example 8.3；(8.8) |
+| 二阶矩矩阵 | second-moment matrix | $\Gamma=\mathbb E[X\otimes X]$ |
+| 外尔不等式 | Weyl's inequality | (8.9) |
+| 特征间隙 | eigengap | $\nu=\gamma_1-\gamma_2$；亦称谱间隙 |
+| 库朗–费希尔 | Courant–Fischer | Exercise 8.1；(8.41) |
+| 戴维斯–卡亨 | Davis–Kahan | 作者解释：Theorem 8.5 同类 |
+| 尖刺协方差 | spiked covariance | (8.18)–(8.19)；Johnstone |
+| 稀疏主成分分析 | sparse principal component analysis | §8.3 |
+| SCOTLASS | SCOTLASS | (8.25a)；Jolliffe 等 |
+| 锥不等式 | cone inequality | Lemma 8.11；(8.31) |
+| 半定松弛 | semidefinite relaxation | Exercise 8.8 |
+| 原–对偶见证 | primal–dual witness | Exercise 8.9；(8.43) |
+| 矩阵幂法 | matrix power method | Exercise 8.5；(8.42) |
+| 对称规范函数 | symmetric gauge function | Exercise 8.2(b) |
+
+: 本章术语（中文从名词委；英文从教材或国际通行用法）
+
+## 来源定位
+
+- 教材：第 8 章 §§8.1–8.4，印刷页 236–256，PDF 页 255–275。
+- 习题：§8.5 Exercises 8.1–8.9，印刷页 256–258，PDF 页 275–277；解答见 [Solutions](../solutions/ch08-solutions.qmd)。
+- 页码关系：**PDF 页 = 印刷页 + 19**（印刷页 236 = PDF 页 255）。

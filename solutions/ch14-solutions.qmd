@@ -1,0 +1,752 @@
+---
+title: "Chapter 14 Exercises"
+subtitle: "Wainwright, High-Dimensional Statistics §14.7"
+description: "Exercise list locked from the textbook; solved independently"
+execute:
+  enabled: false
+---
+
+# How to use this file
+
+- **Textbook:** Martin J. Wainwright, *High-Dimensional Statistics: A Non-Asymptotic Viewpoint* (Cambridge Series in Statistical and Probabilistic Mathematics, No. 48; 2019).
+- **Range:** §14.7, Exercises 14.1–14.11, locked from printed pp. 482–484 (PDF pp. 501–503; PNG `scratch/ch14/p-501.png`–`p-503.png`). The text extract of `ch14.txt` begins mid-bibliography and can miss Exercise 14.1; the PNG is authoritative.
+- **Pages:** printed pp. 482–484; PDF pp. 501–503 (offset **PDF = printed + 19**).
+- **Principle:** stems follow the textbook; solutions are independent. Identities printed in the book are recomputed.
+- **Companion notes:** [`ch14-notes.qmd`](../notes/ch14-notes.qmd).
+
+### Exercise 14.1
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+In the setting of Proposition 14.25, show that
+$$
+\mathbb E\Bigl[\sup_{\|f\|_2\le t}\|f\|_n\Bigr]
+\le
+\sqrt5\,t
+\qquad
+\text{for all }t\ge\delta_n.
+$$
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Work throughout with the $1$-bounded star-shaped class of Proposition 14.25, so that $\overline{\mathcal R}_n(\delta_n)\le\delta_n^2$. For any $f$ with $\|f\|_2\le t$,
+$$
+\sup_{\|f\|_2\le t}\|f\|_n^2
+\le
+t^2
++
+\sup_{\|f\|_2\le t}
+\bigl\lvert \|f\|_n^2-\|f\|_2^2\bigr\rvert.
+$$
+The second term is the process $Z_n(t)$ of (14.16). Symmetrization (as in the proof of Theorem 4.10) yields
+$$
+\mathbb E[Z_n(t)]
+\le
+2\,\mathbb E
+\Bigl[
+\sup_{\|f\|_2\le t}
+\Bigl\lvert
+n^{-1}\sum_{i=1}^n\varepsilon_i f^2(x_i)
+\Bigr\rvert
+\Bigr].
+$$
+On $[-1,1]$ the map $u\mapsto u^2$ is Lipschitz with constant $2$, so the Ledoux–Talagrand contraction (5.61) upgrades the display to $\mathbb E[Z_n(t)]\le 4\overline{\mathcal R}_n(t)$. Lemma 13.6 (star-shaped monotonicity of $\delta\mapsto\overline{\mathcal R}_n(\delta)/\delta$) and $t\ge\delta_n$ give
+$$
+\overline{\mathcal R}_n(t)
+\le
+t\cdot\frac{\overline{\mathcal R}_n(\delta_n)}{\delta_n}
+\le
+t\delta_n
+\le
+t^2,
+$$
+hence $\mathbb E[Z_n(t)]\le 4t^2$ and
+$$
+\mathbb E\Bigl[\sup_{\|f\|_2\le t}\|f\|_n^2\Bigr]
+\le
+t^2+4t^2
+=
+5t^2.
+$$
+Jensen's inequality for the concave square root produces
+$$
+\mathbb E\Bigl[\sup_{\|f\|_2\le t}\|f\|_n\Bigr]
+\le
+\sqrt{
+\mathbb E\Bigl[\sup_{\|f\|_2\le t}\|f\|_n^2\Bigr]
+}
+\le
+\sqrt5\,t.
+$$
+The same Lipschitz constant $2$ of $u\mapsto u^2$ is the quantity named in the exercise title.
+:::
+
+### Exercise 14.2
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let
+$$
+\overline{\mathcal R}_n(\delta)
+:=
+\mathbb E_{x,\varepsilon}
+\Bigl[
+\sup_{\substack{f\in\mathscr F\\ \|f\|_2\le\delta}}
+\Bigl\lvert
+n^{-1}\sum_{i=1}^n\varepsilon_i f(x_i)
+\Bigr\rvert
+\Bigr]
+$$
+and let $\delta_n$ be the smallest positive solution of $\overline{\mathcal R}_n(\delta)\le\delta^2$. Assume $\mathscr F$ is star-shaped around the origin.
+
+(a) Show that $\overline{\mathcal R}_n(s)\le\max\{\delta_n^2,\,s\delta_n\}$.
+
+(b) For $C\ge 1$, let $t_n>0$ be the smallest positive solution of $\overline{\mathcal R}_n(t)\le C t^2$. Show that $t_n\le\delta_n/\sqrt C$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) Lemma 13.6 states that $r\mapsto\overline{\mathcal R}_n(r)/r$ is nonincreasing on $(0,\infty)$ whenever $\mathscr F$ is star-shaped. Consequently $\overline{\mathcal R}_n$ itself is nondecreasing (rescale a radius-$s$ function by $s'/s\le 1$ if $s'\le s$).
+
+If $s\le\delta_n$, monotonicity of $\overline{\mathcal R}_n$ and the defining inequality for $\delta_n$ give
+$$
+\overline{\mathcal R}_n(s)
+\le
+\overline{\mathcal R}_n(\delta_n)
+\le
+\delta_n^2.
+$$
+If $s\ge\delta_n$, the nonincreasing property yields
+$$
+\frac{\overline{\mathcal R}_n(s)}{s}
+\le
+\frac{\overline{\mathcal R}_n(\delta_n)}{\delta_n}
+\le
+\delta_n,
+$$
+hence $\overline{\mathcal R}_n(s)\le s\delta_n$. Combining the two regimes is the claim.
+
+(b) It is enough to exhibit one feasible radius for the inequality $\overline{\mathcal R}_n(t)\le C t^2$. Set $t:=\delta_n/\sqrt C$. Since $C\ge 1$ one has $t\le\delta_n$, so part (a) gives $\overline{\mathcal R}_n(t)\le\delta_n^2$. On the other side,
+$$
+C t^2
+=
+C\cdot\frac{\delta_n^2}{C}
+=
+\delta_n^2.
+$$
+Thus $\overline{\mathcal R}_n(t)\le C t^2$, so the smallest positive solution satisfies $t_n\le\delta_n/\sqrt C$.
+:::
+
+### Exercise 14.3
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+In the setting of Example 14.2, show that there is a universal constant $c'$ such that
+$$
+\mathbb E_{\varepsilon}
+\Bigl[
+\sup_{\substack{f_\theta\in\mathcal P_2\\ \|f_\theta\|_2\le\delta}}
+\Bigl\lvert
+n^{-1}\sum_{i=1}^n\varepsilon_i f(x_i)
+\Bigr\rvert
+\Bigr]
+\le
+c'\sqrt{\frac1n}.
+$$
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The class $\mathcal P_2$ is a uniformly bounded, three-dimensional vector space of functions (quadratic polynomials on $[-1,1]$, truncated at height $1$). In the empirical $L^2(\mathbb P_n)$ metric, a $t$-covering number of a radius-$\delta$ ball in a $d$-dimensional normed space obeys
+$$
+\log N_n\bigl(t;\{f\in\mathcal P_2:\|f\|_n\le\delta\}\bigr)
+\le
+3\log\Bigl(1+\frac{C\delta}{t}\Bigr)
+$$
+for a universal $C$ (volume ratio of Euclidean balls in $\mathbb R^3$; equivalently, the standard estimate for covering numbers of finite-dimensional balls). Dudley's entropy integral (as in Corollary 14.3, or the empirical Dudley bound of Chapter 5) therefore yields
+$$
+\mathbb E_{\varepsilon}
+\Bigl[
+\sup_{\|f\|_n\le\delta}
+\Bigl\lvert
+n^{-1}\sum\varepsilon_i f(x_i)
+\Bigr\rvert
+\Bigr]
+\lesssim
+\frac1{\sqrt n}
+\int_0^\delta
+\sqrt{
+3\log\bigl(1+C\delta/t\bigr)
+}\,dt.
+$$
+The change of variables $u=t/\delta$ shows that the integral equals $\delta$ times a numerical constant (the integrand $\sqrt{\log(1+C/u)}$ is integrable on $(0,1]$). Hence the localized empirical complexity is $O(\delta/\sqrt n)$.
+
+Since every $f\in\mathcal P_2$ satisfies $\|f\|_\infty\le 1$, one has $\|f\|_2\le 1$ and $\|f\|_n\le 1$. The localized supremum over $\|f\|_2\le\delta$ is therefore dominated by the un-localized supremum over the whole of $\mathcal P_2$, whose Dudley integral runs only up to radius $1$ and contributes $O(n^{-1/2})$, uniformly in $\delta$. Combining the two estimates,
+$$
+\mathbb E_{\varepsilon}
+\Bigl[
+\sup_{\substack{f\in\mathcal P_2\\ \|f\|_2\le\delta}}
+\Bigl\lvert
+n^{-1}\sum\varepsilon_i f(x_i)
+\Bigr\rvert
+\Bigr]
+\le
+c'\min\bigl\{\delta,1\bigr\}\,n^{-1/2}
+\le
+c'n^{-1/2}.
+$$
+This removes the superfluous $\sqrt{\log(n+1)}$ from the VC bound (14.10). As the discussion after (14.11) notes, the entropy improvement does not by itself restore the $n^{-1/2}$ *critical radius*: without using $\|f\|_2\le\delta$ inside the complexity, the critical inequality $\overline{\mathcal R}_n(\delta)\le\delta^2$ still forces $\delta_n\asymp n^{-1/4}$. Localization (the Legendre argument of Example 14.2) is what upgrades the radius.
+:::
+
+### Exercise 14.4
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Prove the population bound (14.14a) of Corollary 14.5.
+
+(a) Let $(\phi_j)_{j=1}^\infty$ be the eigenfunctions of the kernel operator. Show that
+$$
+\sup_{\substack{\|f\|_{\mathbb H}\le 1\\ \|f\|_2\le\delta}}
+\Bigl\lvert
+\sum_{i=1}^n\varepsilon_i f(x_i)
+\Bigr\rvert
+=
+\sup_{\theta\in\mathcal D}
+\Bigl\lvert
+\sum_{j=1}^\infty\theta_j z_j
+\Bigr\rvert,
+$$
+where $z_j:=\sum_{i=1}^n\varepsilon_i\phi_j(x_i)$ and
+$$
+\mathcal D
+:=
+\Bigl\{
+(\theta_j)_{j=1}^\infty
+:
+\sum_{j=1}^\infty\theta_j^2\le\delta,
+\
+\sum_{j=1}^\infty\frac{\theta_j^2}{\mu_j}\le 1
+\Bigr\}.
+$$
+
+(b) With $\eta_j:=\min\{\delta^2,\mu_j\}$, show that $\mathcal D$ is contained in the ellipse
+$$
+\mathcal E
+:=
+\Bigl\{
+(\theta_j):
+\sum_{j=1}^\infty\frac{\theta_j^2}{\eta_j}\le 2
+\Bigr\}.
+$$
+
+(c) Deduce
+$$
+\mathbb E_{\varepsilon,x}
+\Bigl[
+\sup_{\substack{\|f\|_{\mathbb H}\le 1\\ \|f\|_2\le\delta}}
+\Bigl\lvert
+n^{-1}\sum_{i=1}^n\varepsilon_i f(x_i)
+\Bigr\rvert
+\Bigr]
+\le
+\sqrt{\frac2n}
+\sqrt{\sum_{j=1}^\infty\min\{\delta^2,\mu_j\}}.
+$$
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Mercer's theorem (Corollary 12.26) expands $f=\sum_j\theta_j\phi_j$ with
+$$
+\|f\|_2^2=\sum_j\theta_j^2,
+\qquad
+\|f\|_{\mathbb H}^2=\sum_j\frac{\theta_j^2}{\mu_j}.
+$$
+Thus $\|f\|_{\mathbb H}\le 1$ and $\|f\|_2\le\delta$ if and only if $\sum\theta_j^2/\mu_j\le 1$ and $\sum\theta_j^2\le\delta^2$.
+
+The printed constraint in (a) is $\sum_j\theta_j^2\le\delta$ rather than $\sum_j\theta_j^2\le\delta^2$. The squared constraint is the one compatible with $\|f\|_2\le\delta$, with the ellipse constant $2$ in (b), and with $\eta_j=\min\{\delta^2,\mu_j\}$. The rest of the solution uses $\sum\theta_j^2\le\delta^2$.
+
+(a) Orthonormality of $(\phi_j)$ in $L^2(\mathbb P)$ gives
+$$
+\sum_{i=1}^n\varepsilon_i f(x_i)
+=
+\sum_{i=1}^n\varepsilon_i\sum_{j=1}^\infty\theta_j\phi_j(x_i)
+=
+\sum_{j=1}^\infty\theta_j z_j,
+$$
+the interchange being justified by square-summability of $(\theta_j/\sqrt{\mu_j})$ and the Mercer expansion of $K(x_i,x_i)$. Taking the supremum over the coefficient set is (a), with $\mathcal D$ defined by $\sum\theta_j^2\le\delta^2$ and $\sum\theta_j^2/\mu_j\le 1$.
+
+(b) Split the sum according to whether $\mu_j\le\delta^2$ or $\mu_j>\delta^2$. On the first set $\eta_j=\mu_j$, so
+$$
+\sum_{\mu_j\le\delta^2}\frac{\theta_j^2}{\eta_j}
+=
+\sum_{\mu_j\le\delta^2}\frac{\theta_j^2}{\mu_j}
+\le
+\sum_{j=1}^\infty\frac{\theta_j^2}{\mu_j}
+\le 1.
+$$
+On the second set $\eta_j=\delta^2$, so
+$$
+\sum_{\mu_j>\delta^2}\frac{\theta_j^2}{\eta_j}
+=
+\frac1{\delta^2}\sum_{\mu_j>\delta^2}\theta_j^2
+\le
+\frac1{\delta^2}\sum_{j=1}^\infty\theta_j^2
+\le 1.
+$$
+Adding the two pieces puts every $\theta\in\mathcal D$ inside $\mathcal E$.
+
+(c) Cauchy–Schwarz on the ellipse $\mathcal E$ yields
+$$
+\Bigl\lvert\sum_j\theta_j z_j\Bigr\rvert
+\le
+\sqrt{\sum_j\frac{\theta_j^2}{\eta_j}}
+\sqrt{\sum_j\eta_j z_j^2}
+\le
+\sqrt2
+\sqrt{\sum_j\eta_j z_j^2}.
+$$
+Take $\mathbb E_{\varepsilon,x}$ and apply Jensen:
+$$
+\mathbb E\sup\Bigl\lvert\sum_j\theta_j z_j\Bigr\rvert
+\le
+\sqrt2
+\sqrt{
+\sum_j\eta_j\,\mathbb E[z_j^2]
+}.
+$$
+Independence of the Rademacher variables and orthonormality of the eigenfunctions give
+$$
+\mathbb E[z_j^2]
+=
+\mathbb E_x\sum_{i=1}^n\phi_j(x_i)^2
+=
+n\,\mathbb E[\phi_j(X)^2]
+=
+n.
+$$
+(If the Mercer basis is taken in $L^2(\mathbb P)$, this is exact; a bounded multiplicative constant would be absorbed in (14.14a).) Therefore
+$$
+\mathbb E\sup\Bigl\lvert n^{-1}\sum_i\varepsilon_i f(x_i)\Bigr\rvert
+\le
+\frac{\sqrt2}{n}\sqrt{n\sum_j\eta_j}
+=
+\sqrt{\frac2n}
+\sqrt{\sum_j\min\{\delta^2,\mu_j\}},
+$$
+which is (14.14a).
+:::
+
+::: {.callout-note icon="false" title="Remark on the printed constraint"}
+The printed set $\mathcal D$ uses $\sum\theta_j^2\le\delta$. Replacing $\delta$ by $\delta^2$ is required for (b)–(c): otherwise $\sum\theta_j^2/\delta^2$ need not be bounded by $1$, and the ellipse constant $2$ fails. The companion records this as a pending erratum.
+:::
+
+### Exercise 14.5
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $\mathcal K$ be a PSD kernel satisfying Mercer's theorem, with representer $R_x=\mathcal K(\cdot,x)$ and integral operator $T_{\mathcal K}$ as in (12.11a).
+
+(a) Given i.i.d. samples $\{x_i\}_{i=1}^n$ from $\mathbb P$, define $\widehat T_{\mathcal K}:\mathbb H\to\mathbb H$ by
+$$
+f\mapsto\widehat T_{\mathcal K}(f)
+:=
+\frac1n\sum_{i=1}^n[R_{x_i}\otimes R_{x_i}](f)
+=
+\frac1n\sum_{i=1}^n f(x_i)R_{x_i}.
+$$
+Show that $\mathbb E[\widehat T_{\mathcal K}]=T_{\mathcal K}$.
+
+(b) Use techniques from this chapter to bound the operator norm
+$$
+\Vert\widehat T_{\mathcal K}-T_{\mathcal K}\Vert_{\mathbb H}
+:=
+\sup_{\|f\|_{\mathbb H}\le 1}
+\bigl\|(\widehat T_{\mathcal K}-T_{\mathcal K})(f)\bigr\|_{\mathbb H}.
+$$
+
+(c) If $\phi_j$ is an eigenfunction of $T_{\mathcal K}$ with eigenvalue $\mu_j>0$, show that
+$$
+\bigl\|\widehat T_{\mathcal K}(\phi_j)-\mu_j\phi_j\bigr\|_{\mathbb H}
+\le
+\frac{\Vert\widehat T_{\mathcal K}-T_{\mathcal K}\Vert_{\mathbb H}}{\mu_j}.
+$$
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) The reproducing property gives $f(x)=\langle f,R_x\rangle_{\mathbb H}$. For each fixed $f\in\mathbb H$ and each $z\in\mathcal X$,
+$$
+\mathbb E\bigl[\widehat T_{\mathcal K}(f)(z)\bigr]
+=
+\mathbb E\bigl[f(X)\mathcal K(z,X)\bigr]
+=
+\int\mathcal K(z,x)f(x)\,\mathbb P(dx)
+=
+(T_{\mathcal K}f)(z),
+$$
+which is (12.11a). Equivalently, as $\mathbb H$-valued random elements, $\mathbb E[R_X\otimes R_X]=T_{\mathcal K}$.
+
+(b) The operator norm admits the variational representation
+\begin{align*}
+\Vert\widehat T_{\mathcal K}-T_{\mathcal K}\Vert_{\mathbb H}
+&=
+\sup_{\|f\|_{\mathbb H}\le 1,\ \|g\|_{\mathbb H}\le 1}
+\bigl\lvert
+\langle(\widehat T_{\mathcal K}-T_{\mathcal K})f,\,g\rangle_{\mathbb H}
+\bigr\rvert \\
+&=
+\sup_{\|f\|_{\mathbb H}\le 1,\ \|g\|_{\mathbb H}\le 1}
+\Bigl\lvert
+n^{-1}\sum_{i=1}^n f(x_i)g(x_i)
+-
+\mathbb E[f(X)g(X)]
+\Bigr\rvert,
+\end{align*}
+because $\langle R_x,g\rangle_{\mathbb H}=g(x)$. The product class
+$$
+\mathscr H
+:=
+\bigl\{fg:\|f\|_{\mathbb H}\le 1,\ \|g\|_{\mathbb H}\le 1\bigr\}
+$$
+is the image of the RKHS unit ball under the bilinear map $(f,g)\mapsto fg$. If $\mathcal K$ is bounded, say $\mathcal K(x,x)\le\kappa^2$, then $\|h\|_\infty\le\kappa$ for every $h$ in the unit ball, so $\mathscr H$ is $\kappa^2$-uniformly bounded. Theorem 14.1 applied to the star-hull of $\mathscr H$ therefore yields, with high probability,
+$$
+\Vert\widehat T_{\mathcal K}-T_{\mathcal K}\Vert_{\mathbb H}
+\le
+c_0\delta_n(\mathscr H),
+$$
+where $\delta_n(\mathscr H)$ is a critical radius for $\overline{\mathcal R}_n(\,\cdot\,;\mathrm{star}(\mathscr H))$. Corollary 14.5 controls that radius through the eigenvalues of the product kernel $(x,z)\mapsto\mathcal K(x,z)^2$, or, coarser, through
+$$
+\overline{\mathcal R}_n(\delta;\mathrm{star}(\mathscr H))
+\le
+\kappa\,\overline{\mathcal R}_n(\delta;\mathbb B_{\mathbb H}(1)),
+$$
+via Ledoux–Talagrand contraction in the second factor. In particular, for the Sobolev and Gaussian examples of §14.1.2, the operator-norm deviation inherits the same polynomial or $\sqrt{\log n/n}$ rate (up to constants depending on $\kappa$).
+
+A one-sided lower bound is not needed for (b); the two-sided uniform law is the natural tool because the operator norm is a supremum of absolute empirical-minus-population products.
+
+(c) By definition $T_{\mathcal K}\phi_j=\mu_j\phi_j$, so
+$$
+\widehat T_{\mathcal K}(\phi_j)-\mu_j\phi_j
+=
+(\widehat T_{\mathcal K}-T_{\mathcal K})(\phi_j).
+$$
+Corollary 12.26 gives $\|\phi_j\|_{\mathbb H}^2=\|\phi_j\|_2^2/\mu_j=1/\mu_j$, hence $\|\phi_j\|_{\mathbb H}=1/\sqrt{\mu_j}$. The definition of the operator norm therefore yields
+$$
+\bigl\|\widehat T_{\mathcal K}(\phi_j)-\mu_j\phi_j\bigr\|_{\mathbb H}
+\le
+\Vert\widehat T_{\mathcal K}-T_{\mathcal K}\Vert_{\mathbb H}\cdot\|\phi_j\|_{\mathbb H}
+=
+\frac{\Vert\widehat T_{\mathcal K}-T_{\mathcal K}\Vert_{\mathbb H}}{\sqrt{\mu_j}}.
+$$
+The printed right-hand side divides by $\mu_j$ rather than $\sqrt{\mu_j}$. The $\mathbb H$-normalized eigenfunction is $\psi_j=\sqrt{\mu_j}\,\phi_j$ (unit $\mathbb H$-norm), for which
+$$
+\bigl\|(\widehat T_{\mathcal K}-T_{\mathcal K})\psi_j\bigr\|_{\mathbb H}
+\le
+\Vert\widehat T_{\mathcal K}-T_{\mathcal K}\Vert_{\mathbb H},
+$$
+and scaling back by $1/\sqrt{\mu_j}$ recovers the bound above. The companion records the printed $\mu_j$ in the denominator as a pending erratum; the inequality used from here on is the $\sqrt{\mu_j}$ form.
+:::
+
+### Exercise 14.6
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Recall $\mathscr F_{\mathrm{lin}}$ from Example 14.10. Let $x\in\mathbb R^d$ have four-way independent coordinates, each with mean zero, variance one, and $\mathbb E[x_j^4]\le B$. Show that the strong moment condition (14.22b) holds with $C=B+6$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Fix $\theta\in\mathbb R^d$ and write $f_\theta(x)=\langle x,\theta\rangle=\sum_{j=1}^d\theta_j x_j$. Four-way independence, mean zero, and $\mathbb E[x_j^2]=1$ expand the fourth moment as
+$$
+\mathbb E[f_\theta(x)^4]
+=
+\sum_{j=1}^d\theta_j^4\,\mathbb E[x_j^4]
++
+6\sum_{j\neq k}\theta_j^2\theta_k^2\,\mathbb E[x_j^2]\mathbb E[x_k^2].
+$$
+(The odd cross terms vanish by mean zero; any product involving three or four distinct indices vanishes by four-way independence.) The hypothesis $\mathbb E[x_j^4]\le B$ and $\mathbb E[x_j^2]=1$ give
+$$
+\mathbb E[f_\theta^4]
+\le
+B\sum_j\theta_j^4
++
+6\sum_{j\neq k}\theta_j^2\theta_k^2
+=
+(B-6)\sum_j\theta_j^4
++
+6\Bigl(\sum_j\theta_j^2\Bigr)^2.
+$$
+Since $\sum_j\theta_j^4\le(\sum_j\theta_j^2)^2$, the first sum is at most $(\sum\theta_j^2)^2$, and therefore
+$$
+\mathbb E[f_\theta^4]
+\le
+\bigl(B-6+6\bigr)\Bigl(\sum_j\theta_j^2\Bigr)^2
+=
+B\bigl(\mathbb E[f_\theta^2]\bigr)^2
+$$
+if one uses only $\sum\theta_j^4\le(\sum\theta_j^2)^2$ together with $B\ge 1$ (which holds because $\mathbb E[x_j^4]\ge(\mathbb E[x_j^2])^2=1$). A direct and slightly looser bound, matching Example 14.13, is
+$$
+\mathbb E[f_\theta^4]
+\le
+B\sum_j\theta_j^4
++
+6\sum_{j\neq k}\theta_j^2\theta_k^2
+\le
+B\Bigl(\sum_j\theta_j^2\Bigr)^2
++
+6\Bigl(\sum_j\theta_j^2\Bigr)^2
+=
+(B+6)\bigl(\mathbb E[f_\theta^2]\bigr)^2,
+$$
+where the second step uses $\sum_j\theta_j^4\le(\sum_j\theta_j^2)^2$ and $\sum_{j\neq k}\theta_j^2\theta_k^2\le(\sum_j\theta_j^2)^2$. This is (14.22b) with $C^2=B+6$.
+
+The stem asks for (14.22b) “with $C=B+6$”. Condition (14.22b) is written $\mathbb E[f^4]\le C^2(\mathbb E[f^2])^2$, and Example 14.13 states the same calculation as $C^2=B+6$. The companion records the missing square as a pending erratum. The inequality that holds is $C^2=B+6$, i.e. one may take $C=\sqrt{B+6}$.
+:::
+
+### Exercise 14.7
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $X\in\mathbb R^{n\times d}$ have i.i.d. $N(0,\Sigma)$ rows. For $s>0$ define
+$$
+\mathscr F_{\mathrm{spcone}}
+=
+\bigl\{
+f_\theta:\|\theta\|_1\le\sqrt s\,\|\theta\|_2
+\bigr\},
+\qquad
+f_\theta(x)=\langle x,\theta\rangle.
+$$
+Let $\rho^2(\Sigma)$ be the maximal diagonal entry of $\Sigma$. If
+$$
+n
+>
+c_0\frac{\rho^2(\Sigma)}{\gamma_{\min}(\Sigma)}\,s\log\Bigl(\frac{ed}{s}\Bigr)
+$$
+for a sufficiently large universal $c_0$, then
+$$
+\|f_\theta\|_n^2
+\ge
+\tfrac12\|f_\theta\|_2^2
+\qquad
+\text{for all }f_\theta\in\mathscr F_{\mathrm{spcone}},
+$$
+i.e.
+$$
+\frac{\|X\theta\|_2^2}{n}
+\ge
+\frac12\|\sqrt{\Sigma}\,\theta\|_2^2
+\qquad
+\text{for all }\theta\text{ in the cone},
+$$
+with probability at least $1-e^{-c_1 n}$. This is a somewhat sharper form of Theorem 7.16. (Hint: Exercise 7.15.)
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The class $\mathscr F_{\mathrm{spcone}}$ is a cone, hence star-shaped, and each $f_\theta$ is zero-mean under $x\sim N(0,\Sigma)$. Example 14.10 gives the strong moment condition (14.22b) with $C^2=3$. The remark after Theorem 14.12 therefore upgrades (14.25) to the whole cone as soon as the critical inequality (14.24) admits a solution $\delta_n\le 1$. Because the class is a cone, $\delta\mapsto\overline{\mathcal R}_n(\delta)/\delta$ is constant, and (14.24) reduces to making that constant at most $1/(128C)$.
+
+Write $x=\sqrt{\Sigma}\,w$ with $w\sim N(0,I_d)$ (as in Example 14.13; the printed $w\sim N(0,\Sigma)$ is inconsistent with $\{\varepsilon_i w_i\}$ being standard Gaussian). Then $\|f_\theta\|_2=\|\sqrt{\Sigma}\,\theta\|_2$ and
+$$
+\overline{\mathcal R}_n(\delta;\mathscr F_{\mathrm{spcone}})
+=
+\mathbb E
+\Bigl[
+\sup
+\bigl\lvert
+\langle n^{-1}\textstyle\sum_{i=1}^n\varepsilon_i w_i,\,\sqrt{\Sigma}\,\theta\rangle
+\bigr\rvert
+\Bigr],
+$$
+the supremum running over $\|\sqrt{\Sigma}\,\theta\|_2\le\delta$ and $\|\theta\|_1\le\sqrt s\,\|\theta\|_2$. Equivalently, with $G:=n^{-1}\sum_{i=1}^n\varepsilon_i w_i\sim N(0,n^{-1}I_d)$,
+$$
+\frac{\overline{\mathcal R}_n(\delta)}{\delta}
+=
+\mathbb E
+\Bigl[
+\sup_{\theta\in\mathcal C}
+\bigl\lvert\langle G,\,\sqrt{\Sigma}\,\theta\rangle\bigr\rvert
+\Bigr],
+$$
+where $\mathcal C=\{\theta:\|\sqrt{\Sigma}\,\theta\|_2\le 1,\ \|\theta\|_1\le\sqrt s\,\|\theta\|_2\}$.
+
+On $\mathcal C$ one has $\|\theta\|_2\le\gamma_{\min}(\Sigma)^{-1/2}$ and therefore $\|\theta\|_1\le\sqrt s\,\gamma_{\min}(\Sigma)^{-1/2}$. Dualizing the $\ell_1$ ball,
+$$
+\bigl\lvert\langle G,\,\sqrt{\Sigma}\,\theta\rangle\bigr\rvert
+\le
+\|\theta\|_1\,\|\sqrt{\Sigma}\,G\|_\infty
+\le
+\sqrt{\frac s{\gamma_{\min}(\Sigma)}}\,\|\sqrt{\Sigma}\,G\|_\infty.
+$$
+Coordinate $j$ of $\sqrt{\Sigma}\,G$ is Gaussian with variance $\Sigma_{jj}/n\le\rho^2(\Sigma)/n$. A union bound over $d$ coordinates is enough for a $\sqrt{\log d}$ bound; a tighter covering of the cone $\{\|\theta\|_1\le\sqrt s\,\|\theta\|_2\}$ (the same entropy that underlies Exercise 7.15) replaces $\log d$ by $\log(ed/s)$: the cone is contained in a $C\sqrt s$-multiple of the convex hull of $\{s^{-1/2}\text{ sparse unit vectors}\}$, whose metric entropy is of order $s\log(ed/s)$. Standard Gaussian maxima on a net of cardinality $(ed/s)^{O(s)}$ therefore yield
+$$
+\mathbb E\|\sqrt{\Sigma}\,G\|_\infty\text{-restricted to the cone}
+\lesssim
+\rho(\Sigma)
+\sqrt{\frac{s\log(ed/s)}{n}}\cdot s^{-1/2},
+$$
+and altogether
+$$
+\frac{\overline{\mathcal R}_n(\delta)}{\delta}
+\lesssim
+\frac{\rho(\Sigma)}{\sqrt{\gamma_{\min}(\Sigma)}}
+\sqrt{\frac{s\log(ed/s)}{n}}.
+$$
+(The same bound can be read off from the Gaussian complexity of $\{\Delta:\|\Delta\|_2\le 1,\ \|\Delta\|_1\le\sqrt s\}$ in Exercise 7.15(a), transferred from $\Sigma=I_d$ to general $\Sigma$ by the change of variables $\theta\mapsto\sqrt{\Sigma}\,\theta$ and the diagonal bound $\rho^2(\Sigma)$.)
+
+Choose $c_0$ large enough that the hypothesized lower bound on $n$ makes the right-hand side at most $1/(128C)$. Then $\delta_n\le 1$, and Theorem 14.12 yields
+$$
+\frac{\|X\theta\|_2^2}{n}
+\ge
+\frac12\|\sqrt{\Sigma}\,\theta\|_2^2
+\qquad
+\text{for all }\theta\text{ with }\|\theta\|_1\le\sqrt s\,\|\theta\|_2,
+$$
+with probability at least $1-e^{-c_1 n}$.
+
+Comparison with Theorem 7.16: that result holds for every $\theta\in\mathbb R^d$, at the price of a remainder $c_2\rho^2(\Sigma)(\log d/n)\|\theta\|_1^2$ and a smaller leading constant $c_1<1$. Restricting to the cone $\|\theta\|_1\le\sqrt s\,\|\theta\|_2$ (which contains every $s$-sparse vector) absorbs the remainder into the leading term as soon as $n\gtrsim(\rho^2/\gamma_{\min})s\log(ed/s)$, and the four-moment argument gives the clean factor $1/2$. The logarithm $\log(ed/s)$ is strictly sharper than $\log d$ in the linear-sparsity regime $s\asymp d$, which is the improvement advertised in Exercise 7.15.
+:::
+
+### Exercise 14.8
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Recall $\mathscr F_{\mathrm{add}}$ from Example 14.11, formed from a base class $\mathscr G$ that is convex and $1$-uniformly bounded. Let $\delta_n$ be the smallest positive solution of $\overline{\mathcal R}_n(\delta;\mathscr F)\le\delta^2$, and let $\varepsilon_n$ be the smallest positive solution of $\overline{\mathcal R}_n(\varepsilon;\mathscr G)\le\varepsilon^2$. Show that $\delta_n^2\lesssim d\,\varepsilon_n^2$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Convexity of $\mathscr G$ implies that $\mathscr G$ is star-shaped around the origin after the recentering of Example 14.11, and the same is true of $\mathscr F_{\mathrm{add}}$. Exercise 14.2(a) therefore gives
+$$
+\overline{\mathcal R}_n(r;\mathscr G)
+\le
+\max\{\varepsilon_n^2,\,r\varepsilon_n\}
+\qquad
+\text{for all }r>0.
+$$
+Write $f=\sum_{j=1}^d g_j$ with $g_j\in\mathscr G$. Under the independence (or four-way independence) used in Example 14.11, $\|f\|_2^2=\sum_{j=1}^d\|g_j\|_2^2$. Hence the constraint $\|f\|_2\le\delta$ is implied by $\sum_j\|g_j\|_2^2\le\delta^2$. Subadditivity of the supremum and identical distribution of the coordinates yield
+$$
+\overline{\mathcal R}_n(\delta;\mathscr F_{\mathrm{add}})
+\le
+\sum_{j=1}^d
+\overline{\mathcal R}_n(\delta_j;\mathscr G)
+$$
+for any $(\delta_j)$ with $\sum_j\delta_j^2\le\delta^2$, by restricting the $j$th factor to $\|g_j\|_2\le\delta_j$. The symmetric choice $\delta_j=\delta/\sqrt d$ and Exercise 14.2(a) produce
+$$
+\overline{\mathcal R}_n(\delta;\mathscr F_{\mathrm{add}})
+\le
+d\max\bigl\{\varepsilon_n^2,\,(\delta/\sqrt d)\,\varepsilon_n\bigr\}
+=
+\max\bigl\{d\varepsilon_n^2,\,\sqrt d\,\delta\,\varepsilon_n\bigr\}.
+$$
+Set $\delta^2=c\,d\varepsilon_n^2$ with $c\ge 1$ large enough that $d\varepsilon_n^2\le\delta^2$ and $\sqrt d\,\delta\,\varepsilon_n= \sqrt c\,d\varepsilon_n^2\le\delta^2$. Then $\overline{\mathcal R}_n(\delta;\mathscr F_{\mathrm{add}})\le\delta^2$, so the smallest solution satisfies $\delta_n^2\lesssim d\varepsilon_n^2$.
+
+(The same comparison is the calculation underlying Example 14.14, which quotes this exercise for $\delta_n\lesssim\sqrt d\,\varepsilon_n$.)
+:::
+
+### Exercise 14.9
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Consider the nonparametric density estimate (14.56) over the class of all differentiable densities. Show that the minimum is not achieved. (Hint: consider a sequence of differentiable approximations to the density placing mass $1/n$ at each of the data points.)
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Let $\mathscr F$ be the class of all (everywhere) differentiable probability densities on $\mathcal X=\mathbb R$, say. The empirical log-likelihood
+$$
+\mathbb P_n(\log f)
+=
+\frac1n\sum_{i=1}^n\log f(x_i)
+$$
+is unbounded above on $\mathscr F$, so the constrained NPMLE (14.56) cannot attain a minimum.
+
+Concretely, fix the sample $\{x_1,\ldots,x_n\}$ and assume without loss of generality that the points are distinct (an event of probability one under a density). For each $h>0$ construct a differentiable density $f_h$ by placing, around every sample point $x_i$, a smooth bump of width $h$ and height of order $1/(nh)$ (for instance, a suitably scaled $C^\infty$ mollification of the uniform density on an interval of length $h$ centred at $x_i$), and distributing any leftover mass as a fixed smooth background density supported away from the sample. Then $f_h$ is a differentiable density, and
+$$
+\mathbb P_n(\log f_h)
+=
+\frac1n\sum_{i=1}^n\log f_h(x_i)
+\ge
+\log\bigl(c/(nh)\bigr)
+\to+\infty
+\qquad\text{as }h\to 0.
+$$
+Thus $\inf_{f\in\mathscr F}\mathbb P_n(-\log f)=-\infty$, and the infimum is not achieved at any differentiable density. The same construction shows that the unrestricted MLE wants to put point masses $1/n$ at the observations—the empirical measure—which is not an element of $\mathscr F$.
+
+This is why (14.56) must be posed over a restricted class (uniformly bounded, uniformly Lipschitz, an RKHS ball, a sieve of histograms, etc.), or replaced by a roughness-penalized likelihood as in the bibliographic discussion.
+:::
+
+### Exercise 14.10
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Prove the lower bound (14.57b) on the Kullback–Leibler divergence in terms of the squared Hellinger distance.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Let $f$ and $g$ be densities with respect to a base measure $\mu$, and write $\rho:=\int\sqrt{fg}\,d\mu$ for the Hellinger affinity. Then
+$$
+H^2(f\,\|\,g)
+=
+\frac12\int(\sqrt f-\sqrt g)^2\,d\mu
+=
+\frac12\bigl(\|f\|_1+\|g\|_1-2\rho\bigr)
+=
+1-\rho,
+$$
+provided $f$ and $g$ are probability densities. The elementary inequality $-\log t\ge 1-t$ for $t>0$, applied to $t=\sqrt{g/f}$ on $\{f>0\}$, gives
+$$
+\log\frac f g
+=
+-2\log\sqrt{\frac g f}
+\ge
+-2\Bigl(\sqrt{\frac g f}-1\Bigr)
+=
+2-2\sqrt{\frac g f}.
+$$
+Multiply by $f$ and integrate:
+$$
+D(f\,\|\,g)
+=
+\int f\log\frac f g\,d\mu
+\ge
+2\int f\,d\mu
+-
+2\int\sqrt{fg}\,d\mu
+=
+2-2\rho
+=
+2H^2(f\,\|\,g).
+$$
+On $\{f=0\}$ the integrand of the KL divergence is interpreted as $0$ (or $+\infty$ if one adopts the usual convention when $g$ fails to dominate $f$, in which case the inequality is trivial). This is (14.57b).
+
+A slightly stronger form, not required here, is $D(f\|g)\ge-2\log(1-H^2(f\|g))\ge 2H^2(f\|g)$, obtained by combining Jensen's inequality for $-\log$ with $1-\rho=H^2$.
+:::
+
+### Exercise 14.11
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Recall the histogram estimator defined by the basis (14.62), and suppose it is used to estimate a density $f^*$ on $[0,1]$ that is differentiable with $\|f'\|_\infty\le 1$. Use the oracle inequality of Corollary 14.24 to show that there is a universal constant $c$ such that
+$$
+\|\widehat f-f^*\|_2^2
+\le
+c n^{-2/3}
+\tag{14.69}
+$$
+with high probability.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Let $\mathscr F_T$ be the class of histogram densities on $[0,1]$ with $T$ equal bins, i.e. nonnegative linear combinations of (14.62) that integrate to one. The class is a subset of a $T$-dimensional vector space, uniformly bounded after intersecting with a fixed $L^\infty$ ball of radius $O(1)$ (legitimate because $\|f'\|_\infty\le 1$ and $\int_0^1 f^*=1$ force $\|f^*\|_\infty\le 2$, and the $L^2$-projection onto histograms inherits the same bound). Corollary 14.24 therefore yields
+$$
+\|\widehat f_T-f^*\|_2^2
+\le
+c_0\inf_{f\in\mathscr F_T}\|f-f^*\|_2^2
++
+c_1\delta_n(T)^2
+$$
+with probability at least $1-c_2 e^{-c_3 n\delta_n(T)^2}$, where $\delta_n(T)$ solves $\overline{\mathcal R}_n(\delta;\mathscr F_T)\le\delta^2/b$ for a constant $b$.
+
+*Approximation.* On each bin $I_m$ of length $h=1/T$, the assumption $\|f'\|_\infty\le 1$ implies that $f^*$ varies by at most $h$. The $L^2$-projection (or the piecewise-constant function with value equal to the mean of $f^*$ on $I_m$) therefore satisfies
+$$
+\int_{I_m}(f^*-f_T)^2
+\le
+h\cdot h^2
+=
+h^3,
+$$
+and summing over $T$ bins gives $\inf_{f\in\mathscr F_T}\|f-f^*\|_2^2\lesssim T^{-2}$.
+
+*Estimation.* The calculation of Example 14.2, applied to a $T$-dimensional orthogonal histogram basis, produces $\overline{\mathcal R}_n(\delta;\mathscr F_T)\lesssim\delta\sqrt{T/n}$. The critical inequality is therefore solved by $\delta_n(T)^2\lesssim T/n$. (The same order follows from Corollary 14.3: $\log N_n(t;\mathbb B_n(\delta;\mathscr F_T))\le T\log(1+C\delta/t)$, and the Dudley integral is $O(\delta\sqrt{T})$.)
+
+*Optimization.* The oracle bound is of order $T^{-2}+T/n$. Balancing the two terms, $T^3\asymp n$, i.e. $T\asymp n^{1/3}$, yields
+$$
+\|\widehat f-f^*\|_2^2
+\lesssim
+n^{-2/3}
+$$
+with probability at least $1-c_2\exp(-c_3 n^{1/3})$. This is (14.69). The same $n^{-1/3}$ critical radius appeared for the first-order Sobolev unit ball in Example 14.6; a Lipschitz density is of comparable smoothness, so the histogram sieve with $T\asymp n^{1/3}$ is rate-optimal for this class (up to the universal constant $c$).
+:::

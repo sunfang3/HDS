@@ -1,0 +1,1161 @@
+---
+title: "第 13 章　非参数最小二乘"
+subtitle: "Wainwright, High-Dimensional Statistics 伴读 Notes"
+description: "面向已学陈希孺本科概率统计、并读过第 2、4、5、12 章的读者：把非参数最小二乘的预测误差写成局部高斯复杂度的临界半径，并用神谕不等式处理逼近–估计权衡"
+execute:
+  enabled: false
+lang: zh-CN
+---
+
+# 本章导览
+
+第 1 章用单位立方体上的近邻距离预告了维数灾难；第 5 章把“函数类有多复杂”写成覆盖数与 Dudley 积分；第 12 章给出核岭回归的计算。本章把这些工具接到**非参数最小二乘**：在固定设计 $\{x_i\}_{i=1}^n$ 上，于函数类 $\mathcal F$ 里最小化经验平方损失，并在经验范数 $\|\cdot\|_n$ 下给出非渐近预测误差。
+
+阅读时抓住三个对象：
+
+- **局部高斯复杂度** $\mathcal G_n(\delta;\mathcal F^*)$：只看见 $f^*$ 附近半径 $\delta$ 的那一小块，而不是整个 $\mathcal F$；
+- **临界半径** $\delta_n^*$：复杂度曲线 $\delta\mapsto\mathcal G_n(\delta)/\delta$ 与直线 $\delta/(2\sigma)$ 的交点，它就是估计误差的尺度；
+- **神谕不等式**：当 $f^*\notin\mathcal F$ 时，误差是“最好的可行逼近”加上同一根 $\delta_n^2$。
+
+第 14 章再把 $\|\cdot\|_n$ 翻成总体 $L^2(\mathbb P)$。本章默认固定设计、高斯噪声 $y_i=f^*(x_i)+\sigma w_i$。
+
+本章阅读主线：
+
+$$
+\text{经验 }L^2(\mathbb P_n)\text{ 误差}
+\longrightarrow
+\text{局部高斯复杂度 / 临界半径}
+\longrightarrow
+\text{神谕不等式（逼近 }+\text{ 估计）}
+\longrightarrow
+\text{正则化（核岭回归的谱）}.
+$$
+
+> 教材定位：第 13 章 §§13.1–13.5，印刷页 416–449，PDF 页 435–468。习题 §13.6 印刷页 449–452，PDF 页 468–471，不进入 Notes。页码关系：**PDF 页 = 印刷页 + 19**。
+
+## 学习目标
+
+学完本章后，你应能：
+
+- **区分** 超额风险 $\|f-f^*\|_{L^2(\mathbb P)}^2$ 与经验误差 $\|f-f^*\|_n^2$，并写出约束最小二乘 (13.7) 与正则化形式 (13.8)、(13.52)；
+- **陈述** 局部高斯复杂度 (13.16) 与临界不等式 (13.17)，并由星形性（Lemma 13.6）说明最小正解 $\delta_n^*$ 存在；
+- **应用** Theorem 13.5：在星形平移类上，$\|\widehat f-f^*\|_n^2$ 以高概率被 $t\delta_n$ 控制，期望界是 $\delta_n^2+\sigma^2/n$；
+- **用** Dudley 积分（Corollary 13.7）推出线性回归 $\sigma^2\mathrm{rank}(\mathbf X)/n$、Lipschitz 的 $(L\sigma^2/n)^{2/3}$、凸 Lipschitz 的 $(\sigma^2/n)^{4/5}$；
+- **写出** 神谕不等式 (13.43a)，并在正交级数 / Fourier / 最佳 $s$-稀疏逼近里平衡逼近项与 $\delta_n^2$；
+- **由** 经验核矩阵特征值写出核岭回归的临界条件 (13.56)，并比较多项式核、一阶 Sobolev 核与高斯核的速率。
+
+# 必要先修
+
+陈希孺里的条件期望、最小二乘、正交展开可以直接用。下面只钉本章真正要接上的三处。
+
+::: {.callout-note title="为什么现在需要 $L^2(\mathbb P)$ 与 $L^2(\mathbb P_n)$"}
+总体均方误差把 $(X,Y)$ 看成随机对，最优预测是回归函数 $f^*(x)=\mathbb E[Y\mid X=x]$。本章把协变量 $\{x_i\}$ **钉死**（固定设计），误差改用经验测度 $\mathbb P_n=n^{-1}\sum\delta_{x_i}$ 的 $L^2$ 范数 $\|\cdot\|_n$。第 14 章的一致定律再把两条范数连起来。先把 $\|\cdot\|_n$ 的临界半径算对，不要急着换总体范数。
+:::
+
+::: {.callout-note title="作者解释：局部高斯复杂度不是第 4 章的全局复杂度"}
+第 4 章的 Rademacher / 高斯复杂度是在**整个**函数类上取上确界。非参数类（Lipschitz、Sobolev）的全局复杂度往往与半径成正比，临界不等式给不出随 $n$ 消失的 $\delta_n$。局部化之后只看 $\{\|g\|_n\le\delta\}$ 这一壳，Dudley 积分的下限也停在 $\delta^2/(4\sigma)$，才能得到极小极大最优的速率。Exercise 13.6 用 $\ell_1$ 球把这句话变成计算。
+:::
+
+::: {.callout-note title="作者解释：Theorem 2.26 在本章出现的位置"}
+标准高斯向量 $w\in\mathbb R^n$ 的 $L$-利普希茨函数是次高斯参数 $\le L$ 的。本章把
+$$
+Z_n(u)=\sup_{\|g\|_n\le u}\Bigl\lvert\frac{\sigma}{n}\sum_{i=1}^n w_i g(x_i)\Bigr\rvert
+$$
+看成 $w$ 的函数，利普希茨常数 $\le\sigma u/\sqrt n$，于是偏差 $s$ 的尾是 $e^{-ns^2/(2\sigma^2 u^2)}$。Lemma 13.12 与剥皮（peeling）都走这条路。
+:::
+
+# 13 Nonparametric least squares　非参数最小二乘
+
+> 教材定位：章首，印刷页 416，PDF 页 435。
+
+目标：根据带噪观测估计一个（可能非线性的）函数。工具来自前面各章；对象是非参数版的最小二乘。
+
+# 13.1 Problem set-up　问题设定
+
+> 教材定位：§13.1，印刷页 416–420，PDF 页 435–439。
+
+协变量 $x\in\mathcal X$，响应 $y\in\mathcal Y\subseteq\mathbb R$。随机设计下，用均方误差（mean-squared error, MSE）衡量 $f:\mathcal X\to\mathcal Y$：
+
+::: {.callout-important title="(13.1) 总体均方误差"}
+$$
+\mathcal L_f
+:=
+\mathbb E_{X,Y}\bigl[(Y-f(X))^2\bigr].
+$$
+:::
+
+最小化 $\mathcal L_f$ 的函数叫做**贝叶斯最小二乘估计**（Bayes’ least-squares estimate）或**回归函数**（regression function）：
+
+::: {.callout-important title="(13.2) 回归函数"}
+$$
+f^*(x)
+=
+\mathbb E[Y\mid X=x],
+$$
+假定有关期望存在。验证见 Exercise 13.1。
+:::
+
+联合分布未知，只有样本 $\{(x_i,y_i)\}_{i=1}^n$，于是改用经验 MSE：
+
+::: {.callout-important title="(13.3) 经验均方误差"}
+$$
+\widehat{\mathcal L}_f
+:=
+\frac1n\sum_{i=1}^n\bigl(y_i-f(x_i)\bigr)^2.
+$$
+:::
+
+非参数最小二乘就是在一个被适当控制的函数类上最小化 (13.3)。
+
+## 13.1.1 Different measures of quality　两种误差
+
+> 教材定位：§13.1.1，印刷页 416–417，PDF 页 435–436。
+
+超额风险（excess risk）是 $\mathcal L_f-\mathcal L_{f^*}$。对平方损失（Exercise 13.1），
+
+::: {.callout-important title="(13.4) 超额风险等于总体 $L^2$ 距离"}
+$$
+\mathcal L_f-\mathcal L_{f^*}
+=
+\mathbb E_X\bigl[(f(X)-f^*(X))^2\bigr]
+=
+\|f^*-f\|_{L^2(\mathbb P)}^2,
+$$
+其中 $\mathbb P$ 是协变量的分布。上下文清楚时简写为 $\|f-f^*\|_2$。
+:::
+
+本章改用样本 $\{x_i\}_{i=1}^n$ 决定的经验分布 $\mathbb P_n:=n^{-1}\sum_{i=1}^n\delta_{x_i}$：
+
+::: {.callout-important title="(13.5) 经验 $L^2(\mathbb P_n)$ 范数"}
+$$
+\|f-f^*\|_{L^2(\mathbb P_n)}
+:=
+\Bigl[
+\frac1n\sum_{i=1}^n\bigl(f(x_i)-f^*(x_i)\bigr)^2
+\Bigr]^{1/2}.
+$$
+简记 $\|\widehat f-f^*\|_n$。本章其余部分把 $\{x_i\}_{i=1}^n$ 视为固定，这就是**固定设计回归**（regression with a fixed design）。
+:::
+
+::: {.callout-warning title="适用边界"}
+$\|\cdot\|_n$ 只是半范数：两个函数可以在所有设计点上相等、在别处不同。第 14 章把 $\|\cdot\|_n$ 的界翻成 $\|\cdot\|_{L^2(\mathbb P)}$；在那之前，不要把 $\|\widehat f-f^*\|_n$ 读成对新 $X$ 的预测误差。
+:::
+
+## 13.1.2 Estimation via constrained least squares　约束最小二乘
+
+> 教材定位：§13.1.2，印刷页 417–418，PDF 页 436–437。
+
+固定设计点上，响应总可以写成
+
+::: {.callout-important title="(13.6) 生成模型"}
+$$
+y_i=f^*(x_i)+v_i,
+\qquad i=1,\ldots,n.
+$$
+由 (13.2)，噪声零均值。标准非参数回归模型取 $v_i=\sigma w_i$、$w_i\sim N(0,1)$ i.i.d.。
+:::
+
+约束最小二乘：
+
+::: {.callout-important title="(13.7) 约束非参数最小二乘"}
+$$
+\widehat f
+\in
+\arg\min_{f\in\mathcal F}
+\Bigl\{
+\frac1n\sum_{i=1}^n\bigl(y_i-f(x_i)\bigr)^2
+\Bigr\}.
+$$
+$n^{-1}$ 不改变 $\widehat f$，只是为了和 $\|\cdot\|_n$ 对齐。高斯噪声下它等于约束极大似然，但估计量本身不依赖高斯。
+:::
+
+也可以限制在某个范数球 $\{\|f\|_{\mathcal F}\le R\}$ 里，或改用正则化：
+
+::: {.callout-important title="(13.8) 正则化最小二乘"}
+$$
+\widehat f
+\in
+\arg\min_{f\in\mathcal F}
+\Bigl\{
+\frac1n\sum_{i=1}^n\bigl(y_i-f(x_i)\bigr)^2
++
+\lambda_n\|f\|_{\mathcal F}^2
+\Bigr\},
+\qquad\lambda_n>0.
+$$
+:::
+
+§13.4 的分析把平方和改成 $1/(2n)$，见 (13.52)。
+
+## 13.1.3 Some examples　例子
+
+> 教材定位：§13.1.3，印刷页 418–420，PDF 页 437–439。
+
+**Example 13.1（线性回归）。** $f_\theta(x)=\langle\theta,x\rangle$，$C\subseteq\mathbb R^d$ 紧，
+$$
+\mathcal F_C:=\{f_\theta:\mathbb R^d\to\mathbb R\mid\theta\in C\}.
+$$
+(13.7) 变成
+$$
+\widehat\theta
+\in
+\arg\min_{\theta\in C}
+\Bigl\{\frac1n\|y-\mathbf X\theta\|_2^2\Bigr\},
+$$
+$\mathbf X\in\mathbb R^{n\times d}$ 的第 $i$ 行是 $x_i$。岭回归取 $C=\{\theta:\|\theta\|_2^2\le R_2\}$；约束 $\ell_q$ 球取 $C=\{\theta:\sum_{j=1}^d|\theta_j|^q\le R_q\}$，$q\in[0,2]$。$q=1$ 就是约束 Lasso (7.19)。
+
+**Example 13.2（三次光滑样条）。** 二次连续可微 $f:[0,1]\to\mathbb R$，
+
+::: {.callout-important title="(13.9)–(13.10) 三次光滑样条"}
+$$
+\mathcal F(R)
+:=
+\Bigl\{
+f:[0,1]\to\mathbb R
+\Bigm|
+\int_0^1\bigl(f''(x)\bigr)^2\,dx\le R
+\Bigr\},
+$$
+$$
+\widehat f
+\in
+\arg\min_f
+\Bigl\{
+\frac1n\sum_{i=1}^n\bigl(y_i-f(x_i)\bigr)^2
++
+\lambda_n\int_0^1\bigl(f''(x)\bigr)^2\,dx
+\Bigr\}.
+$$
+:::
+
+积分约束是二阶 Sobolev 空间 $\mathbb H^2[0,1]$（Example 12.17）的希尔伯特范数球。任何最小化元都是三次样条：分段三次，三阶导数只在互异的 $x_i$ 处跳跃。$R\to 0$（或 $\lambda_n\to+\infty$）时 $f''=0$，拟合退回直线。Exercise 13.3 把它写成带线性零空间的核岭回归。
+
+**Example 13.3（核岭回归）。** $\mathbb H$ 为再生核希尔伯特空间，
+$$
+\widehat f
+\in
+\arg\min_{f\in\mathbb H}
+\Bigl\{
+\frac1n\sum_{i=1}^n\bigl(y_i-f(x_i)\bigr)^2
++\lambda_n\|f\|_{\mathbb H}^2
+\Bigr\}.
+$$
+经验核矩阵 $K_{ij}=\mathcal K(x_i,x_j)/n$，解的形式是
+$$
+\widehat f(\cdot)
+=
+\frac1{\sqrt n}\sum_{i=1}^n\widehat\alpha_i\,\mathcal K(\cdot,x_i),
+\qquad
+\widehat\alpha
+:=
+(\mathbf K+\lambda_n\mathbf I_n)^{-1}\frac{y}{\sqrt n}.
+$$
+
+**Example 13.4（凸回归）。** $f^*:C\to\mathbb R$ 在凸开集 $C\subseteq\mathbb R^d$ 上凸。约束“$f$ 凸”看起来无穷维，但凸函数在相对内部点次可微：存在 $z\in\mathbb R^d$ 使
+
+::: {.callout-important title="(13.11)–(13.14) 凸回归的有限维化"}
+$$
+f(y)\ge f(x)+\langle z,y-x\rangle
+\qquad\text{对一切 }y\in C.
+\tag{13.11}
+$$
+这样的 $z$ 是**次梯度**（subgradient），$\partial f(x)$ 是**次微分**（subdifferential）。可微时 $\partial f(x)=\{\nabla f(x)\}$。在样本点上存在 $\widetilde z_i$ 使
+$$
+f(x)\ge f(x_i)+\langle\widetilde z_i,x-x_i\rangle
+\qquad\text{对一切 }x\in C.
+\tag{13.12}
+$$
+代价只依赖 $\widetilde y_i:=f(x_i)$，于是等价于 $N=n(d+1)$ 个变量的凸规划
+$$
+\min_{\{(\widetilde y_i,\widetilde z_i)\}_{i=1}^n}
+\frac1n\sum_{i=1}^n(y_i-\widetilde y_i)^2
+\tag{13.13}
+$$
+约束 $\widetilde y_j\ge\widetilde y_i+\langle\widetilde z_i,x_j-x_i\rangle$（对一切 $i,j$；对角是恒等式，独立约束 $2\binom n2$ 条）。最优解定义
+$$
+\widehat f(x)
+:=
+\max_{i=1,\ldots,n}
+\bigl\{\widehat y_i+\langle\widehat z_i,x-x_i\rangle\bigr\}.
+\tag{13.14}
+$$
+:::
+
+$\widehat f$ 是线性函数的点态最大，故凸；可行性给出 $\widehat f(x_i)=\widehat y_i$。Figure 13.1（印刷页 421，$n=11$ 等距点，$C=[-1,1]$）：左图是分段线性的凸拟合；右图再加单调约束 $\widetilde z_j\ge 0$。
+
+::: {.callout-note title="作者解释：可加模型把维数从指数拉回多项式"}
+第 1 章 (1.20) 的可加模型 $f(x)=\sum_{j=1}^d g_j(x_j)$ 没有写进 §13.1.3 的例子，但 §13.5 与 Exercise 13.9 就是它。每个 $g_j$ 是一元非参数类，坐标上的临界半径 $\delta_{n,j}$ 不随 $d$ 指数变坏；总误差多一个 $d$ 与设计兼容常数 $K$。这是第 1 章“有结构才可估”在本章的具体形状。
+:::
+
+# 13.2 Bounding the prediction error　预测误差的上界
+
+> 教材定位：§13.2，印刷页 420–432，PDF 页 439–451。
+
+问题：$\|\widehat f-f^*\|_n$ 有多大？难度由 $\mathcal F$ 在 $f^*$ 附近的复杂度决定。平移类与局部高斯复杂度：
+
+::: {.callout-important title="(13.15)–(13.16) 平移类与局部高斯复杂度"}
+$$
+\mathcal F^*
+:=
+\mathcal F-\{f^*\}
+=
+\{f-f^*\mid f\in\mathcal F\},
+\tag{13.15}
+$$
+$$
+\mathcal G_n(\delta;\mathcal F^*)
+:=
+\mathbb E_w
+\Biggl[
+\sup_{\substack{g\in\mathcal F^*\\\|g\|_n\le\delta}}
+\Biggl\lvert
+\frac1n\sum_{i=1}^n w_i g(x_i)
+\Biggr\rvert
+\Biggr],
+\tag{13.16}
+$$
+$w_i\sim N(0,1)$ i.i.d.。固定设计下这是确定性的量。
+:::
+
+临界不等式（critical inequality）刻画“复杂度开始小于半径”的尺度：
+
+::: {.callout-important title="(13.17) 临界不等式与临界半径"}
+$$
+\frac{\mathcal G_n(\delta;\mathcal F^*)}{\delta}
+\le
+\frac{\delta}{2\sigma}.
+$$
+满足 (13.17) 的 $\delta_n>0$ 叫做**有效半径**（valid radius）；最小正解记为 $\delta_n^*$，即**临界半径**（critical radius）。Lemma 13.6：只要 $\mathcal F^*$ 星形，$\delta\mapsto\mathcal G_n(\delta)/\delta$ 非增，最小正解存在。
+:::
+
+Figure 13.2（印刷页 422，$n=100$）：一阶 Sobolev 核与高斯核的 $\delta\mapsto\mathcal G_n(\delta)/\delta$ 都非增；高斯核类更小，交点更靠左。
+
+::: {.callout-warning title="Figure 13.2 的 $\sigma$"}
+正文写 “Setting $\sigma=1/2$ for concreteness”，虚线是斜率 $1$ 的直线，对应 $1/(2\sigma)=1$。图注写 “slope $1/(2\sigma)$ with $\sigma=1$”。按正文 $\sigma=1/2$ 读图；此项为待批勘误。
+:::
+
+启发式：$\widehat f$ 最优、$f^*$ 可行，故
+$$
+\frac1{2n}\sum_{i=1}^n\bigl(y_i-\widehat f(x_i)\bigr)^2
+\le
+\frac1{2n}\sum_{i=1}^n\bigl(y_i-f^*(x_i)\bigr)^2.
+$$
+代入 $y_i=f^*(x_i)+\sigma w_i$ 得到**基本不等式**（basic inequality）：
+
+::: {.callout-important title="(13.18) 非参数最小二乘的基本不等式"}
+$$
+\frac12\|\widehat f-f^*\|_n^2
+\le
+\frac{\sigma}{n}\sum_{i=1}^n w_i\bigl(\widehat f(x_i)-f^*(x_i)\bigr).
+$$
+:::
+
+右端用 $\|g\|_n\le\|\widehat f-f^*\|_n$ 的上确界代替，启发式地令 $\delta^2:=\mathbb E[\|\widehat f-f^*\|_n^2]$，则
+
+::: {.callout-important title="(13.19) 临界不等式的启发式来源"}
+$$
+\frac{\delta^2}{2}
+\le
+\sigma\,\mathcal G_n(\delta;\mathcal F^*)
+\qquad\text{即}\qquad
+\frac{\delta}{2\sigma}
+\le
+\frac{\mathcal G_n(\delta;\mathcal F^*)}{\delta}.
+$$
+这与 (13.17) 方向相反，因而只能在 $\delta\le\delta_n^*$ 上成立。启发式结论：$\mathbb E[\|\widehat f-f^*\|_n^2]\le(\delta_n^*)^2$。
+:::
+
+从 (13.18) 到 (13.19) 并不严谨（上确界、期望、半径都搅在一起），但尺度是对的。严谨结果：
+
+::: {.callout-important title="Theorem 13.5（印刷页 423）"}
+设平移类 $\mathcal F^*$ 星形，$\delta_n$ 是 (13.17) 的任一正解。则对一切 $t\ge\delta_n$，
+$$
+\mathbb P\bigl[\|\widehat f_n-f^*\|_n^2\ge 16 t\delta_n\bigr]
+\le
+e^{-nt\delta_n/(2\sigma^2)}.
+\tag{13.20}
+$$
+:::
+
+取 $t=\delta_n$，平方误差以高概率 $O(\delta_n^2)$。积分尾界：
+$$
+\mathbb E\bigl[\|\widehat f_n-f^*\|_n^2\bigr]
+\le
+c\Bigl\{\delta_n^2+\frac{\sigma^2}{n}\Bigr\}
+$$
+对某个绝对常数 $c$。
+
+::: {.callout-warning title="注记里的三处原文"}
+1. 注记写控制 $\|\widehat f-f^*\|_2^2$；(13.20) 与随后的半范数都是 $\|\cdot\|_n^2$。按 $\|\cdot\|_n^2$ 陈述。
+2. 注记写：若 $\mathcal F$ 含常数函数 $f\equiv 1$，则 $\delta_n^2\ge\frac2\pi\frac{\sigma^2}n$。Exercise 13.5(b) 给出 $\delta^2\ge\min\{1,\frac8\pi\frac{\sigma^2}n\}$。含 $1$ 时 $\mathcal G_n(\delta)/\delta\ge\sqrt{2/(\pi n)}$，临界不等式要求它 $\le\delta/(2\sigma)$，故 $\delta^2\ge(8/\pi)\sigma^2/n$。$\frac2\pi$ 相当于把 $2\sigma$ 写成了 $\sigma$。Notes 用 $8/\pi$。
+3. 印刷页 424：“Theorem 13.5 can instead **by** applied”——按 be applied 读。
+三项均为待批勘误。
+:::
+
+证明真正用到的，是一般噪声复杂度
+$$
+Z_n(\delta)
+:=
+\sup_{\substack{g\in\mathcal F^*\\\|g\|_n\le\delta}}
+\Biggl\lvert
+\frac1n\sum_{i=1}^n\frac{v_i}{\sigma}g(x_i)
+\Biggr\rvert
+$$
+的上尾相对其期望。高斯只是让 $Z_n$ 成为高斯过程。
+
+**星形。** 函数类 $\mathcal H$ 星形：对任意 $h\in\mathcal H$、$\alpha\in[0,1]$，有 $\alpha h\in\mathcal H$。$\mathcal F^*$ 星形等于 $\mathcal F$ 绕 $f^*$ 星形。凸集绕每一点星形（Figure 13.3(a)）；非凸集可以对某些点星形、对另一些点不星形（Figure 13.3(b) 的 $f^\dagger$ 对、$f^*$ 不对）。Exercise 13.4。
+
+若星形失败，把 $\delta_n$ 改到**星形包**（star hull）上：
+
+::: {.callout-important title="(13.21)–(13.22) 星形包与差类"}
+$$
+\mathrm{star}(\mathcal F^*;0)
+:=
+\{\alpha g\mid g\in\mathcal F^*,\ \alpha\in[0,1]\}
+=
+\{\alpha(f-f^*)\mid f\in\mathcal F,\ \alpha\in[0,1]\},
+\tag{13.21}
+$$
+$$
+\partial\mathcal F
+:=
+\mathcal F-\mathcal F
+=
+\{f_1-f_2\mid f_1,f_2\in\mathcal F\}.
+\tag{13.22}
+$$
+$f^*$ 未知时，常用更大的 $\partial\mathcal F$ 或其星形包。
+:::
+
+::: {.callout-important title="Lemma 13.6（印刷页 425）"}
+对星形函数类 $\mathcal H$，映射 $\delta\mapsto\mathcal G_n(\delta;\mathcal H)/\delta$ 在 $(0,\infty)$ 上非增。因而对任意 $c>0$，
+$$
+\frac{\mathcal G_n(\delta;\mathcal H)}{\delta}
+\le
+c\delta
+\tag{13.23}
+$$
+有最小正解。
+:::
+
+证明要点：$0<\delta\le t$，$h\in\mathcal H$ 且 $\|h\|_n\le t$，令 $\widetilde h=(\delta/t)h$。则 $\|\widetilde h\|_n\le\delta$，星形给出 $\widetilde h\in\mathcal H$，且
+$$
+\frac1n\sum_{i=1}^n w_i h(x_i)
+=
+\frac t\delta\cdot\frac1n\sum_{i=1}^n w_i\widetilde h(x_i).
+$$
+上确界加期望即 $(\delta/t)\mathcal G_n(t)\le\mathcal G_n(\delta)$。Exercise 13.5(a) 给出粗界 $\delta_n^*\le 2\sigma$（书中写成 $\delta^2=4\sigma^2$ 总有效）；精细上界来自度量熵。
+
+## 13.2.1 Bounds via metric entropy　用度量熵控制
+
+> 教材定位：§13.2.1，印刷页 425–426，PDF 页 444–445。
+
+记 $\mathbb B_n(\delta;\mathcal H):=\{h\in\mathrm{star}(\mathcal H):\|h\|_n\le\delta\}$，$N_n(t;\mathbb B_n(\delta;\mathcal H))$ 是它在 $\|\cdot\|_n$ 下的 $t$-覆盖数。
+
+::: {.callout-important title="Corollary 13.7（印刷页 426）"}
+在 Theorem 13.5 的条件下，任何 $\delta\in(0,\sigma]$ 若满足
+$$
+\frac{16}{\sqrt n}
+\int_{\delta^2/(4\sigma)}^{\delta}
+\sqrt{\log N_n\bigl(t;\mathbb B_n(\delta;\mathcal F^*)\bigr)}\,dt
+\le
+\frac{\delta^2}{4\sigma}
+\tag{13.24}
+$$
+就满足临界不等式 (13.17)，因而可以代入 Theorem 13.5。
+:::
+
+证明骨架。$\delta\le\sigma$ 时 $\delta^2/(4\sigma)<\delta$，取 $\mathbb B_n(\delta;\mathcal F^*)$ 的最小 $\delta^2/(4\sigma)$-覆盖 $\{g^1,\ldots,g^M\}$。三角不等式加 Cauchy–Schwarz：
+$$
+\mathcal G_n(\delta)
+\le
+\mathbb E_w
+\Biggl[
+\max_{j=1,\ldots,M}
+\Biggl\lvert
+\frac1n\sum_{i=1}^n w_i g^j(x_i)
+\Biggr\rvert
+\Biggr]
++
+\frac{\delta^2}{4\sigma},
+\tag{13.25}
+$$
+用了 $\mathbb E\sqrt{n^{-1}\sum w_i^2}\le 1$。有限覆盖上的高斯过程 $Z(g^j)=n^{-1/2}\sum w_i g^j(x_i)$ 的半度量是 $\rho_Z(g^j,g^k)=\|g^j-g^k\|_n$。链锁从分辨率 $\delta$ 下到 $\delta^2/(4\sigma)$，给出 (13.24) 左端。
+
+## 13.2.2 Bounds for high-dimensional parametric problems　高维参数问题
+
+> 教材定位：§13.2.2，印刷页 427–429，PDF 页 446–448。
+
+**Example 13.8（线性回归）。** $y_i=\langle\theta^*,x_i\rangle+w_i$，$\mathcal F_{\mathrm{lin}}=\{f_\theta=\langle\theta,\cdot\rangle:\theta\in\mathbb R^d\}$。平移类等于自身，且凸、故星形。目标是
+
+::: {.callout-important title="(13.26) 线性回归的预测误差"}
+$$
+\|f_{\widehat\theta}-f_{\theta^*}\|_n^2
+=
+\frac{\|\mathbf X(\widehat\theta-\theta^*)\|_2^2}{n}
+\lesssim
+\sigma^2\frac{\mathrm{rank}(\mathbf X)}{n}
+$$
+以高概率。直接的线性代数证明见 Exercise 13.2；这里用一般理论走一遍。
+:::
+
+$\theta\mapsto\|f_\theta\|_n=\|\mathbf X\theta\|_2/\sqrt n$ 是 $\mathrm{range}(\mathbf X)$ 上的范数，$\mathbb B_n(\delta;\mathcal F_{\mathrm{lin}})$ 同构于该子空间里的 $\delta$-球。体积比（Example 5.8）给出
+$$
+\log N_n\bigl(t;\mathbb B_n(\delta;\mathcal F_{\mathrm{lin}})\bigr)
+\le
+r\log\bigl(1+2\delta/t\bigr),
+\qquad r:=\mathrm{rank}(\mathbf X).
+$$
+Dudley 积分（换元 $u=t/\delta$）$\lesssim\delta\sqrt{r/n}$。Corollary 13.7 推出 (13.26)。第 15 章表明该速率在常数因子内极小极大最优。
+
+**Example 13.9（$\ell_q$ 球，$q\in(0,1)$）。**
+$$
+\mathbb B_q(R_q)
+:=
+\bigl\{\theta\in\mathbb R^d:\textstyle\sum_{j=1}^d|\theta_j|^q\le R_q\bigr\},
+\qquad
+\mathcal F_q(R_q)
+:=
+\{f_\theta:\theta\in\mathbb B_q(R_q)\}.
+\tag{13.27}–\text{(13.28)}
+$$
+约束最小二乘 (13.29) **不是凸规划**。存在 $\theta^*$ 使 $\mathcal F_q^*$ 非星形，故改控制差类 $\mathcal F_q-\mathcal F_q=2\mathcal F_q\subset\mathcal F_q(2R_q)$（因为 $|a+b|^q\le|a|^q+|b|^q$）。$\ell_q$ 球对 $\ell_2$ 的熵（在温和的 $t$ 范围内）
+$$
+\log N_{2,q}(t)
+\le
+C_q
+\Bigl[
+R_q^{2/(2-q)}\,t^{-2q/(2-q)}\log d
+\Bigr].
+\tag{13.30}
+$$
+设计矩阵列 $\{X_j\}/\sqrt n$ 的 $q$-凸包在 $\max_j\|X_j\|_2/\sqrt n\le C$ 时有相同标度。代入 Corollary 13.7：
+$$
+R_q^{1/(2-q)}\sqrt{\frac{\sigma^2\log d}{n}}
+\lesssim
+\delta^{1+q/(2-q)},
+$$
+即
+$$
+\|f_{\widehat\theta}-f_{\theta^*}\|_n^2
+=
+\frac{\|\mathbf X(\widehat\theta-\theta^*)\|_2^2}{n}
+\lesssim
+R_q\Bigl(\frac{\sigma^2\log d}{n}\Bigr)^{1-q/2}.
+$$
+该速率在常数因子内极小极大最优。
+
+## 13.2.3 Bounds for nonparametric problems　非参数问题
+
+> 教材定位：§13.2.3，印刷页 429–430，PDF 页 448–449。
+
+**Example 13.10（Lipschitz 类）。**
+$$
+\mathcal F_{\mathrm{Lip}}(L)
+:=
+\{f:[0,1]\to\mathbb R\mid f(0)=0,\ f\text{ 是 }L\text{-Lipschitz}\}.
+\tag{13.32}
+$$
+$\mathcal F_{\mathrm{Lip}}(L)-\mathcal F_{\mathrm{Lip}}(L)=2\mathcal F_{\mathrm{Lip}}(L)\subseteq\mathcal F_{\mathrm{Lip}}(2L)$。Example 5.10：$\log N_\infty(\epsilon;\mathcal F_{\mathrm{Lip}}(2L))\simeq L/\epsilon$。Dudley 积分
+$$
+\frac1{\sqrt n}\int_0^\delta\sqrt{\log N_n}\,dt
+\lesssim
+\frac1{\sqrt n}\sqrt{L\delta}.
+$$
+临界条件 $\sqrt{L\delta_n}/\sqrt n\lesssim\delta_n^2/\sigma$ 给出 $\delta_n^2\simeq(L\sigma^2/n)^{2/3}$，因而
+
+::: {.callout-important title="(13.33) Lipschitz 速率"}
+$$
+\|\widehat f-f^*\|_n^2
+\lesssim
+\Bigl(\frac{L\sigma^2}{n}\Bigr)^{2/3}
+$$
+以概率至少 $1-c_1\exp\bigl(-c_2(n/(L\sigma^2))^{1/3}\bigr)$。尾指数来自 $nt\delta_n/\sigma^2$ 在 $t=\delta_n$ 时的 $n\delta_n^2/\sigma^2\simeq(n/(L\sigma^2))^{1/3}$。
+:::
+
+**Example 13.11（凸 Lipschitz）。**
+$$
+\mathcal F_{\mathrm{conv}}([0,1];1)
+:=
+\{f:[0,1]\to\mathbb R\mid f(0)=0,\ f\text{ 凸且 1-Lipschitz}\}.
+$$
+无穷范数熵（Bronshtein）
+$$
+\log N(\epsilon;\mathcal F_{\mathrm{conv}},\|\cdot\|_\infty)
+\lesssim
+\epsilon^{-1/2}.
+\tag{13.34}
+$$
+同样的积分给出 $\delta_n^2\simeq(\sigma^2/n)^{4/5}$，
+
+::: {.callout-important title="(13.35) 凸 Lipschitz 速率"}
+$$
+\|\widehat f-f^*\|_n^2
+\lesssim
+\Bigl(\frac{\sigma^2}{n}\Bigr)^{4/5}
+$$
+以概率至少 $1-c_1\exp\bigl(-c_2(n/\sigma^2)^{1/5}\bigr)$。
+:::
+
+$n^{-4/5}$ 快于无凸性约束的 $n^{-2/3}$。第 15 章表明两条都是极小极大最优。Exercise 13.8：有界二阶导的二次可微类给出同一 $n^{-4/5}$——凸性在统计上相当于多一阶光滑。
+
+## 13.2.4 Proof of Theorem 13.5　Theorem 13.5 的证明
+
+> 教材定位：§13.2.4，印刷页 430–432，PDF 页 449–451。此处按清单作简要说明。
+
+记 $\widehat\Delta=\widehat f-f^*\in\mathcal F^*$，基本不等式是
+$$
+\frac12\|\widehat\Delta\|_n^2
+\le
+\frac{\sigma}{n}\sum_{i=1}^n w_i\widehat\Delta(x_i).
+\tag{13.36}
+$$
+
+::: {.callout-important title="Lemma 13.12（印刷页 431）"}
+设 $\mathcal H$ 星形，$\delta_n$ 满足 $\mathcal G_n(\delta;\mathcal H)/\delta\le\delta/(2\sigma)$。对 $u\ge\delta_n$，事件
+$$
+\mathcal A(u)
+:=
+\Bigl\{
+\exists\,g\in\mathcal H\cap\{\|g\|_n\ge u\}
+:\ 
+\Bigl\lvert\frac{\sigma}{n}\sum_{i=1}^n w_i g(x_i)\Bigr\rvert
+\ge
+2\|g\|_n u
+\Bigr\}
+\tag{13.37}
+$$
+满足 $\mathbb P[\mathcal A(u)]\le e^{-nu^2/(2\sigma^2)}$。
+:::
+
+主定理：取 $\mathcal H=\mathcal F^*$、$u=\sqrt{t\delta_n}$（$t\ge\delta_n$）。若 $\|\widehat\Delta\|_n<\sqrt{t\delta_n}$，结论已成立。否则在 $\mathcal A^c(\sqrt{t\delta_n})$ 上，(13.36) 给出 $\|\widehat\Delta\|_n^2\le 4\|\widehat\Delta\|_n\sqrt{t\delta_n}$，即 $\|\widehat\Delta\|_n^2\le 16 t\delta_n$。
+
+Lemma 13.12 的证明：若 (13.39) 对某个 $\|g\|_n\ge u$ 成立，令 $\widetilde g=(u/\|g\|_n)g$，则 $\|\widetilde g\|_n=u$，星形给出 $\widetilde g\in\mathcal H$，且 $|\sigma n^{-1}\sum w_i\widetilde g(x_i)|\ge 2u^2$。于是
+$$
+\mathbb P[\mathcal A(u)]
+\le
+\mathbb P[Z_n(u)\ge 2u^2],
+\qquad
+Z_n(u)
+:=
+\sup_{\substack{\widetilde g\in\mathcal H\\\|\widetilde g\|_n\le u}}
+\Bigl\lvert\frac{\sigma}{n}\sum w_i\widetilde g(x_i)\Bigr\rvert.
+\tag{13.40}
+$$
+$Z_n(u)$ 作为 $w$ 的函数，利普希茨常数 $\le\sigma u/\sqrt n$。Theorem 2.26 给出
+$$
+\mathbb P\bigl[Z_n(u)\ge\mathbb E[Z_n(u)]+u^2\bigr]
+\le
+e^{-nu^2/(2\sigma^2)}.
+\tag{13.41}
+$$
+$\mathbb E[Z_n(u)]=\sigma\mathcal G_n(u)$。由 Lemma 13.6，$\delta\mapsto\mathcal G_n(\delta)/\delta$ **非增**（印刷页 432 写成 non-decreasing，与 Lemma 13.6 及随后一行 $u\ge\delta_n\Rightarrow\mathcal G_n(u)/u\le\mathcal G_n(\delta_n)/\delta_n$ 矛盾；按非增使用，待批勘误），故 $\sigma\mathcal G_n(u)/u\le\delta_n/2\le\delta_n$，即 $\mathbb E[Z_n(u)]\le u\delta_n$。再加 $u^2\ge u\delta_n$，得到 $\mathbb P[Z_n(u)\ge 2u^2]\le e^{-nu^2/(2\sigma^2)}$。
+
+# 13.3 Oracle inequalities　神谕不等式
+
+> 教材定位：§13.3，印刷页 432–438，PDF 页 451–457。
+
+到此为止默认 $f^*\in\mathcal F$。若 $f^*\notin\mathcal F$，误差应同时包含 Theorem 13.5 的估计项，以及用 $\mathcal F$ 逼近 $f^*$ 的代价。最好逼近误差 $\inf_{f\in\mathcal F}\|f-f^*\|_n^2$ 只有“看见 $\{f^*(x_i)\}$”的神谕才能达到，因此叫**神谕不等式**（oracle inequality）。差类 $\partial\mathcal F$ 若非星形，下面一律换成它的星形包。
+
+::: {.callout-important title="Theorem 13.13（印刷页 433）"}
+设 $\delta_n$ 是
+$$
+\frac{\mathcal G_n(\delta;\partial\mathcal F)}{\delta}
+\le
+\frac{\delta}{2\sigma}
+\tag{13.42a}
+$$
+的任一正解。存在绝对正常数 $(c_0,c_1,c_2)$，使得对一切 $t\ge\delta_n$，
+$$
+\|\widehat f-f^*\|_n^2
+\le
+\inf_{\gamma\in(0,1)}
+\Bigl\{
+\frac{1+\gamma}{1-\gamma}\|f-f^*\|_n^2
++
+\frac{c_0}{\gamma(1-\gamma)}t\delta_n
+\Bigr\}
+\qquad\text{对一切 }f\in\mathcal F,
+\tag{13.42b}
+$$
+以概率大于 $1-c_1 e^{-c_2 nt\delta_n/\sigma^2}$。
+:::
+
+$f^*\in\mathcal F$ 时可取 $f=f^*$，回到 $\|\widehat f-f^*\|_n^2\lesssim t\delta_n$，在常数内恢复 Theorem 13.5。一般情形取 $t=\delta_n$ 再对 $f$ 取下确界：
+
+::: {.callout-important title="(13.43a)–(13.43b) 神谕不等式的简式"}
+$$
+\|\widehat f-f^*\|_n^2
+\lesssim
+\inf_{f\in\mathcal F}\|f-f^*\|_n^2
++
+\delta_n^2,
+\tag{13.43a}
+$$
+$$
+\mathbb E\bigl[\|\widehat f-f^*\|_n^2\bigr]
+\lesssim
+\inf_{f\in\mathcal F}\|f-f^*\|_n^2
++
+\delta_n^2
++\frac{\sigma^2}{n}.
+\tag{13.43b}
+$$
+:::
+
+逼近项随 $\mathcal F$ 变大而变小，估计项 $\delta_n^2$ 随 $\mathcal F$ 变复杂而变大。用样本量给 $\mathcal F$ 做指标，就是在这两项之间做权衡。
+
+## 13.3.1 Some examples of oracle inequalities　神谕不等式的例子
+
+> 教材定位：§13.3.1，印刷页 434–437，PDF 页 453–456。
+
+**Example 13.14（正交级数）。** $(\phi_m)_{m=1}^\infty$ 是 $L^2(\mathbb P)$ 的标准正交基，
+$$
+\mathcal F_{\mathrm{ortho}}(1;T)
+:=
+\Bigl\{
+f=\sum_{m=1}^T\beta_m\phi_m
+\Bigm|
+\sum_{m=1}^T\beta_m^2\le 1
+\Bigr\}.
+\tag{13.44}
+$$
+计算化为 $T$ 维岭回归（Exercise 13.10）。若 $f^*=\sum_{m=1}^\infty\theta_m^*\phi_m$ 且 $\|f^*\|_2^2=\sum(\theta_m^*)^2\le 1$，Parseval 给出
+$$
+\inf_{f\in\mathcal F_{\mathrm{ortho}}(1;T)}\|f-f^*\|_2^2
+=
+\sum_{m=T+1}^\infty(\theta_m^*)^2,
+$$
+下确界由截断 $\widetilde f_T=\sum_{m=1}^T\theta_m^*\phi_m$ 达到。Example 13.8 给出 $\delta_n^2\simeq\sigma^2 T/n$，因而
+$$
+\mathbb E_{X,w}\bigl[\|\widehat f-f^*\|_n^2\bigr]
+\lesssim
+\sum_{m=T+1}^\infty(\theta_m^*)^2
++\sigma^2\frac{T}{n}.
+\tag{13.45}
+$$
+Figure 13.4（$\sigma^2=1$，$n\in\{100,250,500,1000\}$）：多项式衰减 $|\theta_m^*|\le m^{-1}$ 时最优 $T^*(n)$ 随 $n$ 缓慢增长；指数衰减 $|\theta_m^*|\le e^{-m/2}$ 时最优 $T$ 几乎不随 $n$ 动，估计项很快占主导。
+
+**Example 13.15（Fourier 与 $\alpha$ 阶可微）。** $\phi_0\equiv 1$，$\phi_m=\sqrt 2\cos(2m\pi x)$，$\widetilde\phi_m=\sqrt 2\sin(2m\pi x)$ 构成 $L^2[0,1]$ 的标准正交基。函数类
+$$
+\mathcal G(1;M)
+:=
+\Bigl\{
+\beta_0+\sum_{m=1}^M(\beta_m\phi_m+\widetilde\beta_m\widetilde\phi_m)
+\Bigm|
+\beta_0^2+\sum_{m=1}^M(\beta_m^2+\widetilde\beta_m^2)\le 1
+\Bigr\}
+\tag{13.46}
+$$
+就是 $T=2M+1$ 的 (13.44)。若 $f^*$ 是 $\alpha$ 次可微（$\alpha\ge 1$ 整数）且 $\int_0^1[(f^*)^{(\alpha)}(x)]^2\,dx\le R$，则存在截断 $f\in\mathcal G(1;M)$ 使
+$$
+\|f-f^*\|_2^2
+\le
+\frac{c'R}{M^{2\alpha}}.
+\tag{13.47}
+$$
+（印刷页 435 把系数界写成 $(\beta_m^*)^2+(\widetilde\beta_m^*)^2\le c/m^{2\alpha}$，未出现 $R$；(13.47) 与 Exercise 13.11 都是 $cR/m^{2\alpha}$。按带 $R$ 的界陈述，待批勘误。）
+
+把 (13.45) 与 (13.47) 合起来：
+$$
+\mathbb E_{X,w}\bigl[\|\widehat f_M-f^*\|_n^2\bigr]
+\lesssim
+\frac{1}{M^{2\alpha}}+\sigma^2\frac{2M+1}{n}.
+$$
+平衡给出 $M\simeq(n/\sigma^2)^{1/(2\alpha+1)}$，总速率
+$$
+\mathbb E_{X,w}\bigl[\|\widehat f_M-f^*\|_n^2\bigr]
+\lesssim
+\Bigl(\frac{\sigma^2}{n}\Bigr)^{2\alpha/(2\alpha+1)}.
+$$
+这是一元 $\alpha$-光滑函数的标准极小极大速率（第 15 章）。
+
+**Example 13.16（最佳 $s$-稀疏逼近）。** $f_{\theta^*}(x)=\langle\theta^*,x\rangle$，
+$$
+\mathcal F_{\mathrm{spar}}(s)
+:=
+\{f_\theta:\|\theta\|_0\le s\},
+\qquad
+\widehat\theta
+\in
+\arg\min_{\theta\in\mathcal F_{\mathrm{spar}}(s)}\|y-\mathbf X\theta\|_n^2.
+\tag{13.48}
+$$
+这是组合搜索，不谈计算。Theorem 13.13 给出
+$$
+\|f_{\widehat\theta}-f_{\theta^*}\|_n^2
+\lesssim
+\inf_{\theta\in\mathcal F_{\mathrm{spar}}(s)}\|f_\theta-f_{\theta^*}\|_n^2
++\sigma^2\frac{s\log(ed/s)}{n},
+\tag{13.49}
+$$
+其中 $\delta_n^2\simeq\sigma^2 s\log(ed/s)/n$。估计项对 $s$ 线性、对 $d$ 只对数——$d$ 可以相对 $n$ 指数大。
+
+推导：$\partial\mathcal F_{\mathrm{spar}}(s)\subset\mathcal F_{\mathrm{spar}}(2s)$。对每个 $|S|=2s$ 的子矩阵 $\mathbf X_S$，
+$$
+Z_n(S)
+:=
+\sup_{\|\mathbf X_S\theta_S\|_2/\sqrt n\le\delta}
+\Bigl\lvert\frac{w^T\mathbf X_S\theta_S}{n}\Bigr\rvert
+$$
+对 $w$ 的利普希茨常数 $\le\delta/\sqrt n$，故
+$$
+\mathbb P\bigl[Z_n(S)\ge\mathbb E[Z_n(S)]+t\delta\bigr]
+\le
+e^{-nt^2/2}.
+\tag{13.50}
+$$
+SVD 加上 $\mathbb E\|\mathbf U^T w\|_2\le\sqrt{2s}$ 给出 $\mathbb E[Z_n(S)]\le\delta\sqrt{2s/n}$。并上 $\binom{d}{2s}$ 个子集、积分尾界：
+$$
+\frac{\mathcal G_n(\delta)}{\delta}
+\lesssim
+\sqrt{\frac{s}{n}}+\sqrt{\frac{\log\binom{d}{2s}}{n}}
+\lesssim
+\sqrt{\frac{s\log(ed/s)}{n}}.
+$$
+
+## 13.3.2 Proof of Theorem 13.13　Theorem 13.13 的证明
+
+> 教材定位：§13.3.2，印刷页 437–438，PDF 页 456–457。简要说明。
+
+任意可行点 $\widetilde f\in\mathcal F$，由最优性
+$$
+\frac12\|\widehat\Delta\|_n^2
+\le
+\frac12\|\widetilde f-f^*\|_n^2
++
+\Bigl\lvert\frac{\sigma}{n}\sum_{i=1}^n w_i\widetilde\Delta(x_i)\Bigr\rvert,
+\tag{13.51}
+$$
+其中 $\widehat\Delta=\widehat f-f^*$，$\widetilde\Delta=\widehat f-\widetilde f\in\partial\mathcal F$。
+
+**情形 1：** $\|\widetilde\Delta\|_n\le\sqrt{t\delta_n}$。三角不等式加 Fenchel–Young：对任意 $\beta>0$，
+$$
+\|\widehat\Delta\|_n^2
+\le
+(1+2\beta)\|\widetilde f-f^*\|_n^2
++\Bigl(1+\frac2\beta\Bigr)t\delta_n.
+$$
+取 $\beta=\gamma/(1-\gamma)$ 即得 (13.42b) 的系数 $(1+\gamma)/(1-\gamma)$ 与 $2/(\gamma(1-\gamma))$。
+
+**情形 2：** $\|\widetilde\Delta\|_n>\sqrt{t\delta_n}$。Lemma 13.12 控制 $\partial\mathcal F$ 上的噪声项，Fenchel–Young 两次（一次给 $\|\widehat\Delta\|_n$，一次给 $\|\widetilde f-f^*\|_n$），对 $\beta\in(0,1/4)$ 重排后令 $\gamma=4\beta$。
+
+# 13.4 Regularized estimators　正则化估计
+
+> 教材定位：§13.4，印刷页 439–448，PDF 页 458–467。
+
+约束形式便于分析；计算上常常直接惩罚。正则化最小二乘（注意平方和的系数是 $1/(2n)$，与 (13.8) 不同）：
+
+::: {.callout-important title="(13.52) 正则化最小二乘"}
+$$
+\widehat f
+\in
+\arg\min_{f\in\mathcal F}
+\Bigl\{
+\frac1{2n}\sum_{i=1}^n\bigl(y_i-f(x_i)\bigr)^2
++\lambda_n\|f\|_{\mathcal F}^2
+\Bigr\},
+\qquad\lambda_n\ge 0.
+$$
+:::
+
+## 13.4.1 Oracle inequalities for regularized estimators　正则化估计的神谕不等式
+
+> 教材定位：§13.4.1，印刷页 439，PDF 页 458。
+
+差类上的局部复杂度（半径 $3$ 来自后面证明的情形分裂 $\|\widehat f\|_{\mathcal F}\le 2$、$\|\widetilde f\|_{\mathcal F}\le 1$）：
+
+::: {.callout-important title="(13.53)–(13.54) 半径 $R$ 球上的临界不等式"}
+$$
+\mathcal G_n\bigl(\delta;\mathbb B_{\partial\mathcal F}(3)\bigr)
+:=
+\mathbb E_w
+\Biggl[
+\sup_{\substack{g\in\partial\mathcal F\\\|g\|_{\mathcal F}\le 3,\ \|g\|_n\le\delta}}
+\Biggl\lvert
+\frac1n\sum_{i=1}^n w_i g(x_i)
+\Biggr\rvert
+\Biggr],
+\tag{13.53}
+$$
+$$
+\frac{\mathcal G_n(\delta)}{\delta}
+\le
+\frac{R}{2\sigma}\,\delta.
+\tag{13.54}
+$$
+上下文清楚时把左端简写 $\mathcal G_n(\delta)$。印刷页 439 的被积函数写成 $w_i f(x_i)$，哑元却是 $g$；按 $g(x_i)$ 理解，待批勘误。
+:::
+
+(13.54) 比 (13.17) 多一个 $R$：把问题缩放到 $\mathcal F$ 的单位球后，噪声标准差变成 $\sigma/R$。
+
+::: {.callout-important title="Theorem 13.17（印刷页 439）"}
+凸函数类 $\mathcal F$，正则化参数 $\lambda_n\ge 2\delta_n^2$。存在绝对正常数，使得
+$$
+\|\widehat f-f^*\|_n^2
+\le
+c_0\inf_{\|f\|_{\mathcal F}\le R}\|f-f^*\|_n^2
++
+c_1 R^2\{\delta_n^2+\lambda_n\}
+\tag{13.55a}
+$$
+以概率大于 $1-c_2\exp(-c_3 n R^2\delta_n^2/\sigma^2)$；期望版把 $c_j$ 换成 $c_j'$ 即 (13.55b)。
+:::
+
+## 13.4.2 Consequences for kernel ridge regression　核岭回归的推论
+
+> 教材定位：§13.4.2，印刷页 439–442，PDF 页 458–461。
+
+经验核矩阵 $\mathbf K\in\mathbb R^{n\times n}$，$K_{ij}=\mathcal K(x_i,x_j)/n$，特征值 $\widehat\mu_1\ge\cdots\ge\widehat\mu_n\ge 0$。
+
+::: {.callout-important title="Corollary 13.18（印刷页 440）"}
+对核岭回归 (12.28)，Theorem 13.17 的界在任何满足
+$$
+\sqrt{\frac2n}\sqrt{\sum_{j=1}^n\min\{\delta^2,\widehat\mu_j\}}
+\le
+\frac{R}{4\sigma}\,\delta^2
+\tag{13.56}
+$$
+的 $\delta_n>0$ 上成立。
+:::
+
+**Example 13.19（多项式核）。** $\mathcal K(x,z)=(1+xz)^{m-1}$（$m\ge 2$）对应次数至多 $m-1$ 的多项式，维数 $m$，故 $\mathrm{rank}(\mathbf K)\le\min\{n,m\}$。$n>m$ 时
+$$
+\frac1{\sqrt n}\sqrt{\sum_j\min\{\delta^2,\widehat\mu_j\}}
+\le
+\delta\sqrt{\frac m n}.
+$$
+(13.56) 在 $\delta\gtrsim(\sigma/R)\sqrt{m/n}$ 时成立，速率
+$$
+\|\widehat f-f^*\|_n^2
+\lesssim
+\inf_{\|f\|_{\mathbb H}\le R}\|f-f^*\|_n^2
++\sigma^2\frac m n.
+$$
+有限秩 $r$ 的核同理，把 $m$ 换成 $r$。
+
+**Example 13.20（一阶 Sobolev 核）。** $\mathcal K(x,z)=\min\{x,z\}$ 在 $[0,1]^2$ 上，对应
+$$
+\mathbb H^1[0,1]
+=
+\{f:[0,1]\to\mathbb R\mid f(0)=0,\ f\text{ 绝对连续},\ f'\in L^2[0,1]\}.
+$$
+核积分算子特征值 $\mu_j=(2/((2j-1)\pi))^2\asymp j^{-2}$（Example 12.23）。启发式 $\widehat\mu_j\le c/j^2$（Figure 13.5(a)，$n=2000$；Proposition 14.25 把经验谱与总体谱的临界半径连起来）。取 $k$ 为满足 $ck^{-2}\le\delta^2$ 的最小正整数，则
+$$
+\frac1{\sqrt n}\sqrt{\sum_j\min\{\delta^2,\widehat\mu_j\}}
+\lesssim
+\sqrt{\frac{\delta}{n}}.
+$$
+临界条件给出 $\delta_n^{3/2}\simeq\sigma/(R\sqrt n)$，即 $\delta_n^2\simeq(\sigma^2/(R^2 n))^{2/3}$。乘上 Theorem 13.17 的 $R^2$：
+$$
+R^2\delta_n^2
+\simeq
+R^{2/3}\Bigl(\frac{\sigma^2}{n}\Bigr)^{2/3}.
+$$
+
+::: {.callout-warning title="Example 13.20 末式"}
+原页在写出 $\delta_n^2\simeq(\sigma^2/(R^2 n))^{2/3}$ 之后，把 $R^2\delta_n^2$ 写成 $R^2(\sigma^2/n)^{2/3}$。同页高斯核例子正确地消去了 $R^2\cdot(\sigma^2/R^2)$；此处 $R^2\cdot R^{-4/3}=R^{2/3}$。Notes 用 $R^{2/3}(\sigma^2/n)^{2/3}$。待批勘误。
+:::
+
+该速率对一阶 Sobolev 空间极小极大最优（第 15 章）。
+
+**Example 13.21（高斯核）。** $\mathcal K(x,z)=\exp(-(x-z)^2/(2\sigma_{\mathrm{ker}}^2))$ 在 $[-1,1]^2$ 上（Figure 13.5(b) 用 $\sigma_{\mathrm{ker}}=0.5$，不要和噪声 $\sigma$ 混）。特征值 $\mu_j\asymp e^{-c j\log j}$。启发式 $\widehat\mu_j\le c_0 e^{-c_1 j\log j}$，取 $k$ 使 $c_0 e^{-c_1 k\log k}\le\delta^2$，临界条件给出
+$$
+\delta_n^2
+\simeq
+\frac{\sigma^2}{R^2}\frac{\log(Rn/\sigma)}{n},
+$$
+因而
+$$
+\|\widehat f-f^*\|_n^2
+\lesssim
+\inf_{\|f\|_{\mathbb H}\le R}\|f-f^*\|_n^2
++c\sigma^2\frac{\log(Rn/\sigma)}{n}.
+$$
+估计项几乎是参数速率 $1/n$，只差一个对数；代价是逼近误差随 $R$ 降得很慢。
+
+Figure 13.5：经验核矩阵谱的 log–log 图，$n=2000$，协变量均匀。Sobolev 核沿 $j^{-2}$ 直线掉；高斯核先平台再超多项式下跌。
+
+## 13.4.3 Proof of Corollary 13.18　Corollary 13.18 的证明
+
+> 教材定位：§13.4.3，印刷页 443–444，PDF 页 462–463。
+
+::: {.callout-important title="Lemma 13.22（印刷页 443）"}
+RKHS 单位球的局部高斯复杂度满足
+$$
+\mathbb E
+\Biggl[
+\sup_{\substack{\|f\|_{\mathbb H}\le 1\\\|f\|_n\le\delta}}
+\Biggl\lvert
+\frac1n\sum_{i=1}^n w_i f(x_i)
+\Biggr\rvert
+\Biggr]
+\le
+\sqrt{\frac2n}\sqrt{\sum_{j=1}^n\min\{\delta^2,\widehat\mu_j\}}.
+\tag{13.57}
+$$
+:::
+
+表示定理：只需看 $g(\cdot)=n^{-1/2}\sum_i\alpha_i\mathcal K(\cdot,x_i)$。正交于核展开的部分既不进目标也不进 $\|f\|_n$。约束 $\|g\|_n\le\delta$ 即 $\|\mathbf K\alpha\|_2\le\delta$，$\|g\|_{\mathbb H}\le 1$ 即 $\alpha^T\mathbf K\alpha\le 1$。谱分解后令 $\beta=\mathbf K\alpha$，可行集是椭圆交
+$$
+\mathcal D
+=
+\Bigl\{\beta:\|\beta\|_2^2\le\delta^2,\ \sum_j\beta_j^2/\widehat\mu_j\le 1\Bigr\}
+\subset
+\mathcal E
+=
+\Bigl\{\beta:\sum_j\eta_j\beta_j^2\le 2\Bigr\},
+$$
+$\eta_j=\max\{\delta^{-2},\widehat\mu_j^{-1}\}$。Hölder 加 Jensen：
+$$
+\mathcal G_n(\delta)
+\le
+\sqrt{\frac2n}\sqrt{\sum_j\min\{\delta^2,\widehat\mu_j\}}.
+$$
+再与 (13.54) 比较时，左端多一个半径 $3$ 的因子，把 $1/(2\sigma)$ 改成 $1/(4\sigma)$ 即 (13.56)。
+
+## 13.4.4 Proof of Theorem 13.17　Theorem 13.17 的证明
+
+> 教材定位：§13.4.4，印刷页 444–448，PDF 页 463–467。简要说明。
+
+先把观测除以 $R$，噪声变成 $\widetilde\sigma=\sigma/R$，逼近误差在单位球上取，最后平方误差乘回 $R^2$。修正基本不等式：对 $\|\widetilde f\|_{\mathcal F}\le 1$，
+$$
+\frac12\|\widehat\Delta\|_n^2
+\le
+\frac12\|\widetilde f-f^*\|_n^2
++
+\frac{\widetilde\sigma}{n}\Bigl\lvert\sum w_i\widetilde\Delta(x_i)\Bigr\rvert
++\lambda_n\bigl\{\|\widetilde f\|_{\mathcal F}^2-\|\widehat f\|_{\mathcal F}^2\bigr\}.
+\tag{13.59}
+$$
+$\|\widetilde f\|_{\mathcal F}\le 1$ 给出更弱的 (13.60)（多一个 $+\lambda_n$）。
+
+若 $\|\widetilde\Delta\|_n\le\sqrt{t\delta_n}$，走 Theorem 13.13 的情形 1，外加 $\lambda_n$。若 $\|\widetilde\Delta\|_n>\sqrt{t\delta_n}$，再分：
+
+- **$\|\widehat f\|_{\mathcal F}\le 2$：** $\|\widetilde\Delta\|_{\mathcal F}\le 3$，Lemma 13.12 给出噪声 $\lesssim\sqrt{t\delta_n}\|\widetilde\Delta\|_n$；Fenchel–Young 吸收交叉项。
+- **$\|\widehat f\|_{\mathcal F}>2$：** 正则化差 $\lambda_n\{\|\widetilde f\|_{\mathcal F}^2-\|\widehat f\|_{\mathcal F}^2\}\le\lambda_n\{2-\|\widetilde\Delta\|_{\mathcal F}\}$，得到 (13.62)。这时需要在 $\{\|\Delta\|_{\mathcal F}\ge 1\}$ 上的**均匀**过程界：
+
+::: {.callout-important title="Lemma 13.23（印刷页 446）"}
+存在绝对常数，使得以概率 $>1-c_1\exp(-c_2 n\delta_n^2/\widetilde\sigma^2)$，
+$$
+\Bigl\lvert\frac{\widetilde\sigma}{n}\sum_{i=1}^n w_i\Delta(x_i)\Bigr\rvert
+\le
+2\delta_n\|\Delta\|_n
++2\delta_n^2\|\Delta\|_{\mathcal F}
++\frac1{16}\|\Delta\|_n^2
+\tag{13.63}
+$$
+对一切 $\Delta\in\partial\mathcal F$ 且 $\|\Delta\|_{\mathcal F}\ge 1$ 同时成立。
+:::
+
+代入 (13.62)，用 $\lambda_n\ge 2\delta_n^2$ 消掉 $\|\widetilde\Delta\|_{\mathcal F}$ 项，再用三角不等式把 $\widetilde\Delta$ 换成 $\widehat\Delta$，二次公式给出 (13.55a)。
+
+Lemma 13.23 本身：先对 $\|\Delta\|_{\mathcal F}=1$ 证明，再按星形缩放到 $\|\Delta\|_{\mathcal F}>1$。单位球上对半径 $t$ 定义 $Z_n(t)$，Theorem 2.26 加临界条件给出
+$$
+\mathbb P[Z_n(\delta_n)\ge 2\delta_n^2]\le e^{-n\delta_n^2/(2\widetilde\sigma^2)},
+\qquad
+\mathbb P\bigl[Z_n(t)\ge t\delta_n+t^2/32\bigr]
+\le
+e^{-c n t^2/\widetilde\sigma^2}
+\quad(t>\delta_n).
+$$
+**剥皮**（peeling）：令 $t_m=2^m\delta_n$，把违规事件拆成 $\mathcal E(0,t_0)\cup\bigcup_m\mathcal E(t_m,t_{m+1})$，并上可和的指数尾。
+
+# 13.5 Bibliographic details and background　文献与背景
+
+> 教材定位：§13.5，印刷页 448–449，PDF 页 467–468。文献条目指回教材。
+
+本章只处理平方损失下的 $M$-估计。局部高斯 / Rademacher 复杂度（相对第 4 章的全局形式）是最优点附近才能得到最优非参数速率的原因；第 14 章把局部化写成系统理论。RKHS 单位球的局部复杂度（Lemma 13.22）来自 Mendelson；剥皮是经验过程的标准技术（Alexander；van de Geer）。形状约束（凸 / 单调）的计算与熵，以及 Exercise 13.9 的可加模型（Stone, 1985），文献清单见原书。
+
+# 常见错误
+
+1. **错误做法：** 把 Theorem 13.5 的 $\|\widehat f-f^*\|_n^2\lesssim t\delta_n$ 读成“误差是 $\delta_n$”。
+   **为什么错：** 左端已经平方。$t=\delta_n$ 时右端是 $16\delta_n^2$。启发式 (13.19) 讨论的也是 $\delta^2$。
+   **正确判断：** 临界半径 $\delta_n$ 是**未平方**的经验范数尺度；定理陈述的是平方误差。
+
+2. **错误做法：** 用全局高斯复杂度 $\mathcal G_n(\infty)$ 代替局部 $\mathcal G_n(\delta)$。
+   **为什么错：** Lipschitz、Sobolev 的全局复杂度与半径同阶，$\mathcal G_n(\delta)/\delta$ 不随 $\delta$ 下降，临界不等式没有随 $n$ 消失的解。Exercise 13.6：$\ell_1$ 球上全局界给出慢速率 $\sigma\sqrt{\log n/n}$，顶点处的局部界才是 $\sigma^2\log n/n$。
+   **正确判断：** 非参数最优速率来自局部化；Dudley 积分的下限也要停在 $\delta^2/(4\sigma)$。
+
+3. **错误做法：** 不检查 $\mathcal F^*$ 是否星形，直接套 Theorem 13.5。
+   **为什么错：** $\delta\mapsto\mathcal G_n(\delta)/\delta$ 非增依赖星形（Lemma 13.6）；$\ell_q$ 球 $q\in(0,1)$ 对某些 $f^*$ 失败（Example 13.9）。
+   **正确判断：** 凸 $\Rightarrow$ 处处星形；否则改用 $\mathrm{star}(\mathcal F^*;0)$ 或更大的 $\partial\mathcal F$。
+
+4. **错误做法：** 认为 $f^*\notin\mathcal F$ 时定理全部失效。
+   **为什么错：** 神谕不等式 (13.43a) 正是为这种情况准备的：多一项 $\inf_{f\in\mathcal F}\|f-f^*\|_n^2$。
+   **正确判断：** 先写逼近–估计分解，再选 $\mathcal F$ 的指标（$T$、$M$、$s$、$R$）。
+
+5. **错误做法：** 把 (13.8) 的 $1/n$ 与 (13.52) 的 $1/(2n)$ 当成同一目标。
+   **为什么错：** 约束问题里正倍数不改变 $\widehat f$；正则化问题里 $\lambda_n$ 与平方和的相对尺度会变。Theorem 13.17 的条件 $\lambda_n\ge 2\delta_n^2$ 对应 (13.52) 的写法。
+   **正确判断：** 引用定理前先核对目标函数的系数。
+
+# 轻量自测
+
+1. 从 (13.1) 出发，用塔性质说明超额风险为什么等于 $\|f-f^*\|_{L^2(\mathbb P)}^2$。本章为什么改用 $\|\cdot\|_n$？
+2. 线性回归中 $\log N_n(t;\mathbb B_n(\delta))\le r\log(1+2\delta/t)$。Dudley 积分如何给出 $\delta_n^2\asymp\sigma^2 r/n$？
+3. Lipschitz 类的熵 $\log N_\infty(\epsilon)\simeq L/\epsilon$，凸 Lipschitz 是 $\epsilon^{-1/2}$。为什么速率分别是 $n^{-2/3}$ 与 $n^{-4/5}$？
+4. 正交级数 (13.45) 中，若 $|\theta_m^*|\le C m^{-\alpha}$（$\alpha>1/2$），最优 $T$ 如何随 $n$ 增长？总速率是什么？
+5. 核岭回归：多项式核、一阶 Sobolev 核、高斯核的估计项分别是什么量级？哪一个最接近参数速率 $1/n$？
+
+<details>
+<summary>查看参考答案</summary>
+
+1. $\mathbb E[(Y-f(X))^2]=\mathbb E[\mathbb E[(Y-f(X))^2\mid X]]$；内层在 $f(X)=\mathbb E[Y\mid X]$ 处最小。展开 $Y-f=(Y-f^*)+(f^*-f)$，交叉项对 $X$ 条件后消失，剩下 $\mathbb E_X[(f-f^*)^2]$。本章固定 $\{x_i\}$，把 $\mathbb P$ 换成 $\mathbb P_n$，以便用高斯过程（$w$ 的函数）做集中；总体范数留给第 14 章。
+2. $\int_0^\delta\sqrt{r\log(1+2\delta/t)}\,dt=\delta\sqrt r\int_0^1\sqrt{\log(1+2/u)}\,du\lesssim\delta\sqrt r$。除以 $\sqrt n$ 后与 $\delta^2/\sigma$ 比较，得 $\delta\sqrt{r/n}\lesssim\delta^2/\sigma$，即 $\delta^2\asymp\sigma^2 r/n$。体积比不产生额外 $\log n$（与 Exercise 13.7 的粗糙覆盖对比）。
+3. Dudley 积分 $\sim n^{-1/2}\int_0^\delta t^{-\gamma/2}\,dt\sim n^{-1/2}\delta^{1-\gamma/2}$，其中 Lipschitz 的 $\gamma=1$、凸的 $\gamma=1/2$。令其 $\lesssim\delta^2/\sigma$：指数 $1-\gamma/2$ 对上 $2$，解出 $\delta^2\sim(\sigma^2/n)^{2/(2+\gamma)}$，即 $\gamma=1$ 时 $2/3$、$\gamma=1/2$ 时 $4/5$。
+4. 逼近项 $\sum_{m>T}m^{-2\alpha}\asymp T^{1-2\alpha}$，估计项 $\sigma^2 T/n$。平衡 $T^{1-2\alpha}\asymp\sigma^2 T/n$ 得 $T\asymp(n/\sigma^2)^{1/(2\alpha)}$；若用 Example 13.15 的 Jackson 界 $T^{-2\alpha}$，则 $T\asymp(n/\sigma^2)^{1/(2\alpha+1)}$，速率 $(\sigma^2/n)^{2\alpha/(2\alpha+1)}$。教材 Example 13.15 走后一条。
+5. 多项式（有限秩 $m$）：$\sigma^2 m/n$。Sobolev：$\delta_n^2\simeq(\sigma^2/(R^2 n))^{2/3}$，乘 $R^2$ 后 $R^{2/3}(\sigma^2/n)^{2/3}$。高斯核：$c\sigma^2\log(Rn/\sigma)/n$，最接近 $1/n$。
+
+</details>
+
+# 本章小结
+
+- 固定设计下，非参数最小二乘的预测误差由 $f^*$ 附近的**局部高斯复杂度**决定；临界半径 $\delta_n^*$ 是 $\mathcal G_n(\delta)/\delta=\delta/(2\sigma)$ 的最小正解，星形保证它存在且 $\delta\mapsto\mathcal G_n(\delta)/\delta$ 非增；
+- Theorem 13.5：星形平移类上，$\|\widehat f-f^*\|_n^2$ 以指数尾停在 $t\delta_n$ 尺度；Dudley 积分把 $\delta_n$ 翻译成覆盖数，线性模型、$\ell_q$ 球、Lipschitz、凸 Lipschitz 都是这一条定理的推论；
+- $f^*$ 不必属于 $\mathcal F$。神谕不等式把误差写成最好可行逼近加上同一根 $\delta_n^2$，正交级数、Fourier 光滑类、最佳 $s$-稀疏逼近都是在逼近项与估计项之间选指标；
+- 正则化估计（$\lambda_n\gtrsim\delta_n^2$）有平行的神谕界；核岭回归的临界条件由经验核谱 $\sum\min\{\delta^2,\widehat\mu_j\}$ 给出，多项式 / Sobolev / 高斯核分别对应参数、$n^{-2/3}$、近 $n^{-1}$ 的估计项；
+- 可加模型（Exercise 13.9）把 $d$ 元非参数问题拆成 $d$ 个一元复杂度，维数灾难被结构消掉——这是第 1 章 vignette 在本章的落点。$L^2(\mathbb P)$ 的翻译在第 14 章。
+
+## 术语对照
+
+| 中文 | English | 备注 |
+|---|---|---|
+| 非参数最小二乘 | nonparametric least squares | 本章标题 |
+| 均方误差 | mean-squared error | (13.1)；MSE |
+| 回归函数 | regression function | (13.2)；亦称贝叶斯最小二乘 |
+| 超额风险 | excess risk | (13.4) |
+| 经验范数 | empirical norm | (13.5)；$\|\cdot\|_n$ |
+| 固定设计 | fixed design | 协变量钉死 |
+| 约束最小二乘 | constrained least squares | (13.7) |
+| 正则化估计 | regularized estimator | (13.8)、(13.52) |
+| 三次光滑样条 | cubic smoothing spline | Example 13.2 |
+| 核岭回归 | kernel ridge regression | Example 13.3；KRR |
+| 形状约束 | shape constraint | Example 13.4 |
+| 凸回归 | convex regression | (13.14) |
+| 次梯度 | subgradient | (13.11) |
+| 次微分 | subdifferential | $\partial f(x)$ |
+| 平移类 | shifted function class | (13.15)；$\mathcal F^*$ |
+| 局部高斯复杂度 | local Gaussian complexity | (13.16) |
+| 临界不等式 | critical inequality | (13.17) |
+| 临界半径 | critical radius | $\delta_n^*$ |
+| 有效半径 | valid radius | 满足 (13.17) 的任一 $\delta_n$ |
+| 基本不等式 | basic inequality | (13.18) |
+| 星形 | star-shaped | Lemma 13.6 |
+| 星形包 | star hull | (13.21) |
+| 差类 | difference class | (13.22)；$\partial\mathcal F$ |
+| Dudley 熵积分 | Dudley entropy integral | Corollary 13.7 |
+| 链锁 | chaining | Corollary 13.7 证明 |
+| 神谕不等式 | oracle inequality | Theorem 13.13 |
+| 逼近误差 | approximation error | $\inf_{f\in\mathcal F}\|f-f^*\|_n^2$ |
+| 估计误差 | estimation error | $\delta_n^2$ 项 |
+| 正交级数 | orthogonal series | Example 13.14 |
+| 剥皮 | peeling | Lemma 13.23 证明 |
+| 可加模型 | additive model | Exercise 13.9；(13.70) |
+
+: 本章术语（中文从名词委；英文从教材或国际通行用法）
+
+## 来源定位
+
+- 教材：第 13 章 §§13.1–13.5，印刷页 416–449，PDF 页 435–468。
+- 页码关系：**PDF 页 = 印刷页 + 19**（印刷页 416 = PDF 页 435）。
+- 习题：§13.6，印刷页 449–452，PDF 页 468–471；解答见 [Solutions](../solutions/ch13-solutions.qmd)。

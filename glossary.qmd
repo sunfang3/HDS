@@ -1,0 +1,76 @@
+---
+title: "术语对照"
+description: "全书中英对照；中文从名词委，英文从教材或国际通行用法"
+execute:
+  enabled: false
+lang: zh-CN
+language: _language-zh-CN.yml
+abstract-title: "摘要"
+---
+
+全书只用一套译名。章末表是子集；本页为合并后的权威表。冲突先停笔再改。
+
+- **英文**以 Wainwright 教材为准（与 IMS / ISI 通行用法一致）。
+- **中文**以全国科学技术名词审定委员会《统计学名词》《数学名词》为准。
+- 陈希孺教材或课堂里的别名只写在「备注」，不另起译名。
+
+| 中文 | English | 首次出现 | 备注 |
+|---|---|---|---|
+| 高维统计学 | high-dimensional statistics | 1 | 名词委：高维统计学 |
+| 非渐近 | non-asymptotic | 1 | 本书主语言 |
+| 大数定律 | law of large numbers | 1 | 陈希孺同名 |
+| 中心极限定理 | central limit theorem | 1 | |
+| 相合性 | consistency | 1 | 名词委：相合性；陈希孺亦作相合 |
+| 渐近正态性 | asymptotic normality | 1 | |
+| 线性判别分析 | linear discriminant analysis | 1 | |
+| 奈曼–皮尔逊引理 | Neyman–Pearson lemma | 1 | |
+| 费希尔线性判别 | Fisher linear discriminant | 1 | (1.4) |
+| 马哈拉诺比斯距离 | Mahalanobis distance | 1 | (1.2) 的 $\gamma$ |
+| 样本协方差矩阵 | sample covariance matrix | 1 | (1.8) |
+| 算子范数 | operator norm | 1 | 教材 $\ell_2$-operator norm，三竖线 |
+| 马尔琴科–帕斯图尔定律 | Marčenko–Pastur law | 1 | (1.10) |
+| 非参数回归 | nonparametric regression | 1 | |
+| 维数灾难 | curse of dimensionality | 1 | |
+| 覆盖 | covering | 1 | $\delta$-covering；第 5 章正式定义 |
+| 填装 | packing | 1 | $\delta$-packing；第 5 章正式定义 |
+| 稀疏性 | sparsity | 1 | |
+| 硬阈值 | hard-thresholding | 1 | (1.16) |
+| 软阈值 | soft-thresholding | 1 | (1.17) |
+| 可加模型 | additive model | 1 | (1.20) |
+| 稀疏可加模型 | sparse additive model | 1 | SPAM；(1.21) |
+| 单指标模型 | single-index model | 1 | (1.22) 的 $s=1$ |
+| 多指标模型 | multiple-index model | 1 | (1.22) |
+| 投影寻踪回归 | projection pursuit regression | 1 | (1.23) |
+| 再生核希尔伯特空间 | reproducing kernel Hilbert space | 1 | 第 12 章 |
+| 极小极大 | minimax | 1 | 第 15 章 |
+| 拉德马赫复杂度 | Rademacher complexity | 1 | 第 4 章 |
+| VC 维 | Vapnik–Chervonenkis dimension | 1 | 第 4 章 |
+| 尾界 | tail bound | 2 | |
+| 集中不等式 | concentration inequality | 2 | |
+| 马尔可夫不等式 | Markov's inequality | 2 | (2.1)；陈希孺同名 |
+| 切比雪夫不等式 | Chebyshev's inequality | 2 | (2.2)；陈希孺同名 |
+| 切尔诺夫界 | Chernoff bound | 2 | (2.5) |
+| 矩母函数 | moment generating function | 2 | |
+| 次高斯 | sub-Gaussian | 2 | Definition 2.2 |
+| 次高斯参数 | sub-Gaussian parameter | 2 | (2.8) 中的 $\sigma$ |
+| 次指数 | sub-exponential | 2 | Definition 2.7 |
+| 霍夫丁不等式 | Hoeffding inequality | 2 | Proposition 2.5 |
+| 伯恩斯坦不等式 | Bernstein inequality | 2 | Proposition 2.10 |
+| 伯恩斯坦条件 | Bernstein's condition | 2 | (2.15) |
+| 贝内特不等式 | Bennett's inequality | 2 | Exercise 2.7 |
+| 拉德马赫变量 | Rademacher variable | 2 | Example 2.3 |
+| 对称化 | symmetrization | 2 | Example 2.4；第 4 章正式展开 |
+| 米尔斯比 | Mills ratio | 2 | Exercise 2.2 |
+| 约翰逊–林登施特劳斯引理 | Johnson–Lindenstrauss lemma | 2 | Example 2.12 |
+| 鞅 | martingale | 2 | Definition 2.15 |
+| 过滤 | filtration | 2 | 嵌套 $\sigma$-域 |
+| 杜布鞅 | Doob martingale | 2 | (2.24) |
+| 鞅差 | martingale difference | 2 | (2.26) |
+| 阿祖马–霍夫丁不等式 | Azuma–Hoeffding inequality | 2 | Corollary 2.20 |
+| 有界差分不等式 | bounded differences inequality | 2 | Corollary 2.21；亦称 McDiarmid |
+| 高斯复杂度 | Gaussian complexity | 2 | Example 2.30 |
+| 利普希茨函数 | Lipschitz function | 2 | (2.38) |
+| 次序统计量 | order statistic | 2 | Example 2.29 |
+| 奥利茨范数 | Orlicz norm | 2 | Exercise 2.18 |
+
+: 中英术语对照

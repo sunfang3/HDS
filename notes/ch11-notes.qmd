@@ -1,0 +1,1134 @@
+---
+title: "第 11 章　高维数据的图模型"
+subtitle: "Wainwright, High-Dimensional Statistics 伴读 Notes"
+description: "面向已学陈希孺本科概率统计、并已读本书第 2、6、7、9 章的读者：把无向图模型的因子分解与条件独立接到汉默斯利–克利福德定理，再进入图 Lasso、邻域回归、伊辛选择，以及损坏观测与隐变量"
+execute:
+  enabled: false
+lang: zh-CN
+---
+
+# 本章导览
+
+第 7、9 章已经把稀疏向量的 $\ell_1$ 正则讲成可分解罚与限制强凸。本章把同一套语言用到**无向图模型**（undirected graphical model）：$d$ 个坐标的联合分布由一张图 $G=(V,E)$ 编码，边的有无就是条件独立，精度矩阵的零型就是图。高维里 $d$ 可以远大于 $n$，要估的不是整张稠密精度，而是稀疏边集。
+
+两条把图接到概率的路——团上的因子分解，以及顶点割集给出的条件独立——在密度严格为正时被汉默斯利–克利福德定理（Hammersley–Clifford theorem）等同起来。高斯情形尤其干净：$\Theta^*_{jk}=0$ 当且仅当 $(j,k)\notin E$。估边有两条算法：全局的图 Lasso（graphical Lasso），以及把每个顶点的邻域当成一次 Lasso 的邻域回归（neighborhood regression）。非高斯时把条件似然换成逻辑回归，就得到伊辛（Ising）图选择。观测被噪声或缺失损坏时，朴素代入样本协方差会不相合，需要校正；一部分变量永远不出现时，观测精度变成稀疏加低秩。
+
+本章阅读主线：
+
+$$
+\text{因子分解 / 马尔可夫性}
+\longrightarrow
+\text{汉默斯利–克利福德}
+\longrightarrow
+\text{图 Lasso（全局）}
+\longrightarrow
+\text{邻域回归（局部）}
+\longrightarrow
+\text{伊辛 / 校正 / 隐变量}.
+$$
+
+> 教材定位：第 11 章 §§11.1–11.5，印刷页 347–378，PDF 页 366–397。习题 §11.6 印刷页 378–382，PDF 页 397–401，不进入 Notes。页码关系：**PDF 页 = 印刷页 + 19**。
+
+## 学习目标
+
+学完本章后，你应能：
+
+- **陈述** 按图因子分解 (11.1) 与关于图的马尔可夫性（Definition 11.5），并写出严格正密度下的汉默斯利–克利福德等价（Theorem 11.8）；
+- **写出** 高斯图 Lasso (11.10)，并陈述 Frobenius 界（Proposition 11.9）与无假阳性 / $\ell_\infty$ 界（Proposition 11.10）；
+- **把** 高斯图选择化成邻域回归 (11.20)–(11.22)，区分 AND / OR 规则，并陈述 Theorem 11.12 的相合条件；
+- **写出** 成对指数族 (11.32) 与伊辛邻域逻辑回归 (11.39)，并给出 Theorem 11.15 的样本量 $n\gtrsim m^2\log d$；
+- **说明** 加性噪声如何破坏马尔可夫性，并写出校正图 Lasso (11.44) 与校正邻域 Lasso (11.48)；
+- **把** 隐变量高斯图写成 Schur 补 $\Gamma^*-\Lambda^*$，并陈述硬阈值两步估计 (11.58) 的 max-范数 / 算子范数界。
+
+# 必要先修
+
+陈希孺里的联合分布、条件分布、多元正态，以及本书第 2 章的次高斯尾、第 6 章的样本协方差、第 7 章的 Lasso 与不相干、第 9 章的可分解罚与限制强凸（RSC），本章直接当工具用。下面只补三处本科课里不一定钉死的接口。
+
+::: {.callout-note title="为什么现在需要条件独立，而不只是独立"}
+独立是 $p(x_A,x_B)=p(x_A)p(x_B)$。图模型要的是**给定一组顶点之后**的独立：$p(x_A,x_B\mid x_S)=p(x_A\mid x_S)p(x_B\mid x_S)$。链上“过去 $\perp$ 未来 $\mid$ 现在”就是这件事。没有条件独立，边的有无就没有概率意义。
+:::
+
+::: {.callout-note title="作者解释：精度矩阵就是协方差的逆"}
+零均值非退化高斯 $X\sim N(0,(\Theta^*)^{-1})$ 的密度由 $\Theta^*=(\Sigma^*)^{-1}$ 完全决定，$\Theta^*$ 叫做精度矩阵（precision matrix）。二次型 $x^T\Theta^* x$ 只在 $\Theta^*_{jk}\ne 0$ 的坐标对上耦合，所以边 $\leftrightarrow$ 非零精度。陈希孺里的“协方差的逆”就是它。
+:::
+
+::: {.callout-note title="作者解释：Kronecker 积给出 log-det 的 Hessian"}
+对称矩阵上 $F(\Theta)=-\log\det\Theta$。一阶是 $\nabla F=-\Theta^{-1}$，二阶是 $\nabla^2 F=\Theta^{-1}\otimes\Theta^{-1}$（Exercise 11.1）。图 Lasso 的损失 (11.9) 因此二次可微；不相干条件加在这张 $d^2\times d^2$ 的 Hessian 上，和第 7 章把不相干加在设计 Gram 上是同一句话。
+:::
+
+# 11 Graphical models for high-dimensional data　高维数据的图模型
+
+> 教材定位：章首，印刷页 347，PDF 页 366。
+
+图模型把概率与图论拼在一起，用来写高维联合分布。统计物理、空间统计、信息与编码、语音、图像、计算机视觉、自然语言、计算生物学、社会网络都用过它。本章只处理**无向**图上的高维估计。
+
+# 11.1 Some basics　若干基础
+
+> 教材定位：§11.1，印刷页 347，PDF 页 366。
+
+图可以是有向、无向或二者的混合。本章只用无向图，也叫马尔可夫随机场（Markov random field）。图 $G=(V,E)$ 的顶点 $V=\{1,2,\ldots,d\}$，边 $E$ 是无序对 $(j,k)$。每个顶点 $j$ 配一个取值在 $\mathcal X_j$ 上的随机变量 $X_j$，记 $X=(X_1,\ldots,X_d)$，分布为 $P$。要把 $P$ 的结构接到 $G$ 的结构，有两条路：因子分解，以及条件独立。汉默斯利–克利福德定理说，这两条在本质上是一回事。
+
+## 11.1.1 Factorization　因子分解
+
+> 教材定位：§11.1.1，印刷页 347–349，PDF 页 366–368。
+
+**团**（clique）$C$ 是两两有边的顶点子集；**最大团**（maximal clique）不是任何更大团的真子集。$\mathfrak C$ 表示全部团。每个团上放一个相容函数 $\psi_C$，输入 $x_C:=(x_j,j\in C)\in\mathcal X_C:=\bigotimes_{j\in C}\mathcal X_j$，输出非负实数。
+
+::: {.callout-important title="Definition 11.1　按图因子分解（印刷页 348，PDF 页 367）"}
+随机向量 $(X_1,\ldots,X_d)$ **按图 $G$ 因子分解**（factorizes according to $G$），若其密度可写成
+$$
+p(x_1,\ldots,x_d)
+\propto
+\prod_{C\in\mathfrak C}
+\psi_C(x_C)
+\tag{11.1}
+$$
+对某一族团相容函数 $\psi_C:\mathcal X_C\to[0,\infty)$。
+:::
+
+密度相对计数测度（离散）或（可带权的）勒贝格测度（连续）。Figure 11.1(a) 那张七顶点图的最大团是两个 $3$-团 $A,B$ 和两个 $2$-团 $C,D$，因此
+$$
+p(x_1,\ldots,x_7)
+\propto
+\psi_{123}(x_1,x_2,x_3)\,
+\psi_{345}(x_3,x_4,x_5)\,
+\psi_{46}(x_4,x_6)\,
+\psi_{57}(x_5,x_7).
+$$
+重新定义相容函数之后，乘积可以只留在最大团上；实践里非最大团的项往往更方便。
+
+**Example 11.2（马尔可夫链的因子分解）。** 链的标准写法
+$$
+p(x_1,\ldots,x_d)
+=
+p_1(x_1)\,
+p_{2\mid 1}(x_2\mid x_1)
+\cdots
+p_{d\mid(d-1)}(x_d\mid x_{d-1})
+$$
+是 (11.1) 的特例：顶点函数 $\psi_1=p_1$、$\psi_j\equiv 1$（$j\ge 2$），边函数 $\psi_{j,j+1}=p_{j+1\mid j}$。也可以对称化：$\widetilde\psi_j=p_j$，边
+$$
+\widetilde\psi_{jk}(x_j,x_k)
+=
+\frac{p_{jk}(x_j,x_k)}{p_j(x_j)p_k(x_k)}
+\qquad (j,k)\in E.
+$$
+因子分解不唯一。
+
+::: {.callout-important title="Example 11.3　零均值高斯的边因子分解（印刷页 349，PDF 页 368）"}
+非退化零均值高斯由精度矩阵 $\Theta^*=\Sigma^{-1}$ 参数化：
+$$
+p(x_1,\ldots,x_d;\Theta^*)
+=
+\frac{\sqrt{\det(\Theta^*)}}{(2\pi)^{d/2}}
+\exp\bigl(-\tfrac12 x^T\Theta^* x\bigr).
+\tag{11.2}
+$$
+展开二次型得到边团上的乘积
+$$
+e^{-\frac12 x^T\Theta^* x}
+=
+\exp\Bigl(-\frac12\sum_{(j,k)\in E}\Theta^*_{jk}x_j x_k\Bigr)
+=
+\prod_{(j,k)\in E}
+\underbrace{e^{-\frac12\Theta^*_{jk}x_j x_k}}_{\psi_{jk}(x_j,x_k)}.
+$$
+高斯因此总可以限制在 $2$-团（边）上，即使图有更大的团。对角项是 $1$-团，可以并进顶点函数。
+:::
+
+::: {.callout-important title="Example 11.4　伊辛模型（印刷页 349，PDF 页 368）"}
+$X_j\in\{0,1\}$。给定 $G=(V,E)$，
+$$
+p(x_1,\ldots,x_d;\theta^*)
+=
+\frac1{Z(\theta^*)}
+\exp\Biggl\{
+\sum_{j\in V}\theta^*_j x_j
++
+\sum_{(j,k)\in E}\theta^*_{jk}x_j x_k
+\Biggr\},
+\tag{11.3}
+$$
+配分函数（partition function）
+$$
+Z(\theta^*)
+=
+\sum_{x\in\{0,1\}^d}
+\exp\Biggl\{
+\sum_{j\in V}\theta^*_j x_j
++
+\sum_{(j,k)\in E}\theta^*_{jk}x_j x_k
+\Biggr\}
+$$
+保证归一化。顶点参数 $\theta^*_j$、边参数 $\theta^*_{jk}$。伊辛来自统计物理里的磁性相互作用。
+:::
+
+## 11.1.2 Conditional independence　条件独立
+
+> 教材定位：§11.1.2，印刷页 350，PDF 页 369。
+
+**顶点割集**（vertex cutset）$S$ 是去掉之后把图拆成至少两块的顶点集。形式化：从 $V$ 去掉 $S$ 得到顶点诱导子图 $G(V\setminus S)$，残边集
+$$
+E(V\setminus S)
+:=
+\bigl\{(j,k)\in E:j,k\in V\setminus S\bigr\}.
+\tag{11.4}
+$$
+若 $G(V\setminus S)$ 有至少两个非空连通分支，则 $S$ 是顶点割集。Figure 11.1(b) 里 $S$ 把图分成 $A$ 与 $B$。
+
+对 $A\subseteq V$ 记 $X_A:=(X_j,j\in A)$。三个互不相交的顶点集上，$X_A\perp X_B\mid X_S$ 表示给定 $X_S$ 后 $X_A$ 与 $X_B$ 条件独立。
+
+::: {.callout-important title="Definition 11.5　关于图的马尔可夫性（印刷页 350，PDF 页 369）"}
+$X=(X_1,\ldots,X_d)$ **关于图 $G$ 是马尔可夫的**（Markov with respect to $G$），若对每个把图拆成互不相交块 $A,B$ 的顶点割集 $S$，都有 $X_A\perp X_B\mid X_S$。
+:::
+
+**Example 11.6（链）。** $V=\{1,\ldots,d\}$ 上边为 $(j,j+1)$。每个内部顶点 $j$ 都是割集，把“过去”$P=\{1,\ldots,j-1\}$ 与“未来”$F=\{j+1,\ldots,d\}$ 分开，即 $X_P\perp X_F\mid X_j$。这就是时间序列的马尔可夫性。$d=5$ 的链见图 11.2(a)。
+
+**Example 11.7（邻域割集）。** 顶点 $j$ 的**邻域**
+$$
+\mathcal N(j)
+:=
+\{k\in V:(j,k)\in E\}
+\tag{11.5}
+$$
+永远是割集（只要 $j$ 不是与其余所有点相连）；它把图分成 $A=\{j\}$ 与 $B=V\setminus(\mathcal N(j)\cup\{j\})$。后面邻域回归用的就是这个割集。记 $\mathcal N^+(j):=\{j\}\cup\mathcal N(j)$。
+
+## 11.1.3 Hammersley–Clifford equivalence　汉默斯利–克利福德等价
+
+> 教材定位：§11.1.3，印刷页 351–352，PDF 页 370–371。
+
+::: {.callout-important title="Theorem 11.8　汉默斯利–克利福德（印刷页 351，PDF 页 370）"}
+给定无向图，以及密度**严格为正**的随机向量 $X=(X_1,\ldots,X_d)$，下列两条等价：
+
+- (a) $X$ 按图 $G$ 因子分解（Definition 11.1）；
+- (b) $X$ 关于图 $G$ 是马尔可夫的（Definition 11.5）。
+:::
+
+正文只证 (a)$\Rightarrow$(b)；逆方向的证明指回 §11.5 的文献（Hammersley–Clifford 1971 未发表手稿；首次发表的证明见 Grimmett 1973、Besag 1974）。严格正是必要的：密度可以在某些点上为零时，两条路可以分叉（Lauritzen 1996）。
+
+### 关键推导（因子分解 $\Rightarrow$ 马尔可夫）
+
+设 (11.1) 成立，$S$ 分离非空的 $A,B$。把团分成三块
+$$
+\mathfrak C_A=\{C\in\mathfrak C:C\cap A\ne\emptyset\},
+\quad
+\mathfrak C_B=\{C\in\mathfrak C:C\cap B\ne\emptyset\},
+\quad
+\mathfrak C_S=\{C\in\mathfrak C:C\subseteq S\}.
+$$
+它们构成 $\mathfrak C$ 的不交并：每个团要么整块落在 $S$ 里，要么与 $A$ 或 $B$ 相交；若某个团同时碰到 $A$ 与 $B$，则 $A$ 中一点与 $B$ 中一点同团、因而有边，与 $S$ 分离 $A,B$ 矛盾。于是
+$$
+p(x_A,x_S,x_B)
+=
+\frac1Z
+\Psi_A(x_A,x_S)\,
+\Psi_S(x_S)\,
+\Psi_B(x_B,x_S),
+$$
+其中 $\Psi_A=\prod_{C\in\mathfrak C_A}\psi_C$，其余类似。令
+$$
+Z_A(x_S):=\sum_{x_A}\Psi_A(x_A,x_S),
+\qquad
+Z_B(x_S):=\sum_{x_B}\Psi_B(x_B,x_S).
+$$
+边缘是
+$$
+p(x_S)
+=
+\frac{Z_A(x_S)Z_B(x_S)}{Z}\Psi_S(x_S),
+\qquad
+p(x_A,x_S)
+=
+\frac{Z_B(x_S)}{Z}\Psi_A(x_A,x_S)\Psi_S(x_S).
+$$
+因此在 $p(x_S)>0$ 处（印刷页 352，PDF 页 371）
+$$
+\frac{p(x_A,x_S,x_B)}{p(x_S)}
+=
+\frac{\Psi_A(x_A,x_S)\Psi_B(x_B,x_S)}{Z_A(x_S)Z_B(x_S)},
+\tag{11.6}
+$$
+$$
+\frac{p(x_A,x_S)}{p(x_S)}
+=
+\frac{\Psi_A(x_A,x_S)}{Z_A(x_S)},
+\tag{11.7a}
+$$
+$$
+\frac{p(x_B,x_S)}{p(x_S)}
+=
+\frac{\Psi_B(x_B,x_S)}{Z_B(x_S)}.
+\tag{11.7b}
+$$
+三式合起来
+$$
+p(x_A,x_B\mid x_S)
+=
+\frac{p(x_A,x_B,x_S)}{p(x_S)}
+=
+\frac{p(x_A,x_S)}{p(x_S)}
+\cdot
+\frac{p(x_B,x_S)}{p(x_S)}
+=
+p(x_A\mid x_S)\,p(x_B\mid x_S),
+$$
+即 $X_A\perp X_B\mid X_S$。
+
+::: {.callout-note title="直觉"}
+团不能跨过割集，所以联合密度在 $A$ 侧与 $B$ 侧是乘积；条件于 $S$ 之后两边各自归一化，条件独立就是乘积结构。
+:::
+
+::: {.callout-warning title="适用边界"}
+没有严格正，零概率事件可以制造“额外的”条件独立，或让因子分解需要的团比马尔可夫性暗示的更大。高斯非退化时密度处处为正，两条路自动合一。
+:::
+
+## 11.1.4 Estimation of graphical models　图模型的估计
+
+> 教材定位：§11.1.4，印刷页 352，PDF 页 371。
+
+样本 $\{x_i\}_{i=1}^n$，每个 $x_i\in\mathbb R^d$，假定来自某张图结构化的分布。两类逆问题：
+
+- **图参数估计**（graphical parameter estimation）：图已知，估团相容函数 $\{\psi_C\}$；
+- **图模型选择**（graphical model selection）：图未知，边集与相容函数都要估。
+
+后面分别对高斯与非高斯做这两件事。
+
+# 11.2 Estimation of Gaussian graphical models　高斯图模型的估计
+
+> 教材定位：§11.2，印刷页 352–353，PDF 页 371–372。
+
+高斯马尔可夫随机场的因子分解由精度 $\Theta^*$ 决定。汉默斯利–克利福德在这里变成一句话：$\Theta^*_{jk}=0$ 对一切 $(j,k)\notin E$。Figure 11.2：五顶点链的精度是三对角；更一般的 Gauss–Markov 场，精度的零型就是图的补。
+
+均值容易估，以下一律取零，只剩 $\Theta^*$。给定估计 $\widehat\Theta$，可以问：
+
+- 图选择 / 逆协方差选择：$\mathbb P[\widehat E\ne E]$，或允许漏掉 $\delta$ 比例的边；
+- 矩阵误差：算子范数 $\lvert\lvert\lvert\widehat\Theta-\Theta^*\rvert\rvert\rvert_2$，Frobenius 范数 $\lvert\lvert\lvert\widehat\Theta-\Theta^*\rvert\rvert\rvert_F$。
+
+## 11.2.1 Graphical Lasso: $\ell_1$-regularized maximum likelihood　图 Lasso
+
+> 教材定位：§11.2.1，印刷页 353–359，PDF 页 372–378。
+
+对称矩阵的迹内积 $\langle\!\langle A,B\rangle\!\rangle:=\mathrm{trace}(AB)$。负对数行列式在 $\mathcal S^{d\times d}$ 上定义为
+$$
+-\log\det(\Theta)
+:=
+\begin{cases}
+-\sum_{j=1}^d\log\gamma_j(\Theta) & \text{若 }\Theta\succ 0,\\
++\infty & \text{否则},
+\end{cases}
+\tag{11.8}
+$$
+$\gamma_1(\Theta)\ge\cdots\ge\gamma_d(\Theta)$ 为有序特征值。Exercise 11.1 证明它在正定锥上严格凸且可微。
+
+由 (11.2)，基于 $\{x_i\}_{i=1}^n$ 的重标负对数似然是
+$$
+\mathcal L_n(\Theta)
+=
+\langle\!\langle\Theta,\widehat\Sigma\rangle\!\rangle
+-\log\det(\Theta),
+\tag{11.9}
+$$
+$\widehat\Sigma:=n^{-1}\sum_{i=1}^n x_i x_i^T$。这里丢掉不影响 arg min 的常数，并把对数似然乘了 $-2/n$，方便后面套第 9 章。
+
+无约束高斯 MLE：$\widehat\Sigma$ 可逆时 $\widehat\Theta_{\mathrm{MLE}}=\widehat\Sigma^{-1}$；否则无定义（Exercise 11.2）。$n<d$ 时 $\widehat\Sigma$ 必亏秩，必须正则化。边少时，对 $\Theta$ 的非对角元加 $\ell_1$ 约束（$\ell_0$ 的凸代理，同第 7 章）。
+
+::: {.callout-important title="(11.10) 图 Lasso（印刷页 354，PDF 页 373）"}
+$$
+\widehat\Theta
+\in
+\arg\min_{\Theta\in\mathcal S^{d\times d}}
+\Bigl\{
+\langle\!\langle\Theta,\widehat\Sigma\rangle\!\rangle
+-\log\det\Theta
++\lambda_n
+\lvert\lvert\lvert\Theta\rvert\rvert\rvert_{1,\mathrm{off}}
+\Bigr\},
+$$
+其中
+$$
+\lvert\lvert\lvert\Theta\rvert\rvert\rvert_{1,\mathrm{off}}
+:=
+\sum_{j\ne k}\lvert\Theta_{jk}\rvert
+$$
+是非对角的元素 $\ell_1$。对角必须为正，罚对角只会加偏。这是 log-det 凸程序，多项式时间可解。
+:::
+
+### Frobenius 界
+
+坐标为 $\sigma$-次高斯（Definition 2.2）。
+
+::: {.callout-important title="Proposition 11.9　图 Lasso 的 Frobenius 界（印刷页 355，PDF 页 374）"}
+设 $\Theta^*$ 每行至多 $m$ 个非零。取
+$$
+\lambda_n
+=
+8\sigma^2\Bigl(\sqrt{\frac{\log d}{n}}+\delta\Bigr)
+\qquad\delta\in(0,1].
+$$
+若 $6(\lvert\lvert\lvert\Theta^*\rvert\rvert\rvert_2+1)^2\lambda_n\sqrt{md}<1$，则
+$$
+\lvert\lvert\lvert\widehat\Theta-\Theta^*\rvert\rvert\rvert_F^2
+\le
+\frac{9}{(\lvert\lvert\lvert\Theta^*\rvert\rvert\rvert_2+1)^4}
+\,md\,\lambda_n^2
+\tag{11.11}
+$$
+以至少 $1-8e^{-n\delta^2/16}$ 的概率成立。
+:::
+
+::: {.callout-note title="作者解释：印刷 (11.11) 的四次幂位置"}
+证明用 Corollary 9.20。RSC 常数是 $\kappa=(\lvert\lvert\lvert\Theta^*\rvert\rvert\rvert_2+1)^{-2}$，见 (11.12)；局部化条件 $6\lambda_n\sqrt{md}/\kappa<1$ 与命题假设一致。第 9 章的标准推论给出 $\lvert\lvert\lvert\widehat\Delta\rvert\rvert\rvert_F\asymp\lambda_n\sqrt{md}/\kappa$，平方误差应是 $(\lvert\lvert\lvert\Theta^*\rvert\rvert\rvert_2+1)^{4}\,md\lambda_n^2$ 量级，四次幂在**分子**。印刷 (11.11) 把四次幂放在分母。此处按原页抄录，不作为已批准勘误。
+:::
+
+证明骨架（印刷页 355–357，PDF 页 374–376；完整计算指回教材）。损失二次可微（Exercise 11.1）：
+$$
+\nabla\mathcal L_n(\Theta)
+=
+\widehat\Sigma-\Theta^{-1},
+\qquad
+\nabla^2\mathcal L_n(\Theta)
+=
+\Theta^{-1}\otimes\Theta^{-1}.
+$$
+在 Frobenius 单位球 $\mathbb B_F(1)=\{\Delta\in\mathcal S^{d\times d}:\lvert\lvert\lvert\Delta\rvert\rvert\rvert_F\le 1\}$ 上泰勒展开，
+$$
+\mathcal E_n(\Delta)
+:=
+\mathcal L_n(\Theta^*+\Delta)-\mathcal L_n(\Theta^*)-\langle\!\langle\nabla\mathcal L_n(\Theta^*),\Delta\rangle\!\rangle
+=
+\tfrac12\mathrm{vec}(\Delta)^T\nabla^2\mathcal L_n(\Theta^*+t\Delta)\,\mathrm{vec}(\Delta).
+$$
+用 $\lvert\lvert\lvert A^{-1}\otimes A^{-1}\rvert\rvert\rvert_2=\lvert\lvert\lvert A\rvert\rvert\rvert_2^{-2}$ 以及 $t\lvert\lvert\lvert\Delta\rvert\rvert\rvert_2\le 1$，得到 RSC
+$$
+\mathcal E_n(\Delta)
+\ge
+\frac\kappa2\lvert\lvert\lvert\Delta\rvert\rvert\rvert_F^2,
+\qquad
+\kappa:=(\lvert\lvert\lvert\Theta^*\rvert\rvert\rvert_2+1)^{-2},
+\tag{11.12}
+$$
+容忍 $\tau_n^2=0$。支撑子空间 $\mathbb M(S)=\{\Theta:\Theta_{jk}=0\text{ 对 }(j,k)\notin S\}$ 的相容常数 $\Psi^2(\mathbb M(S))\le\lvert S\rvert\le md$。对偶范数是非对角 $\ell_\infty$。Lemma 6.26 给出
+$$
+\mathbb P\bigl[\lvert\lvert\lvert\widehat\Sigma-\Sigma\rvert\rvert\rvert_{\max,\mathrm{off}}\ge\sigma^2 t\bigr]
+\le
+8e^{-(n/16)\min\{t,t^2\}+2\log d}.
+$$
+取 $t=\lambda_n/\sigma^2$ 得到事件 $\mathbb G(\lambda_n)$。Proposition 9.13 再给出
+$$
+\|\widehat\Delta\|_1
+\le
+4\|\widehat\Delta_S\|_1
+\le
+4\sqrt{md}\,\lvert\lvert\lvert\widehat\Delta\rvert\rvert\rvert_F.
+\tag{11.13}
+$$
+球外的单调性（Exercise 9.10）
+$$
+\langle\!\langle\nabla\mathcal L_n(\Theta^*+\Delta)-\nabla\mathcal L_n(\Theta^*),\Delta\rangle\!\rangle
+\ge
+\kappa\lvert\lvert\lvert\Delta\rvert\rvert\rvert_F
+\qquad\Delta\notin\mathbb B_F(1)
+\tag{11.14}
+$$
+与最优性 $0=\langle\!\langle\nabla\mathcal L_n(\Theta^*+\widehat\Delta)+\lambda_n\widehat Z,\widehat\Delta\rangle\!\rangle$ 合起来：若 $\lvert\lvert\lvert\widehat\Delta\rvert\rvert\rvert_F>1$，则 $\kappa\lvert\lvert\lvert\widehat\Delta\rvert\rvert\rvert_F\le 6\lambda_n\sqrt{md}\,\lvert\lvert\lvert\widehat\Delta\rvert\rvert\rvert_F$，与 $6\lambda_n\sqrt{md}/\kappa<1$ 矛盾。于是误差落在 $\mathbb B_F(1)$ 里，Corollary 9.20 给出 Frobenius 界。
+
+::: {.callout-warning title="适用边界"}
+Proposition 11.9 的条件迫使 $n\gtrsim md\log d$，比 $d$ 还大，**排除了 $n<d$**。它也不保证边的零型被保住。要高维选边，需要不相干。
+:::
+
+### 选边与算子范数
+
+$\ell_1$ 选变量需要不相干，限制无关变量对有关变量的影响（第 7 章）。这里不相干加在 $\mathcal L_n$ 的 Hessian $\nabla^2\mathcal L_n(\Theta)=\Theta^{-1}\otimes\Theta^{-1}$ 上，这是一张按顶点有序对 $(j,k)$ 索引的 $d^2\times d^2$ 矩阵。令
+$$
+S:=E\cup\{(j,j):j\in V\},
+\qquad
+S^c=(V\times V)\setminus S,
+$$
+$\Gamma^*:=\nabla^2\mathcal L_n(\Theta^*)$。称 $\Gamma^*$ 是 $\alpha$-不相干的，若
+$$
+\max_{e\in S^c}
+\bigl\|\Gamma^*_{eS}(\Gamma^*_{SS})^{-1}\bigr\|_1
+\le
+1-\alpha
+\qquad\alpha\in(0,1].
+\tag{11.15}
+$$
+
+::: {.callout-important title="Proposition 11.10　无假阳性与 $\ell_\infty$ 界（印刷页 358，PDF 页 377）"}
+零均值高斯，$\Theta^*$ 为 $\alpha$-不相干。样本量 $n>c_0(1+8\alpha^{-1})^2 m^2\log d$，正则
+$$
+\lambda_n
+=
+\frac{c_1}{\alpha}\sqrt{\frac{\log d}{n}}+\delta
+\qquad\delta\in(0,1].
+$$
+则以至少 $1-c_2 e^{-c_3 n\delta^2}$ 的概率：
+
+- (a) 无假阳性：$(j,k)\notin E$ 时 $\widehat\Theta_{jk}=0$；
+- (b) 逐元界
+$$
+\|\widehat\Theta-\Theta^*\|_{\max}
+\le
+c_4\Bigl\{
+\underbrace{(1+8\alpha^{-1})\sqrt{\frac{\log d}{n}}}_{\tau(n,d,\alpha)}
++\lambda_n
+\Bigr\}.
+\tag{11.16}
+$$
+:::
+
+边集估计 $\widehat E:=\{(j,k)\in[d]\times[d]:j<k,\;\widehat\Theta_{jk}\ne 0\}$ 因此总是 $E$ 的子集。若最小非零元 $\tau^*(\Theta^*):=\min_{(j,k)\in E}\lvert\Theta^*_{jk}\rvert$ 满足 $\tau^*(\Theta^*)>c_4(\tau(n,d,\alpha)+\lambda_n)$，则整张边集以高概率被恢复。
+
+证明是第 7 章 Theorem 7.21 原对偶见证（primal–dual witness）的矩阵版：构造 $(\widetilde\Theta,\widetilde Z)$，$\widetilde\Theta\succ 0$ 原可行，$\widetilde Z$ 对偶可行，满足
+$$
+\widehat\Sigma-\widetilde\Theta^{-1}+\lambda_n\widetilde Z=0
+\qquad\text{即}\qquad
+\widetilde\Theta^{-1}=\widehat\Sigma+\lambda_n\widetilde Z,
+$$
+且 $\lvert\lvert\lvert\widetilde Z\rvert\rvert\rvert_{\max,\mathrm{off}}\le 1$，$\widetilde\Theta_{jk}\ne 0$ 时 $\widetilde Z_{jk}=\mathrm{sign}(\widetilde\Theta_{jk})$。细节指回文献（Ravikumar et al., 2011）。
+
+::: {.callout-important title="Corollary 11.11　算子范数界（印刷页 358–359，PDF 页 377–378）"}
+在 Proposition 11.10 的条件下，同一 $\lambda_n$，以至少 $1-c_2 e^{-c_3 n\delta^2}$ 的概率
+$$
+\lvert\lvert\lvert\widehat\Theta-\Theta^*\rvert\rvert\rvert_2
+\le
+c_4\lvert\lvert\lvert A\rvert\rvert\rvert_2
+\Bigl\{
+(1+8\alpha^{-1})\sqrt{\frac{\log d}{n}}+\lambda_n
+\Bigr\},
+\tag{11.17a}
+$$
+$A$ 为图的邻接矩阵（对角为 $1$）。最大度为 $m$ 时 $\lvert\lvert\lvert A\rvert\rvert\rvert_2\le m+1$，故
+$$
+\lvert\lvert\lvert\widehat\Theta-\Theta^*\rvert\rvert\rvert_2
+\le
+c_4(m+1)
+\Bigl\{
+(1+8\alpha^{-1})\sqrt{\frac{\log d}{n}}+\lambda_n
+\Bigr\}.
+\tag{11.17b}
+$$
+:::
+
+由 (11.16)：非边处误差为零，边上（含对角）误差 $\le c_4\{\tau(n,d,\alpha)+\lambda_n\}$，即
+$$
+\lvert\widehat\Theta_{jk}-\Theta^*_{jk}\rvert
+\le
+c_4\{\tau(n,d,\alpha)+\lambda_n\}\,A_{jk}.
+\tag{11.18}
+$$
+Exercise 6.3(c) 把逐元界送进算子范数，得到 (11.17a)。星图（一个枢纽连 $m$ 个叶）满足 $\lvert\lvert\lvert A\rvert\rvert\rvert_2=1+\sqrt{m-1}$，(11.17a) 给出 $\lvert\lvert\lvert\widehat\Theta-\Theta^*\rvert\rvert\rvert_2\lesssim\sqrt{m\log d/n}$，比 (11.17b) 锐一个 $\sqrt m$。逐元界还推出 Frobenius 推论
+$$
+\lvert\lvert\lvert\widehat\Theta-\Theta^*\rvert\rvert\rvert_F
+\le
+c_3\sqrt{2s+d}
+\Bigl\{
+(1+8\alpha^{-1})\sqrt{\frac{\log d}{n}}+\lambda_n
+\Bigr\},
+\tag{11.19}
+$$
+$s$ 为边数；验证留给读者。
+
+## 11.2.2 Neighborhood-based methods　基于邻域的方法
+
+> 教材定位：§11.2.2，印刷页 359–365，PDF 页 378–384。
+
+图 Lasso 是全局的。邻域方法是局部的：整张图等于每个顶点的邻域，而邻域由马尔可夫性读出来。
+
+$\mathcal N(j)$ 分离 $\{j\}$ 与 $V\setminus\mathcal N^+(j)$，故
+$$
+X_j
+\perp
+X_{V\setminus\mathcal N^+(j)}
+\mid
+X_{\mathcal N(j)}.
+\tag{11.20}
+$$
+高斯下，$X_j\mid X_{\backslash\{j\}}$ 仍是高斯，因而
+$$
+X_j
+=
+\langle X_{\backslash\{j\}},\theta^*_j\rangle
++
+W_j,
+\tag{11.21}
+$$
+$W_j$ 零均值高斯、与 $X_{\backslash\{j\}}$ 独立（Exercise 11.3）。条件独立迫使 $k\notin\mathcal N(j)$ 时 $\theta^*_{jk}=0$。图选择变成 $d$ 个稀疏线性回归的支撑恢复。
+
+**基于 Lasso 的邻域回归**（印刷页 360–361，PDF 页 379–380）。样本矩阵 $X\in\mathbb R^{n\times d}$，第 $i$ 行是 $x_i$。
+
+1. 对每个 $j\in V$：
+   - (a) 抽出 $X_j\in\mathbb R^n$ 与 $X_{\backslash\{j\}}\in\mathbb R^{n\times(d-1)}$；
+   - (b) 解
+$$
+\widehat\theta
+=
+\arg\min_{\theta\in\mathbb R^{d-1}}
+\Bigl\{
+\frac1{2n}\|X_j-X_{\backslash\{j\}}\theta\|_2^2
++\lambda_n\|\theta\|_1
+\Bigr\}
+\tag{11.22}
+$$
+   - (c) 邻域估计 $\widehat{\mathcal N}(j)=\{k\in V\setminus\{j\}:\widehat\theta_k\ne 0\}$。
+2. 用 OR 或 AND 规则拼成边估计 $\widehat E$。
+
+两边的邻域估计可能不一致（$k\in\widehat{\mathcal N}(j)$ 但 $j\notin\widehat{\mathcal N}(k)$）：
+
+- **OR 规则**：$(j,k)\in\widehat E_{\mathrm{OR}}$ 若 $k\in\widehat{\mathcal N}(j)$ **或** $j\in\widehat{\mathcal N}(k)$；
+- **AND 规则**：$(j,k)\in\widehat E_{\mathrm{AND}}$ 若二者都成立。
+
+AND 更保守：$\widehat E_{\mathrm{AND}}\subseteq\widehat E_{\mathrm{OR}}$。后面的理论对两种规则都成立，因为控制的是每一次邻域回归。
+
+正定矩阵 $\Gamma$ 关于列子集 $S$ 是 $\alpha$-不相干的，若
+$$
+\max_{k\notin S}
+\bigl\|\Gamma_{kS}(\Gamma_{SS})^{-1}\bigr\|_1
+\le
+1-\alpha.
+\tag{11.23}
+$$
+把 $\Gamma$ 看成某随机向量 $Z$ 的协方差时，$\Gamma_{kS}(\Gamma_{SS})^{-1}$ 正是用 $Z_S$ 预测 $Z_k$ 的最优线性系数；不相干限制 $S$ 外的点对 $S$ 的依赖。
+
+正文把 $\ell_\infty$-矩阵算子范数（行和）写成
+$$
+\lvert\lvert\lvert A\rvert\rvert\rvert_2
+:=
+\max_{i=1,\ldots,d}\sum_{j=1}^d\lvert A_{ij}\rvert.
+$$
+这是行和范数，即 $\ell_\infty$-算子范数；下标 $2$ 与后文 Theorem 11.12 的 $\lvert\lvert\lvert\cdot\rvert\rvert\rvert_\infty$ 不一致。Notes 按行和范数解读，不作为已批准勘误。假定 $\mathrm{diag}(\Sigma^*)\le 1$（可重标），以及 $n\gtrsim m\log d$（信息论下界同阶，见 §11.5）。
+
+::: {.callout-important title="Theorem 11.12　邻域 Lasso 的图选择相合（印刷页 361–362，PDF 页 380–381）"}
+零均值高斯，$\Sigma^*=(\Theta^*)^{-1}$。对每个 $j$，子矩阵 $\Sigma^*_{\backslash\{j\}}:=\mathrm{cov}(X_{\backslash\{j\}})$ 关于 $\mathcal N(j)$ 是 $\alpha$-不相干的，且 $\lvert\lvert\lvert(\Sigma^*_{\mathcal N(j),\mathcal N(j)})^{-1}\rvert\rvert\rvert_\infty\le b$（$b\ge 1$）。取
+$$
+\lambda_n
+=
+c_0\Bigl\{\frac1\alpha\sqrt{\frac{\log d}{n}}+\delta\Bigr\}
+\qquad\delta\in(0,1].
+$$
+则以大于 $1-c_2 e^{-c_3 n\min\{\delta^2,1/m\}}$ 的概率，AND 或 OR 给出的 $\widehat E$ 满足：
+
+- (a) 无假边：$\widehat E\subseteq E$；
+- (b) 所有显著边被抓住：$\lvert\Theta^*_{jk}\rvert\ge 7b\lambda_n$ 的边都在 $\widehat E$ 里。
+:::
+
+若 $\min_{(j,k)\in E}\lvert\Theta^*_{jk}\rvert>7b\lambda_n$，则 $\widehat E=E$ 以高概率成立。
+
+证明是 Theorem 7.21 对**随机设计**的延伸（印刷页 362–365，PDF 页 381–384；完整计算指回教材）。对每个 $j$ 单独做原对偶见证，再对 $d$ 个顶点并。记 $\Gamma^*=\mathrm{cov}(X_{\backslash\{j\}})$，$S=\mathcal N(j)$，$S^c=V\setminus\mathcal N^+(j)$，观测 $X_j=X_{\backslash\{j\}}\theta^*+W_j$。对偶可行性把 $\widehat z_{S^c}$ 拆成偏差 $\mu$ 与余项 $V_{S^c}$，见 (11.24)。两块分别以高概率小于 $1-\tfrac34\alpha$ 与 $\alpha/4$，合起来 $\|\widehat z_{S^c}\|_\infty\le 1-\alpha/2<1$，支撑落在 $S$ 内。随机设计多出来的是：把 $X_{S^c}$ 写成对 $X_S$ 的总体回归加独立高斯残差 (11.26)，再用 Theorem 6.1 控制样本 Gram。部分 (b) 在 $m\le\log d$ 时把 $\ell_\infty$ 误差收到 $7b\lambda_n$，一般 $m$ 的证明见 Wainwright (2009b)。
+
+::: {.callout-note title="作者解释：图 Lasso 与邻域回归比什么"}
+邻域回归的不相干加在 $(d-1)\times(d-1)$ 的协方差子块上；图 Lasso 的不相干加在 $d^2\times d^2$ 的 $\Theta^{-1}\otimes\Theta^{-1}$ 上，通常更强（Meinshausen 2008；Ravikumar et al. 2011）。样本量上，选边的信息论下界已是 $m\log d$ 量级；图 Lasso 的 Frobenius 结果要 $md\log d$，选边结果要 $m^2\log d$。邻域方法按顶点并行，也更好实现。
+:::
+
+# 11.3 Graphical models in exponential form　指数型图模型
+
+> 教材定位：§11.3，印刷页 365–368，PDF 页 384–387。
+
+成对因子分解
+$$
+p_{\Theta^*}(x_1,\ldots,x_d)
+\propto
+\exp\Biggl\{
+\sum_{j\in V}\phi_j(x_j;\Theta^*_j)
++
+\sum_{(j,k)\in E}\phi_{jk}(x_j,x_k;\Theta^*_{jk})
+\Biggr\}.
+\tag{11.32}
+$$
+$\Theta^*_j$ 是顶点参数向量，$\Theta^*_{jk}$ 是边参数矩阵。高斯与伊辛都是
+$$
+\phi_j(x_j;\theta^*_j)=\theta^*_j x_j,
+\qquad
+\phi_{jk}(x_j,x_k;\theta^*_{jk})=\theta^*_{jk}x_j x_k
+\tag{11.33}
+$$
+的特例：高斯相对 $\mathbb R^d$ 上的勒贝格测度，伊辛相对 $\{0,1\}^d$ 上的计数测度。
+
+**Example 11.13（波茨模型，简要）。** $X_s\in\{0,\ldots,M-1\}$。顶点参数是 $(M-1)$-向量，边参数是 $(M-1)\times(M-1)$ 矩阵，
+$$
+\phi_j(x_j;\Theta^*_j)
+=
+\sum_{a=1}^{M-1}\Theta^*_{j;a}\mathbb I[x_j=a],
+\tag{11.34a}
+$$
+$$
+\phi_{jk}(x_j,x_k;\Theta^*_{jk})
+=
+\sum_{a=1}^{M-1}\sum_{b=1}^{M-1}
+\Theta^*_{jk;ab}\mathbb I[x_j=a,x_k=b].
+\tag{11.34b}
+$$
+$M=2$ 时回到伊辛。
+
+::: {.callout-important title="Example 11.14　泊松图模型（印刷页 366，PDF 页 385）"}
+计数变量 $X_j\in\mathbb Z_+=\{0,1,2,\ldots\}$。条件于邻域，$X_j$ 是泊松，均值
+$$
+\mu_j
+=
+\exp\Biggl(\theta^*_j+\sum_{k\in\mathcal N(j)}\theta^*_{jk}x_k\Biggr).
+$$
+对应 (11.32)，
+$$
+\phi_j(x_j;\theta^*_j)=\theta^*_j x_j-\log(x_j!),
+\qquad
+\phi_{jk}(x_j,x_k;\theta^*_{jk})=\theta^*_{jk}x_j x_k.
+\tag{11.35a,b}
+$$
+密度相对 $\mathbb Z_+$ 上的计数测度。要能归一化，必须 $\theta^*_{jk}\le 0$，因此这个模型只能写竞争性相互作用。
+:::
+
+印刷 (11.35a) 把阶乘写成 $\log(x!)$；自变量是 $x_j$，Notes 按 $\log(x_j!)$ 解读，不作为已批准勘误。
+
+也可以混合离散与连续节点；高斯混合是一类。
+
+## 11.3.1 A general form of neighborhood regression　一般邻域回归
+
+> 教材定位：§11.3.1，印刷页 366–367，PDF 页 385–386。
+
+样本矩阵 $X\in\mathbb R^{n\times d}$。Exercise 11.6：条件似然 $X_j\mid X_{\backslash\{j\}}$ 只依赖
+$$
+\Theta_{j+}
+:=
+\{\Theta_j,\;\Theta_{jk}:k\in V\setminus\{j\}\}.
+\tag{11.36}
+$$
+真模型里 $(j,k)\notin E$ 时 $\Theta^*_{jk}=0$，所以对 $\Theta_{j+}$ 加块稀疏罚。给定矩阵范数 $\lvert\lvert\lvert\cdot\rvert\rvert\rvert$，
+$$
+\widehat\Theta_{j+}
+=
+\arg\min_{\Theta_{j+}}
+\Biggl\{
+-\frac1n\sum_{i=1}^n
+\log p_{\Theta_{j+}}(x_{ij}\mid x_{i,\backslash\{j\}})
++\lambda_n\sum_{k\in V\setminus\{j\}}
+\lvert\lvert\lvert\Theta_{jk}\rvert\rvert\rvert
+\Biggr\}.
+\tag{11.37}
+$$
+Frobenius 块范数给出 group Lasso（见 (9.66)）。Exercise 11.5：高斯时回到 (11.22)。
+
+## 11.3.2 Graph selection for Ising models　伊辛模型的图选择
+
+> 教材定位：§11.3.2，印刷页 367–368，PDF 页 386–387。
+
+伊辛 (11.3) 重写成
+$$
+p_{\theta^*}(x_1,\ldots,x_d)
+\propto
+\exp\Biggl\{
+\sum_{j\in V}\theta^*_j x_j
++\sum_{(j,k)\in E}\theta^*_{jk}x_j x_k
+\Biggr\}.
+\tag{11.38}
+$$
+每条边一个标量，用 $\ell_1$ 就够。记 $\theta_{j+}:=\{\theta_j,\;\theta_{jk}:k\in V\setminus\{j\}\}$。邻域估计变成逻辑回归
+$$
+\widehat\theta_{j+}
+=
+\arg\min_{\theta_{j+}\in\mathbb R^d}
+\Biggl\{
+\frac1n\sum_{i=1}^n
+f\Bigl(
+\theta_j x_{ij}+\sum_{k\in V\setminus\{j\}}\theta_{jk}x_{ij}x_{ik}
+\Bigr)
++\lambda_n\sum_{k\in V\setminus\{j\}}\lvert\theta_{jk}\rvert
+\Biggr\},
+\tag{11.39}
+$$
+$f(t)=\log(1+e^t)$（教材称为 logistic function）。细节见 Exercise 11.7（那里是 $\{\pm 1\}$ 版本）。
+
+总体目标 $\overline{\mathcal L}(\theta_{j+})=\mathbb E[\mathcal L_n(\theta_{j+};X_j,X_{\backslash\{j\}})]$，极小点 $\theta^*_{j+}$。Fisher 信息 $J:=\nabla^2\overline{\mathcal L}(\theta^*_{j+})$ 在 $S=\mathcal N(j)$ 上 $\alpha$-不相干：
+$$
+\max_{k\notin S}
+\bigl\|J_{kS}(J_{SS})^{-1}\bigr\|_1
+\le
+1-\alpha,
+\tag{11.40}
+$$
+并且 $\lambda_{\min}(J_{SS})\ge c_{\min}>0$。
+
+::: {.callout-important title="Theorem 11.15　伊辛邻域选择（印刷页 368，PDF 页 387）"}
+图有 $d$ 个顶点、最大度 $\le m$。给定 $n>c_0 m^2\log d$ 个 i.i.d. 样本，取
+$$
+\lambda_n
+=
+\frac{32}{\alpha}\sqrt{\frac{\log d}{n}}+\delta
+\qquad\delta\in[0,1].
+$$
+则以至少 $1-c_1 e^{-c_2(n\delta^2+\log d)}$ 的概率，$\widehat\theta_{j+}$ 满足：
+
+- (a) $\widehat S=\mathrm{supp}(\widehat\theta)\subseteq\mathcal N(j)$（无假阳性）；
+- (b) $\|\widehat\theta_{j+}-\theta^*_{j+}\|_\infty\le (c_3/c_{\min})\sqrt{m}\,\lambda_n$。
+:::
+
+证明仍是原对偶见证，与 Theorem 11.12 同型；细节指回 Ravikumar et al. (2010)。信息论下界（Santhanam–Wainwright 2012）加上可达性（Bento–Montanari 2009）表明，$\ell_1$ 逻辑回归在阶上是最优的。
+
+# 11.4 Graphs with corrupted or hidden variables　损坏观测与隐变量
+
+> 教材定位：§11.4，印刷页 368，PDF 页 387。
+
+到现在样本 $\{x_i\}$ 被完美观测。实际中可以有测量噪声、缺失，或一部分变量永远不出现（隐变量 / 潜变量）。本节主要在高斯情形处理这三类。
+
+## 11.4.1 Gaussian graph estimation with corrupted data　损坏数据下的高斯图估计
+
+> 教材定位：§11.4.1，印刷页 368–373，PDF 页 387–392。
+
+原始数据矩阵 $X\in\mathbb R^{n\times d}$，观测到的是损坏版 $Z$。最简单：$Z=X+V$。把标准高斯图估计直接用在 $Z$ 上，一般不相合。
+
+朴素图 Lasso 把 $\widehat\Sigma_x$ 换成 $\widehat\Sigma_z=n^{-1}Z^T Z$：
+$$
+\widehat\Theta_{\mathrm{NAI}}
+=
+\arg\min_{\Theta\in\mathcal S^{d\times d}}
+\Bigl\{
+\langle\!\langle\Theta,\widehat\Sigma_z\rangle\!\rangle
+-\log\det\Theta
++\lambda_n\lvert\lvert\lvert\Theta\rvert\rvert\rvert_{1,\mathrm{off}}
+\Bigr\}.
+\tag{11.41}
+$$
+Exercise 11.8：加性噪声不保持马尔可夫性，$\widehat\Theta_{\mathrm{NAI}}$ 一般既不相合于边集，也不相合于 $\Theta^*$。要把 $\widehat\Sigma_z$ 换成基于 $Z$ 的 $\mathrm{cov}(x)$ 的无偏估计。
+
+**Example 11.16（加性损坏的无偏协方差）。** $Z=X+V$，行 $v_i$ i.i.d. 零均值、协方差 $\Sigma_v$。
+$$
+\widehat\Gamma
+:=
+\frac1n Z^T Z-\Sigma_v.
+\tag{11.42}
+$$
+$V$ 与 $X$ 独立时 $\widehat\Gamma$ 无偏。$X,V$ 都是次高斯行时，$\|\widehat\Gamma-\Sigma_x\|_{\max}\lesssim\sqrt{(\log d)/n}$ 以高概率成立（Exercise 11.12）。
+
+**Example 11.17（完全随机缺失）。** 每个条目以概率 $\nu\in[0,1)$ 缺失。由观测矩阵 $Z$ 构造
+$$
+\widetilde Z_{ij}
+=
+\begin{cases}
+Z_{ij}/(1-\nu) & \text{若 }(i,j)\text{ 被观测},\\
+0 & \text{否则}.
+\end{cases}
+$$
+则
+$$
+\widehat\Gamma
+=
+\frac1n\widetilde Z^T\widetilde Z
+-\nu\,\mathrm{diag}\Bigl(\frac{\widetilde Z^T\widetilde Z}{n}\Bigr)
+\tag{11.43}
+$$
+是 $\Sigma_x$ 的无偏估计，并且在合适尾条件下同样有 max-范数偏差 $\lesssim\sqrt{(\log d)/n}$（Exercise 11.13）。
+
+一般地，任何无偏 $\widehat\Gamma$ 定义**校正图 Lasso**
+$$
+\widetilde\Theta
+=
+\arg\min_{\Theta\in\mathcal S_+^{d\times d}}
+\Bigl\{
+\langle\!\langle\Theta,\widehat\Gamma\rangle\!\rangle
+-\log\det\Theta
++\lambda_n\lvert\lvert\lvert\Theta\rvert\rvert\rvert_{1,\mathrm{off}}
+\Bigr\}.
+\tag{11.44}
+$$
+目标严格凸，解若存在则唯一；但 $\widehat\Gamma$ 可以不正定，程序可以没有解。Exercise 11.9：只要 $\lambda_n>\|\widehat\Gamma-\Sigma_x\|_{\max}$，就存在唯一最优。§11.2.1 的 Frobenius 与选边证明可以原样搬过来，差别只在控制 $\|\widehat\Gamma-\Sigma_x\|_{\max}$。
+
+### 校正邻域回归
+
+邻域回归对应损坏线性模型
+$$
+y=X\theta^*+w,
+\qquad
+Z\sim\mathbb Q(\,\cdot\mid X),
+\tag{11.45}
+$$
+$X$ 是 $n\times(d-1)$ 的预测矩阵，$y=X_j$。响应若也损坏：缺失就丢掉该样本，噪声并进 $w$。
+
+朴素最小二乘 $\frac1{2n}\|y-Z\theta\|_2^2$ 不相合（Exercise 11.10）。总体目标
+$$
+\overline{\mathcal L}(\theta)
+=
+\tfrac12\theta^T\Gamma\theta-\langle\theta,\gamma\rangle,
+\tag{11.46}
+$$
+$\Gamma:=\mathrm{cov}(x)$，$\gamma:=\mathrm{cov}(x,y)$，$\theta^*$ 是唯一总体极小。换成数据依赖的 $(\widehat\gamma,\widehat\Gamma)$：
+$$
+\mathcal L_n(\theta)
+=
+\tfrac12\theta^T\widehat\Gamma\theta-\langle\theta,\widehat\gamma\rangle.
+\tag{11.47}
+$$
+$\widehat\gamma$ 的无偏构造见 Exercises 11.12–11.13。校正 Lasso 同时使用 $\ell_1$ 罚与 $\ell_1$ 约束：
+$$
+\min_{\|\theta\|_1\le\sqrt{n/\log d}}
+\Bigl\{
+\tfrac12\theta^T\widehat\Gamma\theta-\langle\widehat\gamma,\theta\rangle
++\lambda_n\|\theta\|_1
+\Bigr\}.
+\tag{11.48}
+$$
+$n<d$ 时 (11.42)、(11.43) 都有负特征值，目标非凸；只有罚没有半径时，目标可以沿负特征方向掉到 $-\infty$（Exercise 11.11），所以两个都要。
+
+局部最优 $\widetilde\theta$ 满足变分不等式
+$$
+\langle\nabla\mathcal L_n(\widetilde\theta),\,\theta-\widetilde\theta\rangle
+\ge 0
+\qquad\text{对一切 }\|\theta\|_1\le\sqrt{n/\log d}.
+\tag{11.49}
+$$
+若 $\widetilde\theta$ 在约束内部，这就是 $\nabla\mathcal L_n(\widetilde\theta)=0$；定义包含局部极小、局部极大与鞍点。
+
+对可能非正定的 $\widehat\Gamma$ 仍可写限制特征值（RE）：存在 $\kappa>0$ 使
+$$
+\langle\Delta,\widehat\Gamma\Delta\rangle
+\ge
+\kappa\|\Delta\|_2^2
+-c_0\frac{\log d}{n}\|\Delta\|_1^2
+\qquad\text{对一切 }\Delta\in\mathbb R^d.
+\tag{11.50}
+$$
+加性损坏与缺失的 $\widehat\Gamma$ 都以高概率满足 RE（Exercises 11.12–11.13）。再设 $\theta^*$ 为 $s$-稀疏、$\|\theta^*\|_2\le 1$，且 $n\ge s\log d$，则 $\|\theta^*\|_1\le\sqrt s\le\sqrt{n/\log d}$，$\theta^*$ 可行。
+
+::: {.callout-important title="Proposition 11.18　校正 Lasso 局部最优的 $\ell_2$ 界（印刷页 372，PDF 页 391）"}
+在 RE (11.50) 下，若
+$$
+\|\widehat\Gamma\theta^*-\widehat\gamma\|_{\max}
+\le
+\varphi(\mathbb Q,\sigma_w)\sqrt{\frac{\log d}{n}},
+\tag{11.51}
+$$
+则对任何 $\lambda_n\ge 2\bigl(2c_0+\varphi(\mathbb Q,\sigma_w)\bigr)\sqrt{(\log d)/n}$，(11.48) 的任一局部最优满足
+$$
+\|\widetilde\theta-\theta^*\|_2
+\le
+\frac2\kappa\sqrt s\,\lambda_n.
+\tag{11.52}
+$$
+:::
+
+(11.51) 是总体一阶条件 $\Gamma\theta^*-\gamma=0$ 的样本版。证明（印刷页 372–373）在约束内部把 $\nabla\mathcal L_n(\widetilde\theta)+\lambda_n\widehat z=0$ 与 $\widehat\Delta=\widetilde\theta-\theta^*$ 作内积，用
+$$
+\|\theta^*\|_1-\|\widetilde\theta\|_1
+\le
+\|\widehat\Delta_S\|_1-\|\widehat\Delta_{S^c}\|_1
+\tag{11.53}
+$$
+以及
+$$
+\langle\widehat\Delta,\widehat\Gamma\widehat\Delta\rangle
+\le
+\tfrac32\lambda_n\|\widehat\Delta_S\|_1-\tfrac12\lambda_n\|\widehat\Delta_{S^c}\|_1,
+\tag{11.54}
+$$
+再喂进 RE。边界情形指回 Loh–Wainwright (2015, 2017)。要点：**非凸并不妨碍所有局部最优都靠近 $\theta^*$**。
+
+## 11.4.2 Gaussian graph selection with hidden variables　隐变量下的高斯图选择
+
+> 教材定位：§11.4.2，印刷页 373–376，PDF 页 392–395。
+
+鞋码与灰发相关，是因为二者都随年龄变；给定年龄，二者可以条件独立。一般地，完整向量 $X=(X_O,X_H)\in\mathbb R^{d+r}$ 关于一张稀疏图是马尔可夫的，但只观测 $X_O\in\mathbb R^d$。
+
+完整精度的块分解
+$$
+\Theta^\circ
+=
+\begin{pmatrix}
+\Theta^\circ_{OO} & \Theta^\circ_{OH}\\
+\Theta^\circ_{HO} & \Theta^\circ_{HH}
+\end{pmatrix}.
+\tag{11.55}
+$$
+Schur 补（Exercise 11.3）给出观测精度
+$$
+(\Sigma^*_{OO})^{-1}
+=
+\underbrace{\Theta^\circ_{OO}}_{\Gamma^*}
+-
+\underbrace{\Theta^\circ_{OH}(\Theta^\circ_{HH})^{-1}\Theta^\circ_{HO}}_{\Lambda^*}.
+\tag{11.56}
+$$
+$\Gamma^*$ 稀疏（完整图在观测块上稀疏），$\Lambda^*$ 的秩至多 $\min\{r,d\}$。观测精度 $=$ 稀疏 $+$ 低秩。
+
+$n>d$ 时样本协方差可逆（第 6 章）。令 $Y:=(\widehat\Sigma)^{-1}$，
+$$
+Y
+=
+\Gamma^*-\Lambda^*+W,
+\tag{11.57}
+$$
+$W$ 是逆样本协方差的噪声。这是 §10.7 的加性矩阵分解。
+
+两步估计：先对 $Y$ 做阈值估 $\Gamma^*$，残差估 $\Lambda^*$。印刷正文写“soft-thresholded version”，紧接着的定义是硬阈值
+$$
+\widehat\Gamma:=T_{\nu_n}\bigl((\widehat\Sigma)^{-1}\bigr),
+\qquad
+\widehat\Lambda:=\widehat\Gamma-(\widehat\Sigma)^{-1},
+\tag{11.58}
+$$
+$$
+T_{\nu_n}(v)=v\,\mathbb I[\lvert v\rvert>\nu_n].
+$$
+Notes 按硬阈值使用，不作为已批准勘误。
+
+不可辨识性要求约束。低秩块满足尖峰（spikiness）$\|\Lambda^*\|_{\max}\le\alpha/d$。精度平方根的 $\ell_\infty$-算子范数有界：
+$$
+\lvert\lvert\lvert\sqrt{\Theta^*}\rvert\rvert\rvert_\infty
+=
+\max_{j=1,\ldots,d}
+\sum_{k=1}^d
+\bigl\lvert[\sqrt{\Theta^*}]_{jk}\bigr\rvert
+\le
+\sqrt M.
+\tag{11.59}
+$$
+（印刷页把上界写成与后文 $(\lvert\lvert\lvert\sqrt{\Theta^*}\rvert\rvert\rvert_\infty)^2\le M$ 配套的形式；Notes 按该平方关系使用 $M$。）阈值取
+$$
+\nu_n
+:=
+M\Bigl(4\sqrt{\frac{\log d}{n}}+\delta\Bigr)+\frac\alpha d
+\qquad\delta\in[0,1].
+\tag{11.60}
+$$
+
+::: {.callout-important title="Proposition 11.19　阈值分解的误差（印刷页 374–375，PDF 页 393–394）"}
+$\Theta^*=\Gamma^*-\Lambda^*$，$\Gamma^*$ 每行至多 $s$ 个非零，$\Lambda^*$ 为 $\alpha$-尖峰。$n>d$ 个 $N\bigl(0,(\Theta^*)^{-1}\bigr)$ 样本，则
+$$
+\|\widehat\Gamma-\Gamma^*\|_{\max}
+\le
+2M\Bigl(4\sqrt{\frac{\log d}{n}}+\delta\Bigr)+\frac{2\alpha}{d},
+\tag{11.61a}
+$$
+$$
+\lvert\lvert\lvert\widehat\Lambda-\Lambda^*\rvert\rvert\rvert_2
+\le
+M\Bigl(2\sqrt{\frac d n}+\delta\Bigr)
++s\|\widehat\Gamma-\Gamma^*\|_{\max}
+\tag{11.61b}
+$$
+以至少 $1-c_1 e^{-c_2 n\delta^2}$ 的概率成立。
+:::
+
+证明骨架（印刷页 375–376，PDF 页 394–395）。先控制 $Y=(\widehat\Sigma)^{-1}$：
+$$
+\lvert\lvert\lvert Y-\Theta^*\rvert\rvert\rvert_2
+\le
+M\Bigl(2\sqrt{\frac d n}+\delta\Bigr),
+\tag{11.62a}
+$$
+$$
+\|Y-\Theta^*\|_{\max}
+\le
+M\Bigl(4\sqrt{\frac{\log d}{n}}+\delta\Bigr).
+\tag{11.62b}
+$$
+关键分解
+$$
+(\widehat\Sigma)^{-1}-\Theta^*
+=
+\sqrt{\Theta^*}\,(n^{-1}V^T V-I_d)\,\sqrt{\Theta^*},
+\tag{11.63}
+$$
+$V\in\mathbb R^{n\times d}$ 标准高斯。算子范数用 Theorem 6.1 与 $\lvert\lvert\lvert\Theta^*\rvert\rvert\rvert_2\le(\lvert\lvert\lvert\sqrt{\Theta^*}\rvert\rvert\rvert_\infty)^2\le M$；max-范数把 $\lvert e_j^T\sqrt{\Theta^*}\,\widetilde\Sigma\,\sqrt{\Theta^*}e_k\rvert$ 收到 $\|\widetilde\Sigma\|_{\max}\lvert\lvert\lvert\sqrt{\Theta^*}\rvert\rvert\rvert_\infty^2$。阈值论证：$\Gamma^*_{jk}=0$ 的位置上 $\lvert Y_{jk}\rvert\le\nu_n$，故 $\widehat\Gamma$ 在这些位置为零，误差矩阵每行至多 $s$ 个非零，行和范数 $\le s\|\widehat\Gamma-\Gamma^*\|_{\max}$。
+
+::: {.callout-note title="作者解释：这不是核范数加 $\ell_1$ 的全局程序"}
+Chandrasekaran et al. (2012) 对 log-det 加核范数与 $\ell_1$，在更强的不相干下精确恢复稀疏与秩。这里的两步阈值（Ren–Zhou 2012；Agarwal et al. 2012）只要尖峰，分析短，但需要 $n>d$。
+:::
+
+# 11.5 Bibliographic details and background　文献与背景
+
+> 教材定位：§11.5，印刷页 376–378，PDF 页 395–397。文献条目指回教材。
+
+几条阅读锚点：汉默斯利–克利福德的史（Hammersley–Clifford 1971 / Grimmett 1973 / Besag 1974）；图 Lasso 的统计与算法（Friedman et al. 2007；Yuan–Lin 2007；Banerjee et al. 2008；Rothman et al. 2008；Ravikumar et al. 2011）；邻域选择来自伪似然（Besag）与 Meinshausen–Bühlmann (2006)，Theorem 11.12 来自 Wainwright (2009b)；伊辛的 $\ell_1$ 逻辑回归来自 Ravikumar et al. (2010)；校正 Lasso 来自 Loh–Wainwright；隐变量矩阵分解来自 Chandrasekaran et al. (2012)。本章不讨论有向图与 nonparanormal。
+
+# 常见错误
+
+1. **错误做法：** 把“$X_j$ 与 $X_k$ 相关”读成“$(j,k)$ 是边”。  
+   **为什么错：** 边编码的是**条件**独立，不是边际相关。隐变量例子里鞋码与灰发边际相关，但给定年龄可以没有边。高斯里看的是 $\Theta^*_{jk}$，不是 $\Sigma^*_{jk}$。  
+   **正确判断：** 先写 $X_A\perp X_B\mid X_S$，再谈边。
+
+2. **错误做法：** $n<d$ 时直接用 $\widehat\Theta_{\mathrm{MLE}}=\widehat\Sigma^{-1}$。  
+   **为什么错：** $\widehat\Sigma$ 亏秩，似然沿核方向发散（Exercise 11.2）。  
+   **正确判断：** 要么图 Lasso，要么邻域回归；二者都用 $\ell_1$ 把问题从 $d^2$ 个参数拉回稀疏边。
+
+3. **错误做法：** 以为图 Lasso 的 Frobenius 界（Proposition 11.9）已经给出高维选边。  
+   **为什么错：** 该界要求 $n\gtrsim md\log d$，排除 $n<d$，也不控制零型。选边要 Proposition 11.10 的不相干与 $n\gtrsim m^2\log d$。  
+   **正确判断：** 先指定误差——Frobenius、算子、还是边集——再选定理。
+
+4. **错误做法：** 把损坏观测的 $Z$ 直接塞进图 Lasso 或 Lasso。  
+   **为什么错：** 加性噪声让精度变成 $\Theta^*$ 的幂级数，长路径被填上（Exercise 11.8）；朴素 Lasso 的极限是 $(\Sigma+\sigma^2 I)^{-1}\Sigma\theta^*\ne\theta^*$（Exercise 11.10）。  
+   **正确判断：** 先造 $\mathrm{cov}(x)$ 的无偏 $\widehat\Gamma$，再做校正程序。
+
+5. **错误做法：** 校正 Lasso 去掉 $\ell_1$ 半径，理由是“已经有 $\ell_1$ 罚了”。  
+   **为什么错：** $n<d$ 时 $\widehat\Gamma$ 有负特征值，无约束目标可以沿该方向掉到 $-\infty$（Exercise 11.11）。罚改变的是水平，不把无界域变成有界。  
+   **正确判断：** 非凸时罚加半径；Proposition 11.18 保证的是**所有局部最优**，不是“梯度下降找到了全局最小”。
+
+# 轻量自测
+
+1. 用一句话说明：为何高斯的因子分解总可以停在边上，而一般正密度的汉默斯利–克利福德需要全部团？
+2. 从 (11.20)–(11.21) 说明：为什么 $k\notin\mathcal N(j)$ 推出 $\theta^*_{jk}=0$？AND 与 OR 哪一个更保守？
+3. 图 Lasso 的 Hessian 是什么？不相干 (11.15) 加在哪张矩阵的哪些行上？
+4. 伊辛邻域回归 (11.39) 里 $f(t)=\log(1+e^t)$ 从哪里来？Theorem 11.15 要的样本量相对最大度 $m$ 是什么阶？
+5. 隐变量设定下 $(\Sigma^*_{OO})^{-1}$ 为什么是稀疏减低秩？硬阈值 (11.58) 的 $\nu_n$ 里 $\alpha/d$ 这一项在防什么？
+
+<details>
+<summary>查看参考答案</summary>
+
+1. 高斯密度的对数是二次型，交互只出现在成对坐标上，更高阶团的相容函数可以吸收进边函数。一般正密度的对数可以有任意阶交互，HC 必须允许全部团；只有最大团也够，因为非最大团可以并进最大团。
+2. 邻域是割集，故 $X_j\perp X_k\mid X_{\mathcal N(j)}$（$k\notin\mathcal N^+(j)$）。高斯条件均值是线性的，$\theta^*_j$ 是用 $X_{\backslash\{j\}}$ 对 $X_j$ 的回归系数，条件独立的坐标系数为 $0$。AND 要求两边的邻域估计都同意，因此 $\widehat E_{\mathrm{AND}}\subseteq\widehat E_{\mathrm{OR}}$，AND 更保守。
+3. $\nabla^2\mathcal L_n(\Theta)=\Theta^{-1}\otimes\Theta^{-1}$，在 $\Theta^*$ 处记为 $\Gamma^*$，尺寸 $d^2\times d^2$，行 / 列按有序对索引。不相干限制 $S^c$（非边且非对角）的每一行：$\|\Gamma^*_{eS}(\Gamma^*_{SS})^{-1}\|_1\le 1-\alpha$。
+4. 二值变量的条件分布是 Bernoulli / 逻辑回归，负对数条件似然经整理后出现 $f(t)=\log(1+e^t)$（Exercise 11.7 给出 $\{\pm 1\}$ 版）。Theorem 11.15 要 $n>c_0 m^2\log d$，与图 Lasso 选边同阶。
+5. Schur 补 (11.56)：观测块精度 $=\Theta^\circ_{OO}-\Theta^\circ_{OH}(\Theta^\circ_{HH})^{-1}\Theta^\circ_{HO}$。第一项随完整图稀疏，第二项是 $d\times r$ 与 $r\times d$ 的乘积，秩 $\le r$。$\alpha/d$ 是低秩块的尖峰半径；阈值必须高于尖峰，否则低秩块的小条目会被当成稀疏边留下。
+
+</details>
+
+# 本章小结
+
+- 无向图模型有两条等价刻画（密度严格为正时）：团上的因子分解，以及割集给出的条件独立；高斯把二者收成精度的零型；
+- 图 Lasso 是非对角 $\ell_1$ 罚的高斯似然；Frobenius 界走第 9 章 RSC，选边走原对偶见证加 Hessian 不相干，需要 $n\gtrsim m^2\log d$；
+- 邻域回归把图选择拆成 $d$ 次稀疏回归，AND / OR 拼边；随机设计的原对偶见证给出无假边与显著边恢复；伊辛把平方损失换成逻辑损失，样本量同阶；
+- 损坏观测破坏马尔可夫性，必须先造无偏 $\widehat\Gamma$；校正图 Lasso 仍凸（正则够大时有解），校正邻域 Lasso 可以非凸，但 RE 下所有局部最优都有 $\ell_2$ 界；
+- 隐变量把观测精度写成稀疏减低秩；在尖峰约束下，硬阈值加残差给出 max-范数与算子范数界。
+
+## 术语对照
+
+| 中文 | English | 备注 |
+|---|---|---|
+| 图模型 | graphical model | 本章对象；名词委：图模型 |
+| 无向图 | undirected graph | 边为无序对 |
+| 马尔可夫随机场 | Markov random field | 无向图模型的别名 |
+| 团 | clique | 两两相邻的顶点集 |
+| 最大团 | maximal clique | 不能再扩大的团 |
+| 团相容函数 | clique compatibility function | (11.1) 的 $\psi_C$ |
+| 因子分解 | factorization | Definition 11.1 |
+| 顶点割集 | vertex cutset | (11.4) |
+| 条件独立 | conditional independence | $X_A\perp X_B\mid X_S$ |
+| 马尔可夫性 | Markov property | Definition 11.5 |
+| 邻域 | neighborhood | (11.5) 的 $\mathcal N(j)$ |
+| 汉默斯利–克利福德定理 | Hammersley–Clifford theorem | Theorem 11.8 |
+| 精度矩阵 | precision matrix | $\Theta^*=(\Sigma^*)^{-1}$ |
+| 图选择 | graphical model selection | 亦称逆协方差选择 |
+| 图 Lasso | graphical Lasso | (11.10) |
+| 非对角 $\ell_1$ 范数 | off-diagonal $\ell_1$-norm | $\lvert\lvert\lvert\cdot\rvert\rvert\rvert_{1,\mathrm{off}}$ |
+| 限制强凸 | restricted strong convexity | (11.12)；第 9 章 |
+| 不相干 | incoherence | (11.15)、(11.23)、(11.40) |
+| 原对偶见证 | primal–dual witness | 第 7 章技法 |
+| 邻域回归 | neighborhood regression | (11.22)、(11.37) |
+| AND 规则 / OR 规则 | AND rule / OR rule | 拼邻域成边 |
+| 伊辛模型 | Ising model | Example 11.4；(11.3)、(11.38) |
+| 配分函数 | partition function | $Z(\theta^*)$ |
+| 波茨模型 | Potts model | Example 11.13 |
+| 泊松图模型 | Poisson graphical model | Example 11.14 |
+| 成对指数族 | pairwise exponential family | (11.32) |
+| 校正图 Lasso | corrected graphical Lasso | (11.44) |
+| 校正 Lasso | corrected Lasso | (11.48) |
+| 限制特征值 | restricted eigenvalue | (11.50) |
+| 隐变量 | hidden variables | 亦称潜变量 |
+| Schur 补 | Schur complement | (11.56) |
+| 尖峰 | spikiness | $\|\Lambda^*\|_{\max}\le\alpha/d$ |
+| 硬阈值 | hard-thresholding | (11.58)；印刷曾写 soft |
+
+: 本章术语（中文从名词委；英文从教材或国际通行用法）
+
+## 来源定位
+
+- 教材：第 11 章 §§11.1–11.5，印刷页 347–378，PDF 页 366–397。
+- 习题：§11.6 Exercises 11.1–11.13，印刷页 378–382，PDF 页 397–401；解答见 [Solutions](../solutions/ch11-solutions.qmd)。
+- 页码关系：**PDF 页 = 印刷页 + 19**（印刷页 347 = PDF 页 366）。

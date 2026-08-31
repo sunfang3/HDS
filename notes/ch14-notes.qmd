@@ -1,0 +1,1142 @@
+---
+title: "第 14 章　局部化与一致定律"
+subtitle: "Wainwright, High-Dimensional Statistics 伴读 Notes"
+description: "面向已学陈希孺本科概率统计、并已读第 2–5、12–13 章的读者：把局部复杂度做成 L2 范数的双边/单边一致定律，并用于 Lipschitz 代价与密度估计"
+execute:
+  enabled: false
+lang: zh-CN
+---
+
+# 本章导览
+
+第 4 章的一致大数定律（uniform law of large numbers）控制的是
+$$
+\sup_{f\in\mathscr F}\bigl\lvert \mathbb P_n(f)-\mathbb P(f)\bigr\rvert
+$$
+何时趋于 0。那是**渐近**语言：偏差依概率或几乎必然消失。第 13 章已经在非参数最小二乘里用过**局部**高斯复杂度，把预测误差钉在临界半径 $\delta_n$ 上。本章把这套局部化做成一套可以反复调用的一致定律，对象换成 $L^2$ 范数本身，以及更一般的 Lipschitz 代价。
+
+和第 13 章的一个关键差别：那里把协变量 $\{x_i\}$ 看成固定、只对噪声取概率；本章把 $\{x_i\}$ 也看成随机，于是经验范数 $\|\cdot\|_n$ 本身是随机变量，要和总体范数 $\|\cdot\|_2$ 比较。
+
+阅读时抓住一条标度：不局部化时，有界 VC 类只能给出 $\|\cdot\|_n-\|\cdot\|_2$ 的 $n^{-1/4}$ 波动；局部化之后，有限维类回到 $n^{-1/2}$，一阶 Sobolev 单位球是 $n^{-1/3}$，高斯核单位球几乎是参数级的 $\sqrt{\log n/n}$。单边定律再把一致有界换成四阶矩，才能覆盖线性类与可加模型。Lipschitz 代价把同一套临界半径翻译成超额风险。
+
+本章阅读主线：
+
+$$
+\text{单函数 }\|f\|_n\text{ vs }\|f\|_2
+\longrightarrow
+\text{局部拉德马赫临界半径 }\delta_n
+\longrightarrow
+\text{双边 / 单边一致定律}
+\longrightarrow
+\text{Lipschitz 代价与密度估计}.
+$$
+
+> 教材定位：第 14 章 §§14.1–14.6，印刷页 453–482，PDF 页 472–501。习题 §14.7 印刷页 482–484，PDF 页 501–503，不进入 Notes。页码关系：**PDF 页 = 印刷页 + 19**。
+
+## 学习目标
+
+学完本章后，你应能：
+
+- **写出** 总体 / 经验 $L^2$ 范数 (14.1)–(14.2)，并说明为何 $\mathbb E[\|f\|_n^2]=\|f\|_2^2$ 不能直接升级成一致定律；
+- **陈述** Theorem 14.1：由临界不等式 $\overline{\mathcal R}_n(\delta;\mathscr F)\le\delta^2/b$ 推出平方偏差 (14.5a) 与范数偏差 (14.5b)，并用 Example 14.2 对比 $n^{-1/4}$ 与 $n^{-1/2}$；
+- **区分** 弱四阶矩 (14.22a) 与强四阶矩 (14.22b)，并应用单边定律 Theorem 14.12 得到 $\|\widehat f-f^*\|_2^2$ 的总体界（Corollary 14.15）；
+- **把** Lipschitz 代价的超额风险写成 Theorem 14.20 的 (14.51)–(14.52)，并指出最小二乘、Huber、logistic、铰链各自的 $L$ 与 $\gamma$；
+- **陈述** 约束 NPMLE 的海林格界 (14.59) 与投影密度估计的神谕不等式 (14.65)。
+
+# 必要先修
+
+第 4 章的对称化与拉德马赫复杂度、第 5 章的 Dudley 积分与 Ledoux–Talagrand 压缩、第 13 章的局部高斯复杂度与星形类，本章直接当工具用。下面只钉三处容易卡壳的接口。
+
+::: {.callout-note title="为什么现在需要局部化，而不是第 4 章那种全局一致定律"}
+全局拉德马赫 $\mathcal R_n(\mathscr F)$ 看见的是整个函数类的“直径”。对 $\{\,f^2:f\in\mathscr F\,\}$ 做全局一致定律，临界半径往往停在 $n^{-1/4}$。真正需要比较的只是 $\|\cdot\|_2$ 靠近 0 的那一小团函数：把上确界限制在 $\{\|f\|_2\le\delta\}$ 上，临界方程变成 $\overline{\mathcal R}_n(\delta)\asymp\delta^2$，解出的 $\delta_n$ 才是对的速率。
+:::
+
+::: {.callout-note title="作者解释：星形保证 $\delta\mapsto\overline{\mathcal R}_n(\delta)/\delta$ 不增"}
+函数类 $\mathscr F$ 绕原点星形（star-shaped around the origin），是指 $f\in\mathscr F$、$\alpha\in[0,1]$ 时 $\alpha f\in\mathscr F$。Lemma 13.6 对高斯复杂度证明的同一缩放，对拉德马赫同样成立：半径越大，单位半径上的复杂度越小。因此临界不等式一旦在某个 $\delta_n$ 成立，所有更大的半径自动成立。凸类绕其任意一点都星形。
+:::
+
+::: {.callout-note title="作者解释：$L^2(\mathbb P)$ 与 $L^2(\mathbb P_n)$ 不是同一个范数"}
+$\|f\|_2^2=\mathbb E[f^2(X)]$ 是总体二阶矩；$\|f\|_n^2=n^{-1}\sum_i f^2(x_i)$ 是样本二阶矩。两者对单个 $f$ 由大数定律连在一起，但对一整类 $\mathscr F$，小范数的函数相对误差可以很大。本章所有“$\|f\|_n$ 与 $\|f\|_2$ 同阶”的结论，都只在 $\|f\|_2\gtrsim\delta_n$ 的区域里成立。
+:::
+
+# 14 Localization and uniform laws　局部化与一致定律
+
+> 教材定位：章首，印刷页 453，PDF 页 472。
+
+第 4 章已经说明：一致大数定律管的是样本均值与总体均值在函数类上的一致偏差。古典结论是渐近的；当代做法是对一切样本量给出显式速率。要得到锐的速率，必须把偏差局部化到原点附近。第 13 章在非参数回归里用过一次；本章把该技术做成 $L^2$ 范数、单边下尾、Lipschitz 代价和密度估计上的定理。
+
+# 14.1 Population and empirical $L^2$-norms　总体与经验 $L^2$ 范数
+
+> 教材定位：§14.1，印刷页 453–462，PDF 页 472–481。
+
+设 $f:\mathcal X\to\mathbb R$，$\mathbb P$ 是 $\mathcal X$ 上的概率。总体 $L^2(\mathbb P)$ 范数是
+
+::: {.callout-important title="(14.1) 总体 $L^2$ 范数"}
+$$
+\|f\|_{L^2(\mathbb P)}^2
+:=
+\int_{\mathcal X} f^2(x)\,\mathbb P(dx)
+=
+\mathbb E\bigl[f^2(X)\bigr].
+$$
+$\|f\|_2$ 是它的简写。$f\in L^2(\mathbb P)$ 当且仅当该量有限。
+:::
+
+给定 i.i.d. 样本 $\{x_i\}_{i=1}^n\sim\mathbb P$，经验分布 $\mathbb P_n:=n^{-1}\sum_{i=1}^n\delta_{x_i}$ 诱导经验 $L^2$ 范数
+
+::: {.callout-important title="(14.2) 经验 $L^2$ 范数"}
+$$
+\|f\|_{L^2(\mathbb P_n)}^2
+:=
+\frac1n\sum_{i=1}^n f^2(x_i)
+=
+\int_{\mathcal X} f^2(x)\,\mathbb P_n(dx).
+$$
+$\|f\|_n$ 是它的简写。
+:::
+
+第 13 章把 $\{x_i\}$ 视为固定，界的是 $L^2(\mathbb P_n)$ 误差。本章把样本看成随机，于是 $\|f\|_n$ 本身随机。线性性给出
+$$
+\mathbb E\bigl[\|f\|_n^2\bigr]
+=
+\|f\|_2^2
+\qquad
+\text{对一切 }f\in L^2(\mathbb P).
+$$
+于是单个有界函数满足大数定律。若 $\|f\|_\infty\le b$，霍夫丁（Proposition 2.5，(2.11)）给出
+$$
+\mathbb P\bigl[\bigl\lvert \|f\|_n^2-\|f\|_2^2\bigr\rvert\ge t\bigr]
+\le
+2\exp\Bigl(-\frac{nt^2}{2b^4}\Bigr).
+$$
+（教材定位：§14.1，印刷页 454，PDF 页 473。）目标是把这条单函数尾界升级成对整类 $\mathscr F$ 一致，并且用局部复杂度拿到最优速率。
+
+## 14.1.1 A uniform law with localization　带局部化的一致定律
+
+> 教材定位：§14.1.1，印刷页 454–458，PDF 页 473–477。
+
+::: {.callout-important title="(14.3) 局部总体拉德马赫复杂度"}
+$$
+\overline{\mathcal R}_n(\delta;\mathscr F)
+=
+\mathbb E_{\varepsilon,x}
+\Bigl[
+\sup_{\substack{f\in\mathscr F\\ \|f\|_2\le\delta}}
+\Bigl\lvert
+\frac1n\sum_{i=1}^n\varepsilon_i f(x_i)
+\Bigr\rvert
+\Bigr],
+$$
+其中 $\{x_i\}$ i.i.d. $\sim\mathbb P$，$\{\varepsilon_i\}$ 是与样本独立的拉德马赫变量（Rademacher variables），$\mathbb P[\varepsilon_i=\pm 1]=1/2$。
+:::
+
+本章默认两点：
+
+- **绕原点星形：** $f\in\mathscr F$、$\alpha\in[0,1]$ 推出 $\alpha f\in\mathscr F$；
+- **$b$-一致有界：** $\|f\|_\infty\le b<\infty$ 对一切 $f\in\mathscr F$。
+
+::: {.callout-important title="Theorem 14.1　$L^2$ 范数的双边一致定律"}
+设 $\mathscr F$ 星形且 $b$-一致有界，$\delta_n$ 是临界不等式
+$$
+\overline{\mathcal R}_n(\delta;\mathscr F)
+\le
+\frac{\delta^2}{b}
+\tag{14.4}
+$$
+的任意正解决。则对任意 $t\ge\delta_n$，以至少 $1-c_1\exp(-c_2 nt^2/b^2)$ 的概率，
+$$
+\bigl\lvert \|f\|_n^2-\|f\|_2^2\bigr\rvert
+\le
+\frac12\|f\|_2^2+\frac{t^2}{2}
+\qquad
+\text{对一切 }f\in\mathscr F.
+\tag{14.5a}
+$$
+若再有 $n\delta_n^2\ge (2/c_2)\log(4\log(1/\delta_n))$，则以至少 $1-c'_1\exp(-c'_2 n\delta_n^2/b^2)$ 的概率，
+$$
+\bigl\lvert \|f\|_n-\|f\|_2\bigr\rvert
+\le
+c_0\delta_n
+\qquad
+\text{对一切 }f\in\mathscr F.
+\tag{14.5b}
+$$
+:::
+
+(14.5a) 说的是**平方**偏差：相对误差 $1/2$ 加上阶为 $t^2$ 的绝对项，所以在 $\|f\|_2\gtrsim t$ 的区域里 $\|f\|_n^2$ 与 $\|f\|_2^2$ 同阶。(14.5b) 把同一件事写成范数本身的一致偏差，代价是多一个温和的 $n\delta_n^2\gtrsim\log\log(1/\delta_n)$。
+
+同一套结论也可以用**局部经验拉德马赫复杂度**来写：
+
+$$
+\widehat{\mathcal R}_n(\delta)
+\equiv
+\widehat{\mathcal R}_n(\delta;\mathscr F)
+:=
+\mathbb E_{\varepsilon}
+\Bigl[
+\sup_{\substack{f\in\mathscr F\\ \|f\|_n\le\delta}}
+\Bigl\lvert
+\frac1n\sum_{i=1}^n\varepsilon_i f(x_i)
+\Bigr\rvert
+\Bigr],
+\tag{14.6}
+$$
+$\hat\delta_n$ 是 $\widehat{\mathcal R}_n(\delta)\le\delta^2/b$ 的正解决 (14.7)。$\hat\delta_n$ 是随机的，但与确定性的 $\delta_n$ 同阶：存在万有常数 $c<1<C$，使得以至少 $1-c_1\exp(-c_2 n\delta_n^2/b^2)$ 的概率有 $\hat\delta_n\in[c\delta_n,C\delta_n]$，从而
+$$
+\bigl\lvert \|f\|_n-\|f\|_2\bigr\rvert
+\le
+\frac{c_0}{c}\,\hat\delta_n
+\qquad
+\text{对一切 }f\in\mathscr F.
+\tag{14.8}
+$$
+细节见附录 Proposition 14.25。
+
+### 例：有界二次函数（Example 14.2）
+
+> 教材定位：Example 14.2，印刷页 455–457，PDF 页 474–476。
+
+在 $[-1,1]$ 上取
+$$
+\mathcal P_2
+:=
+\bigl\{
+f_\theta(x)=\theta_0+\theta_1 x+\theta_2 x^2
+:
+\max_{x\in[-1,1]}\lvert f_\theta(x)\rvert\le 1
+\bigr\},
+\tag{14.9}
+$$
+样本来自 $[-1,1]$ 上的均匀分布。这是三维参数类，却能把“不局部化会慢、局部化才对”讲清楚。
+
+**不局部化（次优）。** Proposition 4.20 给出 $\mathcal P_2$ 的 VC 维至多 3。再配合有界性与 Lemma 4.14，
+$$
+\mathbb E_{\varepsilon}
+\Bigl[
+\sup_{\substack{f_\theta\in\mathcal P_2\\ \|f_\theta\|_2\le\delta}}
+\Bigl\lvert
+\frac1n\sum_{i=1}^n\varepsilon_i f(x_i)
+\Bigr\rvert
+\Bigr]
+\le
+2\sqrt{\frac{3\log(n+1)}{n}}
+\le
+4\sqrt{\frac{\log(n+1)}{n}}.
+\tag{14.10}
+$$
+上界完全没看见 $\|f\|_2\le\delta$。代入 (14.4) 只能取 $\delta_n=c_0(\log(n+1)/n)^{1/4}$。Theorem 14.1 于是给出：对 $t\ge c_0(\log(n+1)/n)^{1/4}$，
+$$
+\bigl\lvert \|f\|_n^2-\|f\|_2^2\bigr\rvert
+\le
+\tfrac12\|f\|_2^2+t^2
+\qquad
+\text{对一切 }f\in\mathcal P_2,
+\tag{14.11}
+$$
+以至少 $1-c_1 e^{-c_2 t^2}$ 的概率成立。$\|f\|_2$ 与 $\|f\|_n$ 只在 $\|f\|_2\gtrsim n^{-1/4}$ 时同阶，这个波动阶是次优的。Exercise 14.3 用熵积分去掉多余的对数，但 $n^{-1/4}$ 还在。
+
+**局部化（最优）。** 换成 $L^2[-1,1]$ 的前三个勒让德（Legendre）函数
+$$
+\phi_0(x)=\frac1{\sqrt 2},
+\qquad
+\phi_1(x)=\sqrt{\frac32}\,x,
+\qquad
+\phi_2(x)=\sqrt{\frac58}\,(3x^2-1),
+$$
+它们标准正交，于是 $f_\gamma=\sum_{j=0}^2\gamma_j\phi_j$ 满足 $\|f_\gamma\|_2=\|\gamma\|_2$。令 $M\in\mathbb R^{n\times 3}$、$M_{ij}=\phi_j(x_i)$。柯西–施瓦茨再 Jensen 给出
+$$
+\mathbb E
+\Bigl[
+\sup_{\|f_\gamma\|_2\le\delta}
+\Bigl\lvert
+n^{-1}\sum_i\varepsilon_i f_\gamma(x_i)
+\Bigr\rvert
+\Bigr]
+\le
+\frac{\delta}{n}\sqrt{\mathbb E[\|\varepsilon^T M\|_2^2]}.
+$$
+正交性推出 $\mathbb E_x[\mathrm{trace}(M^T M)]=3n$，因此局部复杂度 $\le \sqrt 3\,\delta/\sqrt n$。临界不等式 (14.4) 被 $\delta_n=c/\sqrt n$ 满足。对 $t\ge c/\sqrt n$，
+$$
+\bigl\lvert \|f\|_n^2-\|f\|_2^2\bigr\rvert
+\le
+\frac{\|f\|_2^2}{2}+\frac12 t^2
+\qquad
+\text{对一切 }f\in\mathcal P_2,
+\tag{14.12}
+$$
+以至少 $1-c_1 e^{-c_2 nt^2}$ 的概率成立。速率从 $(\log n/n)^{1/4}$ 升到 $n^{-1/2}$。
+
+::: {.callout-note title="作者解释：原文在得到 (14.12) 时写的是 Theorem 4.10"}
+印刷页 457 在局部化计算之后写 “Applying Theorem 4.10 then guarantees” 得到 (14.12)。(14.12) 的形状就是 Theorem 14.1 的 (14.5a)；Theorem 4.10 是第 4 章的对称化 / 一致定律，并不直接给出带 $\tfrac12\|f\|_2^2$ 的局部平方偏差。按 Theorem 14.1 读这一段。
+:::
+
+### 由覆盖数求解临界半径（Corollary 14.3）
+
+> 教材定位：Corollary 14.3，印刷页 457，PDF 页 476。
+
+记 $N_n(t;\mathbb B_n(\delta;\mathscr F))$ 为集合 $\{f\in\mathscr F:\|f\|_n\le\delta\}$ 在经验 $L^2(\mathbb P_n)$ 范数下的 $t$-覆盖数。经验临界不等式 (14.7) 对任何满足
+$$
+\frac{64}{\sqrt n}
+\int_{\delta^2/(2b)}^{\delta}
+\sqrt{\log N_n\bigl(t;\mathbb B_n(\delta;\mathscr F)\bigr)}\,dt
+\le
+\frac{\delta^2}{b}
+\tag{14.13}
+$$
+的 $\delta>0$ 成立。证明与 Corollary 13.7 相同。$N_n$ 总可以被上确界范数覆盖数 $N_{\mathrm{sup}}$ 控制。
+
+**凸 1-Lipschitz 类（Example 14.4）。** 印刷页 457–458，PDF 页 476–477。
+$$
+\mathscr F_{\mathrm{conv}}([0,1];1)
+:=
+\bigl\{
+f:[0,1]\to\mathbb R
+:
+f(0)=0,\ \text{$f$ 凸且 1-Lipschitz}
+\bigr\}.
+$$
+已知 $\log N_{\mathrm{sup}}(t;\mathscr F_{\mathrm{conv}})\lesssim t^{-1/2}$（$t$ 充分小）。代入 (14.13) 只需
+$$
+\frac1{\sqrt n}\int_0^\delta t^{-1/4}\,dt
+=
+\frac1{\sqrt n}\cdot\frac43\delta^{3/4}
+\lesssim\delta^2,
+$$
+取 $\delta=c n^{-2/5}$ 即可。Theorem 14.1 给出
+$$
+\bigl\lvert \|f\|_2-\|f\|_n\bigr\rvert
+\le
+c' n^{-2/5}
+\qquad
+\text{对一切 }f\in\mathscr F_{\mathrm{conv}}([0,1];1),
+$$
+以大于 $1-c_1 e^{-c_2 n^{1/5}}$ 的概率成立。
+
+## 14.1.2 Specialization to kernel classes　核类上的特殊化
+
+> 教材定位：§14.1.2，印刷页 458–459，PDF 页 477–478。
+
+设 $\mathscr F=\{f\in\mathbb H:\|f\|_{\mathbb H}\le 1\}$ 是核 $\mathcal K$ 对应 RKHS 的单位球。Mercer（Theorem 12.20）给出可数特征值 $(\mu_j)_{j=1}^\infty$。
+
+::: {.callout-important title="Corollary 14.5　RKHS 单位球的局部复杂度"}
+$$
+\overline{\mathcal R}_n(\delta;\mathscr F)
+\le
+\sqrt{\frac2n}
+\sqrt{\sum_{j=1}^\infty\min\{\mu_j,\delta^2\}},
+\tag{14.14a}
+$$
+$$
+\widehat{\mathcal R}_n(\delta;\mathscr F)
+\le
+\sqrt{\frac2n}
+\sqrt{\sum_{j=1}^n\min\{\widehat\mu_j,\delta^2\}},
+\tag{14.14b}
+$$
+其中 $(\widehat\mu_j)_{j=1}^n$ 是重标度核矩阵 $K_{ij}=\mathcal K(x_i,x_j)/n$ 的特征值。
+:::
+
+(14.14b) 来自 Lemma 13.22；(14.14a) 的推导是 Exercise 14.4。
+
+**一阶 Sobolev（Example 14.6）。** $\mathbb H^1[0,1]=\{f:[0,1]\to\mathbb R:f(0)=0,\ f\text{ 绝对连续且 }f'\in L^2[0,1]\}$，核 $\mathcal K(x,z)=\min\{x,z\}$。单位球 $b=1$（Exercise 12.14），特征值 $\mu_j=(2/((2j-1)\pi))^2$（Example 12.23）。与 Example 13.20 同类计算给出
+$$
+\frac1{\sqrt n}\sqrt{\sum_{j=1}^\infty\min\{\delta^2,\mu_j\}}
+\le
+c'\sqrt{\frac{\delta}{n}},
+$$
+因而 $\delta_n=c n^{-1/3}$。Theorem 14.1 推出
+$$
+\sup_{\|f\|_{\mathbb H^1[0,1]}\le 1}
+\bigl\lvert \|f\|_2-\|f\|_n\bigr\rvert
+\le
+c_0 n^{-1/3},
+$$
+以大于 $1-c_1 e^{-c_2 n^{1/3}}$ 的概率成立。
+
+**高斯核（Example 14.7）。** $\mathcal K(x,z)=e^{-(x-z)^2/2}$，定义在 $[-1,1]\times[-1,1]$。特征值 $\mu_j\le c_0 e^{-c_1 j\log j}$（Example 13.21）。临界半径
+$$
+\delta_n=c_0\sqrt{\frac{\log(n+1)}{n}},
+$$
+从而
+$$
+\sup_{\|f\|_{\mathbb H}\le 1}
+\bigl\lvert \|f\|_2-\|f\|_n\bigr\rvert
+\le
+c_0\sqrt{\frac{\log(n+1)}{n}},
+$$
+以大于 $1-2e^{-c_1\log(n+1)}$ 的概率成立。高斯核单位球虽是非参数类，一致定律的速率几乎是参数级——它仍然“小”。
+
+## 14.1.3 Proof of Theorem 14.1　Theorem 14.1 的证明要点
+
+> 教材定位：§14.1.3，印刷页 460–462，PDF 页 479–481。清单处理：简要说明。
+
+缩放后可设 $b=1$，并把临界不等式改成更紧的
+$$
+\overline{\mathcal R}_n(\delta;\mathscr F)\le\frac{\delta^2}{16}.
+\tag{14.15}
+$$
+新的 $\delta_n$ 只是原半径的常数倍，用来证明 $c_0=1$ 的版本。定义
+$$
+Z_n(r)
+:=
+\sup_{f\in\mathbb B_2(r;\mathscr F)}
+\bigl\lvert \|f\|_2^2-\|f\|_n^2\bigr\rvert,
+\qquad
+\mathbb B_2(r;\mathscr F)=\{f\in\mathscr F:\|f\|_2\le r\}.
+\tag{14.16}
+$$
+$\mathcal E_0$、$\mathcal E_1$ 分别是 (14.5a)、(14.5b) 被破坏的事件。辅助事件 $\mathcal A_0(r):=\{Z_n(r)\ge r^2/2\}$，以及
+$$
+\mathcal A_1
+:=
+\bigl\{
+Z_n(\|f\|_2)\ge\delta_n\|f\|_2
+\text{ 对某个 }\|f\|_2\ge\delta_n\text{ 的 }f\in\mathscr F
+\bigr\}.
+$$
+
+::: {.callout-important title="Lemma 14.8　星形类上的事件包含"}
+$$
+\mathcal E_0\subseteq\mathcal A_0(t),
+\qquad
+\mathcal E_1\subseteq\mathcal A_0(\delta_n)\cup\mathcal A_1.
+\tag{14.17}
+$$
+:::
+
+包含 (i) 用星形缩放：破坏 (14.5a) 的函数，无论范数 $\le t$ 还是 $>t$，都可以缩到半径 $t$ 上使 $Z_n(t)>t^2/2$。包含 (ii) 用代数恒等式 $\lvert\|f\|_n-\|f\|_2\rvert=\lvert\|f\|_n^2-\|f\|_2^2\rvert/(\|f\|_n+\|f\|_2)$：在 $\mathcal A_0(\delta_n)^c\cap\mathcal A_1^c$ 上，范数偏差不超过 $\delta_n$。
+
+::: {.callout-important title="Lemma 14.9　$Z_n(r)$ 的尾界"}
+对一切 $r,s\ge\delta_n$，
+$$
+\mathbb P\Bigl[Z_n(r)\ge\frac{r\delta_n}{4}+\frac{s^2}{4}\Bigr]
+\le
+2\exp\bigl(-c_2 n\min\{s^4/r^2,\,s^2\}\bigr).
+\tag{14.18}
+$$
+:::
+
+期望：对称化（Theorem 4.10 的证法）加 Ledoux–Talagrand 压缩 (5.61)（$u\mapsto u^2$ 在 $[-1,1]$ 上 Lipschitz 常数 2）给出 $\mathbb E[Z_n(r)]\le 4\overline{\mathcal R}_n(r)$。星形推出 $r\mapsto\overline{\mathcal R}_n(r)/r$ 不增，故 $r\ge\delta_n$ 时
+$$
+\frac{\overline{\mathcal R}_n(r)}{r}
+\le
+\frac{\overline{\mathcal R}_n(\delta_n)}{\delta_n}
+\le
+\frac{\delta_n}{16},
+\tag{14.19}
+$$
+从而 $\mathbb E[Z_n(r)]\le r\delta_n/4$。尾界用 Talagrand（Theorem 3.27）：$g=f^2-\mathbb E[f^2]$ 满足 $\|g\|_\infty\le 1$、$\mathrm{var}(g)\le r^2$。
+
+取 $r=s=t$ 即得 (14.5a)。(14.5b) 需要剥皮（peeling）：令
+$$
+\mathcal S_m=\{f\in\mathscr F:2^{m-1}\delta_n\le\|f\|_2\le 2^m\delta_n\}.
+$$
+由 $\|f\|_2\le\|f\|_\infty\le 1$，只需 $m\le M\le 4\log(1/\delta_n)$ 层。取 $s^2=r\delta_n$ 得到
+$$
+\mathbb P\bigl[Z_n(r)\ge r\delta_n/2\bigr]
+\le
+2e^{-c_2 n\delta_n^2}.
+\tag{14.20}
+$$
+并上 $M$ 层并使用 $c_2 n\delta_n^2/2\ge\log(4\log(1/\delta_n))$，即得 (14.5b)。不能直接把随机半径 $\|f\|_2$ 代入 (14.20)，这正是剥皮的理由。
+
+# 14.2 A one-sided uniform law　单边一致定律
+
+> 教材定位：§14.2，印刷页 462–468，PDF 页 481–487。
+
+Theorem 14.1 要求 $b$-一致有界。次高斯 / 次指数尾可以放松这一点（文献见 §14.6），但许多应用——包括第 13 章的非参数最小二乘——真正用到的只是 $\|f\|_n^2$ 的**下尾**。单函数上，对 $\{f(x_i)\}$ 用下尾 (2.23) 得到
+$$
+\mathbb P\bigl[\|f\|_n^2\le\|f\|_2^2-t\bigr]
+\le
+\exp\Bigl(-\frac{nt^2}{2\mathbb E[f^4(x)]}\Bigr).
+\tag{14.21}
+$$
+四阶矩若被二阶矩控制，下尾就是非平凡的。
+
+::: {.callout-important title="(14.22) 四阶矩条件"}
+弱形式：存在 $C$，使得
+$$
+\mathbb E[f^4(x)]
+\le
+C^2\,\mathbb E[f^2(x)]
+\qquad
+\text{对一切 }\|f\|_2\le 1\text{ 的 }f\in\mathscr F.
+\tag{14.22a}
+$$
+强形式：
+$$
+\mathbb E[f^4(x)]
+\le
+C^2\bigl(\mathbb E[f^2(x)]\bigr)^2
+\qquad
+\text{对一切 }f\in\mathscr F.
+\tag{14.22b}
+$$
+:::
+
+强形式推出弱形式。Example 14.11 给出弱形式成立而强形式失败的类。
+
+**线性类（Example 14.10）。** $\mathscr F_{\mathrm{lin}}=\{f_\theta(x)=\langle x,\theta\rangle:\theta\in\mathbb R^d\}$ 从不是有意义的一致有界，但若每个 $f_\theta(x)$ 是高斯，则 $\mathbb E[f_\theta^4]=3(\mathbb E[f_\theta^2])^2$，强条件以 $C^2=3$ 成立，且 $C$ 与方差无关。非高斯的四向独立例子见 Exercise 14.6。
+
+**可加非参数类（Example 14.11）。**
+$$
+\mathscr F_{\mathrm{add}}
+=
+\Bigl\{
+f:\mathbb R^d\to\mathbb R
+:
+f=\sum_{j=1}^d g_j,\ g_j\in\mathscr G
+\Bigr\}.
+\tag{14.23}
+$$
+设 $\|g_j\|_\infty\le b$，每个 $g_j(x_j)$ 零均值，且 $x$ 的坐标四向独立（four-way independent）：任意互异四元组的坐标联合独立。对 $\mathbb E[f^2]=\delta^2\le 1$，独立性给出 $\mathbb E[f^2]=\sum_j\|g_j\|_2^2$，而
+$$
+\mathbb E[f^4]
+=
+\sum_j\mathbb E[g_j^4]+6\sum_{j\neq k}\mathbb E[g_j^2]\mathbb E[g_k^2]
+\le
+b^2\delta^2+6\delta^4
+\le
+(b^2+6)\delta^2.
+$$
+弱条件 (14.22a) 以 $C^2=b^2+6$ 成立。
+
+临界不等式换成
+$$
+\frac{\overline{\mathcal R}_n(\delta;\mathscr F)}{\delta}
+\le
+\frac{\delta}{128C}.
+\tag{14.24}
+$$
+记 $\mathbb B_2(\delta):=\{f\in\mathscr F:\|f\|_2\le\delta\}$。
+
+::: {.callout-important title="Theorem 14.12　单边一致定律"}
+设 $\mathscr F$ 星形，每个 $f$ 在 $\mathbb P$ 下零均值，弱四阶矩 (14.22a) 一致成立，且 $n$ 足够大使得 (14.24) 有解 $\delta_n\le 1$。则对任意 $\delta\in[\delta_n,1]$，以至少 $1-e^{-c_1 n\delta^2/C^2}$ 的概率，
+$$
+\|f\|_n^2
+\ge
+\tfrac12\|f\|_2^2
+\qquad
+\text{对一切 }f\in\mathscr F\setminus\mathbb B_2(\delta).
+\tag{14.25}
+$$
+:::
+
+**注。** 若 $\mathscr F\cap\mathbb B_2(\delta)$ 是锥状的（cone-like）——即非零的 $f\in\mathbb B_2(\delta)\cap\mathscr F$ 可以按 $\alpha=\delta/\|f\|_2\ge 1$ 放大后仍留在 $\mathscr F$ 里——则 $\mathscr F\setminus\mathbb B_2(\delta)$ 可以换成整个 $\mathscr F$。线性类与稀疏锥都满足这一点。
+
+**线性类与随机矩阵（Example 14.13）。** 印刷页 465，PDF 页 484。若 $\mathbb E[x]=0$、$\mathrm{cov}(x)=\Sigma$，则
+$$
+\|f_\theta\|_2^2
+=
+\theta^T\mathbb E[xx^T]\theta
+=
+\|\sqrt{\Sigma}\,\theta\|_2^2,
+\tag{14.26}
+$$
+$$
+\|f_\theta\|_n^2
+=
+\frac1n\sum_{i=1}^n\langle x_i,\theta\rangle^2
+=
+\frac1n\|X\theta\|_2^2,
+\tag{14.27}
+$$
+$X\in\mathbb R^{n\times d}$ 的第 $i$ 行是 $x_i^T$。Theorem 14.12 于是给出二次型的一致下界：只要 $\delta_n\le 1$，
+$$
+\frac1n\|X\theta\|_2^2
+\ge
+\frac12\|\sqrt{\Sigma}\,\theta\|_2^2
+\qquad
+\text{对一切 }\theta\in\mathbb R^d.
+\tag{14.28}
+$$
+
+高斯设计 $x\sim N(0,\Sigma)$ 时，$\langle x,\theta\rangle$ 的次高斯参数至多是 $\Vert\sqrt{\Sigma}\Vert_2$，这个量可以随 $d$ 增长；但强矩仍以 $C^2=3$ 成立。为解 (14.24)，写 $x=\sqrt{\Sigma}\,w$。原文作 $w\sim N(0,\Sigma)$；紧接着又说 $\{\varepsilon_i w_i\}$ 是标准高斯，且 $\mathbb E\|n^{-1}\sum\varepsilon_i w_i\|_2\le\sqrt{d/n}$，因此这里按 $w\sim N(0,I_d)$ 解读。于是
+$$
+\overline{\mathcal R}_n(\delta;\mathscr F_{\mathrm{lin}})
+=
+\delta\,\mathbb E\Bigl\|\frac1n\sum_{i=1}^n\varepsilon_i w_i\Bigr\|_2
+\le
+\delta\sqrt{\frac d n},
+$$
+故 $\delta_n^2\lesssim d/n$。只要 $n\gtrsim d$，(14.29) 以高概率成立，而且 $\Vert\sqrt{\Sigma}\Vert_2$ **不进入**下界。四向独立、$B$-有界坐标（Exercise 14.6）以 $C^2=B+6$ 给出 $\Sigma=I_d$ 时的同一形式，且不必次高斯、不必有四阶以上的矩。
+
+**可加模型（Example 14.14）。** 印刷页 466，PDF 页 485。设 $\varepsilon_n$ 是单变量类 $\mathscr G$ 的临界半径。原文把单变量临界写成 $\overline{\mathcal R}_n(\varepsilon;\mathscr F)\lesssim\varepsilon^2$；$\varepsilon_n$ 属于 $\mathscr G$，按 $\overline{\mathcal R}_n(\varepsilon;\mathscr G)\lesssim\varepsilon^2$ 读。Exercise 14.8 证明 $d$ 维可加类满足 $\delta_n\lesssim\sqrt d\,\varepsilon_n$，因此
+$$
+\|f\|_n^2
+\ge
+\tfrac12\|f\|_2^2
+\qquad
+\text{对一切 }\|f\|_2\ge c_0\sqrt d\,\varepsilon_n\text{ 的 }f\in\mathscr F_{\mathrm{add}},
+\tag{14.30}
+$$
+概率至少 $1-e^{-c_1 n d\varepsilon_n^2}$。若 $\mathscr G$ 是一阶 Sobolev，则 $\varepsilon_n^2\asymp n^{-2/3}$（Example 13.20），从而以至少 $1-e^{-c_1 d n^{1/3}}$ 的概率，
+$$
+\Bigl\|\sum_{j=1}^d g_j\Bigr\|_n^2
+\ge
+\frac12\sum_{j=1}^d\|g_j\|_2^2
+\tag{14.31}
+$$
+对一切 $\|f\|_2\gtrsim\sqrt d\,n^{-1/3}$ 的可加函数成立。
+
+## 14.2.1 Consequences for nonparametric least squares　对非参数最小二乘的推论
+
+> 教材定位：§14.2.1，印刷页 466–467，PDF 页 485–486。
+
+观测 $y_i=f^*(x_i)+\sigma w_i$，$f^*\in\mathscr F$。平移类 $\mathscr F^*=\mathscr F-f^*$。设 $\delta_n$、$\varepsilon_n$ 分别是
+$$
+\frac{\overline{\mathcal R}_n(\delta;\mathscr F)}{\delta}
+\le
+\frac{\delta}{128C},
+\qquad
+\frac{\mathcal G_n(\varepsilon;\mathscr F^*)}{\varepsilon}
+\le
+\frac{\varepsilon}{2\sigma}
+\tag{14.32}
+$$
+的正解决。$\mathcal G_n$ 是 (13.16) 的局部高斯复杂度；$\varepsilon_n$ 依赖随机协变量，因此是随机变量。
+
+::: {.callout-important title="Corollary 14.15　总体 $L^2$ 误差"}
+在 Theorem 13.5 与 Theorem 14.12 的条件下，非参数最小二乘 $\widehat f$ 满足
+$$
+\mathbb P_{w,x}
+\bigl[
+\|\widehat f-f^*\|_2^2
+\ge
+c_0(\varepsilon_n^2+\delta_n^2)
+\bigr]
+\le
+c_1\exp\Bigl(-c_2\frac{n\delta_n^2}{\sigma^2+C^2}\Bigr).
+\tag{14.33}
+$$
+:::
+
+证明分两种情形。若 $\delta_n\ge\varepsilon_n$，则 $\delta_n$ 对 (14.32) 的高斯临界也成立。Theorem 13.5 取 $t=\delta_n$ 控制经验误差；印刷页 467 写成 $\mathbb P_w[\|\widehat f-f^*\|_n\ge 16\delta_n^2]$，与 Case 2 以及 Theorem 13.5 的平方经验范数不一致，按 $\|\widehat f-f^*\|_n^2\ge 16\delta_n^2$ 读。Theorem 14.12 再把经验平方误差换成总体平方误差。若 $\delta_n<\varepsilon_n$，对事件 $\{\delta_n<\varepsilon_n\}$ 用 Theorem 13.5（$t=\varepsilon_n$）控制经验侧，再用 Theorem 14.12 控制总体侧。
+
+## 14.2.2 Proof of Theorem 14.12　Theorem 14.12 的证明要点
+
+> 教材定位：§14.2.2，印刷页 468–469，PDF 页 487–488。清单处理：简要说明。
+
+星形缩放把问题降到球面 $\partial\mathbb B_2(\delta)=\{\|f\|_2=\delta\}$。在球面上，(14.25) 等价于
+$$
+\|f\|_n^2
+\ge
+\frac34\|f\|_2^2-\frac{\delta^2}{4}.
+\tag{14.34}
+$$
+用截断二次
+$$
+\varphi_\tau(u)
+:=
+\begin{cases}
+u^2 & \lvert u\rvert\le\tau,\\
+\tau^2 & \text{otherwise},
+\end{cases}
+\tag{14.35}
+$$
+并令 $f_\tau(x)=\mathrm{sign}(f(x))\sqrt{\varphi_\tau(f(x))}$。则 $\|f\|_n^2\ge\|f_\tau\|_n^2$，从而
+$$
+\|f\|_n^2
+\ge
+\|f_\tau\|_2^2
+-
+\sup_{f\in\partial\mathbb B_2(\delta)}
+\bigl\lvert \|f_\tau\|_n^2-\|f_\tau\|_2^2\bigr\rvert.
+\tag{14.36}
+$$
+取 $\tau^2=4C^2$ 时，柯西–施瓦茨加马尔可夫加 (14.22a) 给出
+$$
+\|f_\tau\|_2^2
+\ge
+\tfrac34\|f\|_2^2
+\qquad
+\text{对一切 }f\in\partial\mathbb B_2(\delta),
+\tag{14.37a}
+$$
+而对称化加压缩（$\varphi_\tau$ 的 Lipschitz 常数 $2\tau$）加 Talagrand 给出
+$$
+\mathbb P[Z_n\ge\delta^2/4]
+\le
+c_1 e^{-c_2 n\delta^2},
+\qquad
+Z_n:=\sup_{f\in\partial\mathbb B_2(\delta)}\bigl\lvert\|f_\tau\|_n^2-\|f_\tau\|_2^2\bigr\rvert.
+\tag{14.37b}
+$$
+期望界是 $\mathbb E[Z_n]\le\delta^2/8$，Talagrand 尾是
+$$
+\mathbb P[Z_n\ge\mathbb E[Z_n]+u]
+\le
+c_1\exp\Bigl(-\frac{c_2 nu^2}{C\delta^2+C^2 u}\Bigr);
+\tag{14.38}
+$$
+取 $u=\delta^2/8$ 即得 (14.37b)。
+
+# 14.3 A uniform law for Lipschitz cost functions　Lipschitz 代价的一致定律
+
+> 教材定位：§14.3，印刷页 469–474，PDF 页 488–493。
+
+前两节比较的是 $\|f\|_n^2$ 与 $\|f\|_2^2$，服务于最小二乘的 $L^2(\mathbb P)$ 误差。本节换成一般预测问题。
+
+## 14.3.1 General prediction problems　一般预测问题
+
+> 教材定位：§14.3.1，印刷页 469–472，PDF 页 488–491。
+
+协变量空间 $\mathcal X$，响应空间 $\mathcal Y$。预测器 $f$ 把 $x$ 映到 $\widehat y=f(x)\in\widetilde{\mathcal Y}$。代价 $\mathcal L:\widetilde{\mathcal Y}\times\mathcal Y\to\mathbb R$，$\mathcal L(\widehat y,y)$ 是预测 $\widehat y$、真值 $y$ 的代价。经验代价与总体代价
+$$
+\mathbb P_n\bigl(\mathcal L(f(x),y)\bigr)
+:=
+\frac1n\sum_{i=1}^n\mathcal L\bigl(f(x_i),y_i\bigr),
+\tag{14.39}
+$$
+$$
+\mathbb P\bigl(\mathcal L(f(x),y)\bigr)
+:=
+\mathbb E_{x,y}\bigl[\mathcal L(f(x),y)\bigr].
+\tag{14.40}
+$$
+记 $\mathcal L_f(x,y)=\mathcal L(f(x),y)$，问题变成代价类 $\{\mathcal L_f:f\in\mathscr F\}$ 上的 Glivenko–Cantelli 定律。
+
+本节取 $\mathcal Y\subset\mathbb R$。$\mathcal L$ 对第一变元 $L$-Lipschitz，是指
+$$
+\bigl\lvert\mathcal L(z,y)-\mathcal L(\widetilde z,y)\bigr\rvert
+\le
+L\lvert z-\widetilde z\rvert
+\tag{14.41}
+$$
+对一切 $z,\widetilde z\in\widetilde{\mathcal Y}$、$y\in\mathcal Y$。总体代价 $f\mapsto\mathbb P(\mathcal L_f)$ 在 $f^*$ 处相对 $L^2(\mathbb P)$ **$\gamma$-强凸**，是指
+$$
+\mathbb P
+\Bigl[
+\mathcal L_f-\mathcal L_f^*
+-\frac{\partial\mathcal L}{\partial z}\Big|_{f^*}(f-f^*)
+\Bigr]
+\ge
+\frac\gamma2\|f-f^*\|_2^2
+\qquad
+\text{对一切 }f\in\mathscr F.
+\tag{14.42}
+$$
+点态对每个 $y$ 强凸是充分不必要条件。
+
+**最小二乘（Example 14.16）。** $\mathcal L(z,y)=\tfrac12(y-z)^2$。一般并不全局 Lipschitz。若噪声 $|\varepsilon|\le c$，且 $\mathscr F$ 为 $b$-一致有界，则对 $f,g\in\mathscr F$，
+$$
+\bigl\lvert\mathcal L(f(x),y)-\mathcal L(g(x),y)\bigr\rvert
+\le
+\bigl(b+(b+c)\bigr)\lvert f(x)-g(x)\rvert,
+$$
+故 $L=2b+c$。点态 $\gamma=1$。这个例子排除了高斯噪声，所以只是说明 Lipschitz 可以在有界设定下恢复。
+
+**稳健回归（Example 14.17）。**
+$$
+\mathcal L(z,y)=\Psi(y-z),
+\tag{14.43}
+$$
+$\Psi$ 关于 0 对称，$\Psi(0)=0$，几乎处处可微且 $\|\Psi'\|_\infty\le L$。$\ell_1$ 代价 $\Psi_{\ell_1}(u)=\lvert u\rvert$ 给出 $L=1$。Huber 印刷原文 (14.44) 在 $|u|>\tau$ 写成 $\tau u-\tau^2/2$；该式在 $u<-\tau$ 时无下界。标准 Huber 是
+$$
+\Psi_{\mathrm{Huber}}(u)
+=
+\begin{cases}
+u^2/2 & \lvert u\rvert\le\tau,\\
+\tau\lvert u\rvert-\tau^2/2 & \lvert u\rvert>\tau,
+\end{cases}
+$$
+处处可微且 $\|\Psi'_{\mathrm{Huber}}\|_\infty\le\tau$，从而 $L=\tau$。Huber 在原点附近与最小二乘相同，因此在 $y-f(x)$ 的温和尾条件下局部强凸。
+
+**Logistic（Example 14.18）。** $y\in\{-1,+1\}$，
+$$
+\mathbb P_f(y\mid x)
+=
+\frac1{1+e^{-2yf(x)}},
+\tag{14.45}
+$$
+$$
+\mathcal L_f(x,y)
+=
+\log\bigl(1+e^{-2yf(x)}\bigr).
+\tag{14.46}
+$$
+对第一变元 1-Lipschitz。总体差是条件 KL 的期望：$\mathbb P(\mathcal L_f-\mathcal L_{f^*})=\mathbb E_x[D(\mathbb P_{f^*}(\cdot\mid x)\,\|\,\mathbb P_f(\cdot\mid x))]$。在 $f(x)$ 的温和条件下 $\gamma$-强凸。
+
+**支持向量机（Example 14.19）。** 印刷页 472，PDF 页 491。铰链代价
+$$
+\mathcal L(f(x),y)=\max\{0,\,1-yf(x)\}
+\tag{14.47}
+$$
+是 1-Lipschitz。在 RKHS 球 $\|f\|_{\mathbb H}\le R$ 上极小化经验铰链风险，可化为 $n$ 维二次规划（Exercise 12.20）。
+
+## 14.3.2 Uniform law for Lipschitz cost functions　Lipschitz 代价的一致定律
+
+> 教材定位：§14.3.2，印刷页 472–474，PDF 页 491–493。
+
+设 $f^*\in\mathscr F$ 极小化总体代价，平移类
+$$
+\mathscr F^*:=\{f-f^*:f\in\mathscr F\},
+\tag{14.48}
+$$
+$$
+\overline{\mathcal R}_n(\delta;\mathscr F^*)
+:=
+\mathbb E_{x,\varepsilon}
+\Bigl[
+\sup_{\substack{g\in\mathscr F^*\\ \|g\|_2\le\delta}}
+\Bigl\lvert
+n^{-1}\sum_{i=1}^n\varepsilon_i g(x_i)
+\Bigr\rvert
+\Bigr].
+\tag{14.49}
+$$
+
+::: {.callout-important title="Theorem 14.20　Lipschitz 代价的一致定律"}
+设 $\mathscr F$ 一致 1-有界，且绕总体极小元 $f^*$ 星形。设 $\delta_n^2\ge c/n$ 是
+$$
+\overline{\mathcal R}_n(\delta;\mathscr F^*)\le\delta^2
+\tag{14.50}
+$$
+的解决。
+
+(a) 若代价对第一变元 $L$-Lipschitz，则以大于 $1-c_1 e^{-c_2 n\delta_n^2}$ 的概率，
+$$
+\sup_{f\in\mathscr F}
+\frac{\bigl\lvert\mathbb P_n(\mathcal L_f-\mathcal L_{f^*})-\mathbb P(\mathcal L_f-\mathcal L_{f^*})\bigr\rvert}{\|f-f^*\|_2+\delta_n}
+\le
+10L\delta_n.
+\tag{14.51}
+$$
+
+(b) 若再 $\gamma$-强凸，则任何满足 $\mathbb P_n(\mathcal L_{\widehat f}-\mathcal L_{f^*})\le 0$ 的 $\widehat f\in\mathscr F$ 都有
+$$
+\|\widehat f-f^*\|_2
+\le
+\Bigl(\frac{20L}{\gamma}+1\Bigr)\delta_n,
+\tag{14.52a}
+$$
+$$
+\mathbb P(\mathcal L_{\widehat f}-\mathcal L_{f^*})
+\le
+10L\Bigl(\frac{20L}{\gamma}+2\Bigr)\delta_n^2,
+\tag{14.52b}
+$$
+概率与 (a) 相同。
+:::
+
+经验代价极小化自动满足 $\mathbb P_n(\mathcal L_{\widehat f}-\mathcal L_{f^*})\le 0$。若 $\mathscr F$ 的 $\|\cdot\|_2$-直径至多 $D$，则 (14.51) 推出
+$$
+\mathbb P(\mathcal L_{\widehat f})
+\le
+\mathbb P(\mathcal L_{f^*})+10L\delta_n\{2D+\delta_n\},
+\tag{14.53}
+$$
+超额风险是 $O(\delta_n)$——相合，但不带强凸时是 $\delta_n$ 而不是 $\delta_n^2$。
+
+证明骨架：过程 $Z_n(r)=\sup_{\|f-f^*\|_2\le r}\lvert\mathbb P_n(\mathcal L_f-\mathcal L_{f^*})-\mathbb P(\mathcal L_f-\mathcal L_{f^*})\rvert$。
+
+::: {.callout-note title="Lemma 14.21　$Z_n(r)$ 尾界"}
+对 $r\ge\delta_n$，
+$$
+\mathbb P\bigl[Z_n(r)\ge 8L r\delta_n+u\bigr]
+\le
+c_1\exp\Bigl(-\frac{c_2 nu^2}{L^2 r^2+Lu}\Bigr).
+\tag{14.54}
+$$
+:::
+
+对称化、压缩与 Talagrand 给出 $\mathbb E[Z_n(r)]\le 4L\overline{\mathcal R}_n(r;\mathscr F^*)\le 4L r\delta_n$，以及
+$$
+\mathbb P[Z_n(r)\ge 2\mathbb E[Z_n(r)]+u]
+\le
+c_1\exp\Bigl(-\frac{c_2 nu^2}{L^2 r^2+Lu}\Bigr).
+\tag{14.55}
+$$
+(a) 仍用剥皮。(b) 由 (14.51) 与 $\mathbb P_n(\mathcal L_{\widehat f}-\mathcal L_{f^*})\le 0$ 得到要么 $\|\widehat f-f^*\|_2\le\delta_n$，要么 $\mathbb P(\mathcal L_{\widehat f}-\mathcal L_{f^*})\le 10L\delta_n\|\widehat f-f^*\|_2$。印刷页 474 在后一分支写成 $\|\widehat f-f^*\|_2\le 10L/\gamma$，漏掉了 $\delta_n$；由 $(\gamma/2)r^2\le 10L\delta_n r$ 应得 $r\le 20L\delta_n/\gamma$，与陈述 (14.52a) 一致。
+
+# 14.4 Some consequences for nonparametric density estimation　非参数密度估计的若干推论
+
+> 教材定位：§14.4，印刷页 475–479，PDF 页 494–498。
+
+给定 i.i.d. 样本 $\{x_i\}\sim f^*$，估计未知密度。本节只分析两种能直接套用前面定理的方法。
+
+## 14.4.1 Density estimation via the nonparametric MLE　非参数极大似然
+
+> 教材定位：§14.4.1，印刷页 475–476，PDF 页 494–495。
+
+约束非参数 MLE
+$$
+\widehat f
+\in
+\arg\min_{f\in\mathscr F}
+\mathbb P_n(-\log f)
+=
+\arg\min_{f\in\mathscr F}
+\Bigl\{
+-\frac1n\sum_{i=1}^n\log f(x_i)
+\Bigr\}.
+\tag{14.56}
+$$
+$\mathscr F$ 必须限制到使极小元存在；Exercise 14.9 给出全体可微密度上 MLE 不存在的例子。也可以改用正则化 MLE。下面假设 $f^*\in\mathscr F$。
+
+误差用平方海林格距离（squared Hellinger distance）量：
+$$
+H^2(f\,\|\,g)
+:=
+\frac12\int_{\mathcal X}(\sqrt f-\sqrt g)^2\,d\mu.
+\tag{14.57a}
+$$
+KL 散度有下界（Exercise 14.10）
+$$
+D(f\,\|\,g)\ge 2H^2(f\,\|\,g).
+\tag{14.57b}
+$$
+平方海林格就是平方根密度的 $L^2(\mu)$ 差（差一个常数）。令 $\mathscr G=\{\sqrt f:f\in\mathscr F\}$，$\mathscr G^*=\mathscr G-\sqrt{f^*}$。假设 $\mathscr G$ 是 $\sqrt b$-一致有界、绕 $\sqrt{f^*}$ 星形，且 $f^*(x)\ge\nu>0$。临界不等式
+$$
+\overline{\mathcal R}_n(\delta;\mathscr G^*)
+\le
+\frac{\delta^2}{\sqrt{b+\nu}}.
+\tag{14.58}
+$$
+
+::: {.callout-important title="Corollary 14.22　NPMLE 的海林格界"}
+设 $\delta_n$ 满足 (14.58) 且 $\delta_n^2\ge(1+b/\nu)n^{-1}$。则
+$$
+H^2(\widehat f\,\|\,f^*)
+\le
+c_0\delta_n^2,
+\tag{14.59}
+$$
+以大于 $1-c_1\exp\bigl(-c_2\tfrac{\nu}{b+\nu}n\delta_n^2\bigr)$ 的概率成立。
+:::
+
+证明把 Theorem 14.20(b) 用在
+$$
+\mathcal H
+=
+\Bigl\{
+\sqrt{\frac{f+f^*}{2f^*}}
+:f\in\mathscr F
+\Bigr\},
+\qquad
+\mathcal L_h(x)=-\log h(x).
+$$
+有界性给出 $\|h\|_\infty\le\sqrt{b+\nu}/\sqrt{2\nu}$；均值定理给出对数代价 $L=\sqrt 2$-Lipschitz；$h^*=1$ 且 $\|h-h^*\|_2^2=2H^2((f+f^*)/2\,\|\,f^*)$。再由 $D\ge 2H^2$，代价在 $h^*$ 处 2-强凸。
+
+## 14.4.2 Density estimation via projections　投影密度估计
+
+> 教材定位：§14.4.2，印刷页 477–479，PDF 页 496–498。
+
+$$
+\widehat f
+\in
+\arg\min_{f\in\mathscr F}
+\Bigl\{\tfrac12\|f\|_2^2-\mathbb P_n(f)\Bigr\}
+=
+\arg\min_{f\in\mathscr F}
+\Bigl\{\tfrac12\|f\|_2^2-\frac1n\sum_{i=1}^n f(x_i)\Bigr\}.
+\tag{14.60}
+$$
+
+**正交级数（Example 14.23）。** 在 $[0,1]$ 上取 $L^2$-正交族 $\{\phi_m\}_{m=1}^T$，
+$$
+\mathscr F_{\mathrm{ortho}}(T)
+:=
+\Bigl\{
+f=\sum_{m=1}^T\beta_m\phi_m:\beta\in\mathbb R^T,\ \beta_1=1
+\Bigr\}.
+\tag{14.61}
+$$
+直方图基
+$$
+\phi_m(x)
+=
+\begin{cases}
+1 & x\in(m-1,m]/T,\\
+0 & \text{otherwise}
+\end{cases}
+\tag{14.62}
+$$
+给出分段常数、非负、积分为 1 的密度——直方图估计。截断傅里叶基给出投影傅里叶估计；正弦函数可取负值，必要时再投影回正卦限。对 $\mathscr F_{\mathrm{ortho}}(T)$，(14.60) 有闭式
+$$
+\widehat f_T=\sum_{m=1}^T\widehat\beta_m\phi_m,
+\qquad
+\widehat\beta_m=\frac1n\sum_{i=1}^n\phi_m(x_i).
+\tag{14.63}
+$$
+直方图的 $\widehat\beta_m$ 就是落入第 $m$ 箱的样本比例。
+
+Figure 14.1（印刷页 478，PDF 页 497）估计 $N(1/2,(0.15)^2)$：$(n,T)=(100,20)$ 过拟合，$(2000,5)$ 过平滑。Figure 14.2（印刷页 479，PDF 页 498）估计阶跃密度
+$$
+f^*(x)
+=
+\begin{cases}
+3/2 & x\in[0,1/2],\\
+1/2 & x\in(1/2,1],
+\end{cases}
+\tag{14.64}
+$$
+同样看到 $T$ 与 $n$ 的偏差–方差权衡。
+
+设 $\mathscr F$ 星形、$b$-一致有界，$\delta_n$ 满足 $\overline{\mathcal R}_n(\delta;\mathscr F)\le\delta^2/b$。
+
+::: {.callout-important title="Corollary 14.24　投影估计的神谕不等式"}
+对任何 $b$-一致有界的密度 $f^*$，
+$$
+\|\widehat f-f^*\|_2^2
+\le
+c_0\inf_{f\in\mathscr F}\|f-f^*\|_2^2+c_1\delta_n^2,
+\tag{14.65}
+$$
+以至少 $1-c_2 e^{-c_3 n\delta_n^2}$ 的概率成立。
+:::
+
+证明与非参数回归的神谕不等式（Theorem 13.13）同类。Exercise 14.11 用直方图把 (14.65) 特化成 $n^{-2/3}$。
+
+# 14.5 Appendix: Population and empirical Rademacher complexities　附录
+
+> 教材定位：§14.5，印刷页 480–481，PDF 页 499–500。
+
+取 $b=1$（一般 $b$ 由缩放恢复）。$\delta_n$、$\hat\delta_n$ 分别是 $\overline{\mathcal R}_n(\delta)\le\delta^2$ 与 $\widehat{\mathcal R}_n(\delta)\le\delta^2$ 的最小正解决。
+
+::: {.callout-important title="Proposition 14.25　总体 / 经验临界半径的三明治"}
+对 1-有界星形类，以至少 $1-c_1 e^{-c_2 n\delta_n^2}$ 的概率，
+$$
+\frac{\delta_n}{4}
+\le
+\hat\delta_n
+\le
+3\delta_n.
+\tag{14.66}
+$$
+:::
+
+令 $\overline Z_n(t):=\mathbb E_{\varepsilon}[\sup_{\|f\|_2\le t}\lvert n^{-1}\sum\varepsilon_i f(x_i)\rvert]$，则 $\overline{\mathcal R}_n(t)=\mathbb E_x[\overline Z_n(t)]$。事件
+$$
+\mathcal E_0(t)
+=
+\bigl\{\lvert\overline Z_n(t)-\overline{\mathcal R}_n(t)\rvert\le\delta_n t/8\bigr\},
+\qquad
+\mathcal E_1
+=
+\Bigl\{
+\sup_{f\in\mathscr F}
+\frac{\bigl\lvert\|f\|_n^2-\|f\|_2^2\bigr\rvert}{\|f\|_2^2+\delta_n^2}
+\le\frac12
+\Bigr\}.
+$$
+在 $\mathcal E_1$ 上总体球与经验球互相控制：
+$$
+\|f\|_n
+\le
+\sqrt{\tfrac32\|f\|_2^2+\tfrac12\delta_n^2}
+\le
+2\|f\|_2+\delta_n,
+\tag{14.67a}
+$$
+$$
+\|f\|_2
+\le
+\sqrt{2\|f\|_n^2+\delta_n^2}
+\le
+2\|f\|_n+\delta_n,
+\tag{14.67b}
+$$
+从而
+$$
+\overline Z_n(t)\le\widehat{\mathcal R}_n(2t+\delta_n),
+\qquad
+\widehat{\mathcal R}_n(t)\le\overline Z_n(2t+\delta_n).
+\tag{14.68}
+$$
+上界：在 $\mathcal E_0(7\delta_n)\cap\mathcal E_1$ 上 $\widehat{\mathcal R}_n(3\delta_n)\le 8\delta_n^2<(3\delta_n)^2$，故 $\hat\delta_n\le 3\delta_n$。下界：$\delta_n^2=\overline{\mathcal R}_n(\delta_n)\le 3\delta_n\hat\delta_n+\delta_n^2/8$，整理得 $\hat\delta_n\ge\delta_n/4$。$\mathcal E_1^c$ 由 Theorem 14.1 控制；$\mathcal E_0(\alpha\delta_n)^c$ 用 Bousquet, Boucheron, Lugosi (2003) 的定理 16。
+
+# 14.6 Bibliographic details and background　文献与背景
+
+> 教材定位：§14.6，印刷页 481–482，PDF 页 500–501。文献条目指回教材。
+
+局部拉德马赫 / 高斯复杂度：Koltchinskii (2001, 2006)，Bartlett et al. (2005)。局部熵积分：van de Geer (2000)。无界函数的双边定律：Mendelson 等。单边定律：Raskutti et al. (2012)，Oliveira (2013)，Mendelson (2015)；本章用截断。核类局部复杂度：Mendelson (2002)。可加模型：Stone (1985)。SVM：Boser et al. (1992)。密度估计：Devroye–Györfi，Silverman 等。约束 NPMLE 在 $f^*\notin\mathscr F$ 时还要加逼近误差，与第 13 章神谕不等式同类。
+
+# 常见错误
+
+1. **错误做法：** 用全局 VC / 拉德马赫界控制 $\|f\|_n$ 与 $\|f\|_2$ 的偏差，满足于 $n^{-1/4}$。  
+   **为什么错：** (14.10) 完全没用 $\|f\|_2\le\delta$。有限维类的正确局部复杂度是 $O(\delta/\sqrt n)$，临界半径是 $n^{-1/2}$。  
+   **正确判断：** 先写 $\overline{\mathcal R}_n(\delta)$，再解 $\overline{\mathcal R}_n(\delta)\le\delta^2/b$。
+
+2. **错误做法：** 把 (14.5a) 的平方偏差读成 $\lvert\|f\|_n-\|f\|_2\rvert\le\tfrac12\|f\|_2+t/\sqrt 2$。  
+   **为什么错：** 左边是平方范数的差；相对项 $\tfrac12\|f\|_2^2$ 与绝对项 $t^2/2$ 都是平方量纲。(14.5b) 才是范数本身。  
+   **正确判断：** 先平方、后开方；开方步骤需要 $\lvert a^2-b^2\rvert=|a-b|\,|a+b|$ 与剥皮。
+
+3. **错误做法：** 对线性类 $\mathscr F_{\mathrm{lin}}$ 套 Theorem 14.1，抱怨它不是一致有界。  
+   **为什么错：** 双边定律确实要 $b$-有界；单边定律 Theorem 14.12 只要四阶矩。高斯线性类 $C^2=3$，与 $\Vert\sqrt{\Sigma}\Vert_2$ 无关。  
+   **正确判断：** 下尾问四阶矩，双边才问有界 / 次高斯。
+
+4. **错误做法：** 把弱矩 (14.22a) 和强矩 (14.22b) 当成一回事，或在可加模型里把 $C^2=b^2+6$ 写成对 (14.22b) 成立。  
+   **为什么错：** 可加模型的四阶展开有 $b^2\delta^2+6\delta^4$，除以 $(\mathbb E[f^2])^2=\delta^4$ 后当 $\delta\to 0$ 会炸掉，强形式失败。  
+   **正确判断：** (14.22a) 只在 $\|f\|_2\le 1$ 的局部球上要求 $\mathbb E[f^4]\lesssim\mathbb E[f^2]$。
+
+5. **错误做法：** 经验代价极小化之后，用 (14.51) 直接说超额风险 $O(\delta_n^2)$。  
+   **为什么错：** 没有强凸时，(14.53) 只给 $O(\delta_n)$。$\delta_n^2$ 来自 (14.52b)，需要 $\gamma$-强凸。  
+   **正确判断：** Lipschitz 给出一致偏差；强凸把偏差翻译成 $\|\widehat f-f^*\|_2=O(\delta_n)$ 与超额风险 $O(\delta_n^2)$。
+
+# 轻量自测
+
+1. 用一句话说明：为什么 Example 14.2 里 naive VC 界给出 $\delta_n\asymp n^{-1/4}$，而勒让德参数化给出 $\delta_n\asymp n^{-1/2}$？
+2. 从临界不等式 (14.4) 与 Corollary 14.5，说明一阶 Sobolev 单位球为何是 $\delta_n\asymp n^{-1/3}$。只需特征值衰减的阶。
+3. 高斯线性类 $x\sim N(0,\Sigma)$。Theorem 14.12 的下界 (14.29) 是否依赖 $\lambda_{\max}(\Sigma)$？$\delta_n^2$ 的阶是什么？
+4. 比较 (14.51) 与 (14.52b)：什么时候超额风险从 $O(\delta_n)$ 升到 $O(\delta_n^2)$？
+5. 直方图投影估计。若逼近误差 $\inf_f\|f-f^*\|_2^2\asymp T^{-2}$、估计误差 $\delta_n^2\asymp T/n$，最优 $T$ 与速率是什么？
+
+<details>
+<summary>查看参考答案</summary>
+
+1. VC 界 (14.10) 对所有 $\delta$ 都是 $O(\sqrt{\log n/n})$，解 $\overline{\mathcal R}_n(\delta)\le\delta^2$ 只能 $\delta^2\gtrsim n^{-1/2}$，即 $n^{-1/4}$。勒让德基把 $\mathscr P_2$ 写成三维椭圆，柯西–施瓦茨给出 $\overline{\mathcal R}_n(\delta)\lesssim\delta/\sqrt n$，解得 $\delta_n\asymp n^{-1/2}$。局部化把复杂度从“类的直径”换成“半径 $\delta$ 的球”。
+2. $\mu_j\asymp j^{-2}$。$\sum_j\min\{\mu_j,\delta^2\}$ 在 $j\lesssim 1/\delta$ 处切：前 $1/\delta$ 项各贡献 $\delta^2$，后面按 $j^{-2}$ 求和，总量 $\asymp\delta$。于是 $\overline{\mathcal R}_n(\delta)\lesssim\sqrt{\delta/n}$。令 $\sqrt{\delta/n}\asymp\delta^2$ 得 $\delta^3\asymp n^{-1}$，即 $n^{-1/3}$。
+3. 不依赖 $\lambda_{\max}(\Sigma)$。$\overline{\mathcal R}_n(\delta)\le\delta\sqrt{d/n}$，故 $\delta_n^2\lesssim d/n$。只要 $n\gtrsim d$，(14.29) 以高概率对一切 $\theta$ 成立。这正是单边定律相对双边定律的好处。
+4. (14.51) 控制的是经验–总体代价差除以 $\|f-f^*\|_2+\delta_n$，直径有界时超额风险 $O(\delta_n)$。(14.52b) 额外要 $\gamma$-强凸，把 $\|f-f^*\|_2$ 钉在 $O(\delta_n)$，超额风险升到 $O(\delta_n^2)$。
+5. 神谕不等式把风险写成 $T^{-2}+T/n$。令 $T^3\asymp n$，即 $T\asymp n^{1/3}$，风险 $\asymp n^{-2/3}$。这是 Exercise 14.11 的结论。
+
+</details>
+
+# 本章小结
+
+- 单个 $f$ 上 $\|f\|_n^2$ 无偏、霍夫丁给出次高斯尾；一致定律必须局部化，否则连三维二次类也只能得到 $n^{-1/4}$；
+- 临界不等式 $\overline{\mathcal R}_n(\delta)\le\delta^2/b$ 的解 $\delta_n$ 就是 $\|f\|_n$ 与 $\|f\|_2$ 的一致偏差尺度：有限维 $n^{-1/2}$，凸 Lipschitz $n^{-2/5}$，一阶 Sobolev $n^{-1/3}$，高斯核 $\sqrt{\log n/n}$；
+- 双边定律要一致有界；单边定律把假设换成四阶矩，覆盖线性类（随机矩阵 RE）与可加模型，并把第 13 章的经验误差升级成总体 $L^2$ 误差；
+- Lipschitz 代价的一致定律以同一 $\delta_n$ 控制超额风险；强凸把速率从 $\delta_n$ 升到 $\delta_n^2$。密度估计是直接推论：NPMLE 用海林格，投影估计用神谕不等式。
+
+## 术语对照
+
+| 中文 | English | 备注 |
+|---|---|---|
+| 局部化 | localization | 把上确界限制在 $\|\cdot\|_2\le\delta$ 的球上 |
+| 一致定律 | uniform law | 第 4 章 ULLN 的非渐近、局部化形式 |
+| 总体 $L^2$ 范数 | population $L^2$-norm | (14.1)；$\|f\|_2$ |
+| 经验 $L^2$ 范数 | empirical $L^2$-norm | (14.2)；$\|f\|_n$ |
+| 局部总体拉德马赫复杂度 | localized population Rademacher complexity | (14.3) |
+| 局部经验拉德马赫复杂度 | localized empirical Rademacher complexity | (14.6) |
+| 星形 | star-shaped | 绕原点或绕 $f^*$ |
+| 一致有界 | uniformly bounded | $\|f\|_\infty\le b$ |
+| 临界不等式 | critical inequality | (14.4)、(14.7)、(14.24) |
+| 临界半径 | critical radius | $\delta_n$、$\hat\delta_n$、$\varepsilon_n$ |
+| 剥皮论证 | peeling argument | 把随机半径切成二进壳 |
+| 压缩不等式 | contraction inequality | Ledoux–Talagrand；(5.61) |
+| 单边一致定律 | one-sided uniform law | Theorem 14.12 |
+| 四阶矩条件 | fourth-moment condition | (14.22a) 弱；(14.22b) 强 |
+| 四向独立 | four-way independence | Example 14.11 |
+| 可加模型 | additive model | (14.23)；第 1 章已出现 |
+| 限制特征值 | restricted eigenvalue | Exercise 14.7；Definition 7.12 |
+| 代价函数 | cost function | $\mathcal L$；(14.39)–(14.40) |
+| 强凸 | strong convexity | (14.42)；相对 $L^2(\mathbb P)$ |
+| Huber 代价 | Huber cost | (14.44) |
+| 铰链代价 | hinge cost | (14.47) |
+| 支持向量机 | support vector machine | Example 14.19 |
+| 海林格距离 | Hellinger distance | (14.57a)；名词委：海林格距离 |
+| 库尔贝克–莱布勒散度 | Kullback–Leibler divergence | (14.57b) |
+| 非参数极大似然估计 | nonparametric maximum likelihood estimate | (14.56)；NPMLE |
+| 投影密度估计 | projection-based density estimate | (14.60) |
+| 直方图估计 | histogram estimate | (14.62)–(14.63) |
+| 神谕不等式 | oracle inequality | (14.65)；第 13 章同类 |
+
+: 本章术语（中文从名词委；英文从教材或国际通行用法）
+
+## 来源定位
+
+- 教材：第 14 章 §§14.1–14.6，印刷页 453–482，PDF 页 472–501。
+- 页码关系：**PDF 页 = 印刷页 + 19**（印刷页 453 = PDF 页 472）。
+- 习题：§14.7 Exercises 14.1–14.11，印刷页 482–484，PDF 页 501–503；解答见 [Solutions](../solutions/ch14-solutions.qmd)。

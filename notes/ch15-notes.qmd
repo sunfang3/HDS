@@ -1,0 +1,973 @@
+---
+title: "第 15 章　极小极大下界"
+subtitle: "Wainwright, High-Dimensional Statistics 伴读 Notes"
+description: "面向已学陈希孺本科概率统计、并读过第 5 章填装/度量熵的读者：把上界理论对偶成与算法无关的极小极大下界，掌握勒卡姆两点法与凸包法、范诺局部填装与杨–巴伦全局熵"
+execute:
+  enabled: false
+lang: zh-CN
+---
+
+# 本章导览
+
+前面各章给出的都是**具体估计量的上界**：最小二乘、核范数、稀疏回归、非参数最小二乘……都能达到某个速率。本章问对偶问题：有没有**与算法无关**的下界，说明任何可测估计量都不可能更快？若上、下界同阶，已知多项式时间方法就已经统计最优；若中间有缝，才值得找新估计量（或承认计算/存储约束会再开一条缝）。
+
+下界的引擎是第 5 章的填装与度量熵，加上本章补齐的信息论：全变差、库尔贝克–莱布勒（Kullback–Leibler, KL）散度、赫林格（Hellinger）距离、互信息。主线只有三步：
+
+$$
+\text{极小极大风险}
+\longrightarrow
+\text{$2\delta$-分离集上的 $M$ 元检验}
+\longrightarrow
+\text{用勒卡姆（两点/凸包）或范诺（局部填装/杨–巴伦）下界检验误差}.
+$$
+
+> 教材定位：第 15 章 §§15.1–15.5，印刷页 485–519，PDF 页 504–538。习题 §15.6 印刷页 519–523，PDF 页 538–542，不进入 Notes。页码关系：**PDF 页 = 印刷页 + 19**。
+
+## 学习目标
+
+学完本章后，你应能：
+
+- **写出** 极小极大风险 (15.1)–(15.2)，并说明为何不能按逐点风险挑选估计量；
+- **把** $2\delta$-分离集上的估计**约化成** $M$ 元检验（Proposition 15.1），并写出最近邻检验 (15.4)；
+- **陈述** 全变差 / KL / 平方赫林格及乘积公式，并用平斯克 (15.8) 与勒卡姆不等式 (15.10) 把全变差换成 KL 或赫林格；
+- **用** 两点勒卡姆给出高斯位置族的 $\sigma/\sqrt n$ 与均匀位置族的 $n^{-2}$，并说明二次泛函为何必须换成凸包才能得到 $n^{-4/9}$；
+- **写出** 范诺不等式 (15.31)–(15.32)，并用局部填装条件 (15.35) 得到线性回归与稀疏回归下界；
+- **区分** 局部填装范诺与杨–巴伦全局熵，并给出密度估计 $n^{-4/5}$ 与广义索伯列夫 $(\sigma^2/n)^{2\alpha/(2\alpha+1)}$。
+
+# 必要先修
+
+陈希孺里的奈曼–皮尔逊引理、高斯模型、KL 作为似然比期望，本章直接当语言用。第 5 章的 $2\delta$-填装数 $M(2\delta)$ 与度量熵 $\log N(\delta)$ 会反复出现。下面只钉三处本科课里不一定写成“下界工具”的接口。
+
+::: {.callout-note title="为什么现在需要半度量"}
+教材把 $\rho$ 叫半度量（semi-metric）：三角不等式、对称、非负都要，但 $\rho(\theta,\theta')=0$ 不必推出 $\theta=\theta'$（印刷页 486 脚注）。线性回归的预测半范数 $\rho_{\mathbf X}(\widehat\theta,\theta)=\|\mathbf X(\widehat\theta-\theta)\|_2/\sqrt n$ 就是例子——核方向上看不见。极小极大陈述对半度量同样有效。
+:::
+
+::: {.callout-note title="作者解释：全变差就是两类错误之和的最优值"}
+等先验的二元检验，贝叶斯风险恰好是 $\frac12\{1-\|\mathbb P_1-\mathbb P_0\|_{\mathrm{TV}}\}$。TV $=0$ 时两类完全分不开，风险 $1/2$；TV $=1$ 时支撑不交，风险 $0$。勒卡姆方法的全部内容，就是给这对 TV 找上界（于是给风险找下界）。
+:::
+
+::: {.callout-note title="作者解释：互信息是“平均 KL”"}
+$M$ 元检验里，观测 $Z$ 来自均匀混合 $\overline{\mathbb Q}=\frac1M\sum_j\mathbb P_{\theta^j}$。互信息 $I(Z;J)=\frac1M\sum_j D(\mathbb P_{\theta^j}\Vert\overline{\mathbb Q})$。它小，说明每个 $\mathbb P_{\theta^j}$ 都像混合，指标 $J$ 几乎读不出来——范诺的分母 $\log M$ 再大也救不了。
+:::
+
+# 15 Minimax lower bounds　极小极大下界
+
+> 教材定位：章首，印刷页 485，PDF 页 504。
+
+本章只讨论**算法无关**的估计下界：估计量是任意可测函数，不计计算、存储、通信。匹配的上界说明已知方法统计最优；不匹配则推动去找新估计量。计算或隐私约束下的极小极大是另一条线，§15.5 只点到文献。
+
+# 15.1 Basic framework　基本框架
+
+> 教材定位：§15.1，印刷页 485–491，PDF 页 504–510。
+
+给定分布类 $\mathcal P$，泛函 $\theta$ 把 $\mathbb P$ 映到参数空间 $\Omega$ 中的 $\theta(\mathbb P)$。一类情形 $\theta$ 完全参数化 $\mathcal P$，可写 $\mathcal P=\{\mathbb P_\theta:\theta\in\Omega\}$（有限维参数族、非参数回归）。另一类 $\theta$ 并不决定 $\mathbb P$：例如 $[0,1]$ 上可微密度的二次泛函 $\theta(\mathbb P)=\int_0^1(f'(t))^2\,dt$，或单峰密度的众数 $\arg\max f$。
+
+## 15.1.1 Minimax risks　极小极大风险
+
+> 教材定位：§15.1.1，印刷页 486–487，PDF 页 505–506。
+
+观测 $X\sim\mathbb P$，$\theta(\mathbb P)=\theta^*$。估计量 $\widehat\theta$ 是 $X$ 的可测函数。半度量 $\rho(\widehat\theta,\theta^*)$ 是随机的，风险是 $\mathbb E_{\mathbb P}[\rho(\widehat\theta,\theta^*)]$。
+
+**不能按逐点风险选估计量。** 对固定的 $\theta^*$，忽略数据、永远输出 $\theta^*$ 的风险是 $0$，但对其它点会很坏。贝叶斯路线给 $\theta^*$ 加先验再平均；极小极大路线按最坏情形排序：
+
+::: {.callout-important title="(15.1) 极小极大风险"}
+$$
+\mathfrak M(\theta(\mathcal P);\rho)
+:=
+\inf_{\widehat\theta}\sup_{\mathbb P\in\mathcal P}
+\mathbb E_{\mathbb P}\bigl[\rho(\widehat\theta,\theta(\mathbb P))\bigr],
+$$
+下确界跑遍一切可测估计量。基于 $n$ 次 i.i.d. 样本时记作 $\mathfrak M_n$。
+:::
+
+> 教材定位：(15.1)，§15.1.1，印刷页 486，PDF 页 505。
+
+常用的是复合损失。设 $\Phi:[0,\infty)\to[0,\infty)$ 递增，
+
+::: {.callout-important title="(15.2) 复合损失的极小极大风险"}
+$$
+\mathfrak M(\theta(\mathcal P);\Phi\circ\rho)
+:=
+\inf_{\widehat\theta}\sup_{\mathbb P\in\mathcal P}
+\mathbb E_{\mathbb P}\bigl[\Phi\bigl(\rho(\widehat\theta,\theta(\mathbb P))\bigr)\bigr].
+$$
+最常见的选择是 $\Phi(t)=t^2$（均方误差）。
+:::
+
+> 教材定位：(15.2)，§15.1.1，印刷页 486，PDF 页 505。
+
+## 15.1.2 From estimation to testing　从估计到检验
+
+> 教材定位：§15.1.2，印刷页 487–489，PDF 页 506–508。
+
+取 $\theta(\mathcal P)$ 中的 $2\delta$-分离集 $\{\theta^1,\ldots,\theta^M\}$：$\rho(\theta^j,\theta^k)\ge 2\delta$（$j\neq k$）。教材只用 $\ge 2\delta$，比第 5 章填装的严格不等式弱，后面计算更方便。对每个 $\theta^j$ 选代表分布 $\mathbb P_{\theta^j}$，做 $M$ 元检验：
+
+1. 均匀抽取 $J\in[M]:=\{1,\ldots,M\}$；
+2. 给定 $J=j$，抽 $Z\sim\mathbb P_{\theta^j}$。
+
+记 $\mathbb Q$ 为 $(Z,J)$ 的联合分布，$Z$ 的边缘是均匀混合 $\overline{\mathbb Q}=\frac1M\sum_j\mathbb P_{\theta^j}$。检验函数 $\psi:\mathcal Z\to[M]$ 的误差是 $\mathbb Q[\psi(Z)\neq J]$。
+
+::: {.callout-important title="Proposition 15.1　从估计到检验"}
+对任意递增 $\Phi$ 与任意 $2\delta$-分离集，
+$$
+\mathfrak M(\theta(\mathcal P),\Phi\circ\rho)
+\ge
+\Phi(\delta)\inf_{\psi}\mathbb Q[\psi(Z)\neq J].
+\tag{15.3}
+$$
+:::
+
+> 教材定位：Proposition 15.1 / (15.3)，印刷页 487，PDF 页 506。
+
+$\Phi(\delta)$ 随 $\delta$ 增大；检验误差随 $\delta\to 0$ 变大。若能找到 $\delta^*$ 使检验误差 $\ge 1/2$，则 $\mathfrak M\ge\frac12\Phi(\delta^*)$。
+
+**证明要点。** 马尔可夫加 $\Phi$ 递增：$\mathbb E[\Phi(\rho)]\ge\Phi(\delta)\,\mathbb P[\rho\ge\delta]$。最坏风险至少是混合 $\mathbb Q[\rho(\widehat\theta,\theta^J)\ge\delta]$。用估计量做最近邻检验
+
+$$
+\psi(Z)
+:=
+\arg\min_{\ell\in[M]}\rho(\theta^\ell,\widehat\theta)
+\tag{15.4}
+$$
+
+（并列时任意打破平局）。若真参数是 $\theta^j$ 且 $\rho(\widehat\theta,\theta^j)<\delta$，三角不等式给出：对一切 $k\neq j$，
+
+$$
+\rho(\theta^k,\widehat\theta)
+\ge
+\rho(\theta^k,\theta^j)-\rho(\theta^j,\widehat\theta)
+>2\delta-\delta=\delta,
+$$
+
+于是 $\psi(Z)=j$。因此 $\{\rho<\delta\}\subset\{\psi=J\}$，从而 $\mathbb Q[\rho\ge\delta]\ge\mathbb Q[\psi\neq J]$。Figure 15.1（印刷页 488）画的就是这颗 $2\delta$ 球把正确判决包住的几何。最后对估计量取下确界，右边换成一切检验的下确界只可能更小。
+
+## 15.1.3 Some divergence measures　几种散度
+
+> 教材定位：§15.1.3，印刷页 489–491，PDF 页 508–510。
+
+任何一对分布都对 $\nu=\frac12(\mathbb P+\mathbb Q)$ 有密度，所以下面三个量总有定义。
+
+::: {.callout-important title="(15.5)–(15.6) 全变差距离"}
+$$
+\|\mathbb P-\mathbb Q\|_{\mathrm{TV}}
+:=
+\sup_{A\subseteq\mathcal X}\lvert\mathbb P(A)-\mathbb Q(A)\rvert
+=\frac12\int_{\mathcal X}\lvert p-q\rvert\,\nu(dx).
+$$
+:::
+
+> 教材定位：(15.5)–(15.6)，印刷页 489，PDF 页 508。等价性见第 3 章 Exercise 3.13。
+
+::: {.callout-important title="(15.7) 库尔贝克–莱布勒散度"}
+$$
+D(\mathbb Q\Vert\mathbb P)
+=\int_{\mathcal X} q(x)\log\frac{q(x)}{p(x)}\,\nu(dx).
+$$
+它不是度量：一般 $D(\mathbb Q\Vert\mathbb P)\neq D(\mathbb P\Vert\mathbb Q)$。
+:::
+
+> 教材定位：(15.7)，印刷页 490，PDF 页 509。
+
+::: {.callout-important title="Lemma 15.2　平斯克–奇萨尔–库尔贝克不等式"}
+$$
+\|\mathbb P-\mathbb Q\|_{\mathrm{TV}}
+\le
+\sqrt{\tfrac12 D(\mathbb Q\Vert\mathbb P)}.
+\tag{15.8}
+$$
+:::
+
+> 教材定位：Lemma 15.2 / (15.8)，印刷页 490，PDF 页 509。证明大纲见 Exercise 15.6。第 3 章测度集中已经用过它。
+
+::: {.callout-important title="(15.9) 平方赫林格距离"}
+$$
+H^2(\mathbb P\Vert\mathbb Q)
+:=\int\bigl(\sqrt{p(x)}-\sqrt{q(x)}\bigr)^2\nu(dx)\in[0,2].
+$$
+即平方根密度的 $L^2(\nu)$ 范数平方。
+:::
+
+> 教材定位：(15.9)，印刷页 490，PDF 页 509。
+
+::: {.callout-important title="Lemma 15.3　勒卡姆不等式"}
+$$
+\|\mathbb P-\mathbb Q\|_{\mathrm{TV}}
+\le
+H(\mathbb P\Vert\mathbb Q)\sqrt{1-\frac{H^2(\mathbb P\Vert\mathbb Q)}{4}}.
+\tag{15.10}
+$$
+:::
+
+> 教材定位：Lemma 15.3 / (15.10)，印刷页 490，PDF 页 509。证明见 Exercise 15.5。
+
+**乘积公式。** 全变差对乘积测度没有干净分解。KL 可加：
+
+$$
+D(\mathbb P^{1:n}\Vert\mathbb Q^{1:n})
+=\sum_{i=1}^n D(\mathbb P_i\Vert\mathbb Q_i),
+\qquad
+\text{i.i.d. 时}=n\,D(\mathbb P_1\Vert\mathbb Q_1).
+\tag{15.11a,b}
+$$
+
+平方赫林格：
+
+$$
+\tfrac12 H^2(\mathbb P^{1:n}\Vert\mathbb Q^{1:n})
+=1-\prod_{i=1}^n\bigl(1-\tfrac12 H^2(\mathbb P_i\Vert\mathbb Q_i)\bigr),
+\tag{15.12a}
+$$
+
+i.i.d. 时
+
+$$
+\tfrac12 H^2(\mathbb P^{1:n}\Vert\mathbb Q^{1:n})
+=1-\bigl(1-\tfrac12 H^2(\mathbb P_1\Vert\mathbb Q_1)\bigr)^n
+\le
+\tfrac n2 H^2(\mathbb P_1\Vert\mathbb Q_1).
+\tag{15.12b}
+$$
+
+> 教材定位：(15.11)–(15.12)，印刷页 491，PDF 页 510。验证见 Exercises 15.3、15.7。
+
+# 15.2 Binary testing and Le Cam's method　二元检验与勒卡姆方法
+
+> 教材定位：§15.2，印刷页 491–500，PDF 页 510–519。
+
+最简单的检验只有两个分布。勒卡姆方法从这里长出来：先两点，再凸包。
+
+## 15.2.1 Bayes error and total variation distance　贝叶斯误差与全变差
+
+> 教材定位：§15.2.1，印刷页 491–497，PDF 页 510–516。
+
+等先验混合 $\overline{\mathbb Q}=\frac12\mathbb P_0+\frac12\mathbb P_1$。判决 $\psi:\mathcal Z\to\{0,1\}$ 的误差是 $\frac12\mathbb P_0[\psi\neq 0]+\frac12\mathbb P_1[\psi\neq 1]$。对一切 $\psi$ 取下确界（贝叶斯风险）有闭式：
+
+::: {.callout-important title="(15.13) 等先验二元贝叶斯风险"}
+$$
+\inf_{\psi}\mathbb Q[\psi(Z)\neq J]
+=\frac12\bigl\{1-\|\mathbb P_1-\mathbb P_0\|_{\mathrm{TV}}\bigr\}.
+$$
+$\mathbb P_1=\mathbb P_0$ 时风险 $1/2$；支撑不交时 TV $=1$、风险 $0$。
+:::
+
+> 教材定位：(15.13)，印刷页 491，PDF 页 510。
+
+证明：$\psi$ 与可测划分 $(A,A^c)$ 一一对应，$A=\{\psi=1\}$，于是
+$$
+\sup_{\psi}\mathbb Q[\psi=J]
+=\sup_A\bigl\{\tfrac12\mathbb P_1(A)+\tfrac12\mathbb P_0(A^c)\bigr\}
+=\tfrac12\sup_A\{\mathbb P_1(A)-\mathbb P_0(A)\}+\tfrac12,
+$$
+再用 (15.5)。配合 Proposition 15.1：只要 $\rho(\theta(\mathbb P_0),\theta(\mathbb P_1))\ge 2\delta$，
+
+::: {.callout-important title="(15.14) 两点勒卡姆下界"}
+$$
+\mathfrak M(\theta(\mathcal P),\Phi\circ\rho)
+\ge
+\frac{\Phi(\delta)}{2}\bigl\{1-\|\mathbb P_1-\mathbb P_0\|_{\mathrm{TV}}\bigr\}.
+$$
+:::
+
+> 教材定位：(15.14)，印刷页 492，PDF 页 511。
+
+::: {.callout-important title="Example 15.4　高斯位置族"}
+$\mathbb P_\theta=N(\theta,\sigma^2)$，$n$ 次 i.i.d.，记 $\mathbb P_\theta^n$。取 $\theta=2\delta$，用 Exercise 15.10(b) 的二阶矩界
+$$
+\|\mathbb P_\theta^n-\mathbb P_0^n\|_{\mathrm{TV}}^2
+\le
+\tfrac14\bigl\{e^{n\theta^2/\sigma^2}-1\bigr\}
+=\tfrac14\bigl\{e^{4n\delta^2/\sigma^2}-1\bigr\}.
+\tag{15.15}
+$$
+取 $\delta=\sigma/(2\sqrt n)$，则 $4n\delta^2/\sigma^2=1$，TV $\le\frac12\sqrt{e-1}$。代入 (15.14)：
+$$
+\inf_{\widehat\theta}\sup_{\theta\in\mathbb R}\mathbb E_\theta\lvert\widehat\theta-\theta\rvert
+\ge
+\frac{\delta}{2}\Bigl\{1-\tfrac12\sqrt{e-1}\Bigr\}
+\ge
+\frac{\delta}{6}
+=\frac1{12}\frac{\sigma}{\sqrt n},
+\tag{15.16a}
+$$
+$$
+\inf_{\widehat\theta}\sup_{\theta\in\mathbb R}\mathbb E_\theta(\widehat\theta-\theta)^2
+\ge
+\frac{\delta^2}{6}
+=\frac1{24}\frac{\sigma^2}{n}.
+\tag{15.16b}
+$$
+前置因子 $1/12$、$1/24$ 不尖，但 $\sigma/\sqrt n$ 与 $\sigma^2/n$ 的阶是尖的：样本均值满足
+$$
+\sup_{\theta}\mathbb E_\theta\lvert\widetilde\theta_n-\theta\rvert
+=\sqrt{\frac2\pi}\frac{\sigma}{\sqrt n},
+\qquad
+\sup_{\theta}\mathbb E_\theta[(\widetilde\theta_n-\theta)^2]
+=\frac{\sigma^2}{n}.
+$$
+Exercise 15.8 用平斯克把常数改进到 $1/8$ 与 $1/16$。
+:::
+
+> 教材定位：Example 15.4 / (15.15)–(15.16)，印刷页 492，PDF 页 511。
+
+高斯位置是“正则”参数模型的原型，均方误差按 $n^{-1}$ 降。非正则模型可以更快。
+
+::: {.callout-important title="Example 15.5　均匀位置族"}
+$\mathbb U_\theta$ 是 $[\theta,\theta+1]$ 上的均匀分布。$\theta\neq\theta'$ 时 KL 为无穷（支撑不套），平斯克不能用，改用赫林格。若 $\theta'>\theta+1$，则 $H^2=2$；若 $\theta'\in(\theta,\theta+1]$，则
+$$
+H^2(\mathbb U_\theta\Vert\mathbb U_{\theta'})
+=\int_\theta^{\theta'}dt+\int_{\theta+1}^{\theta'+1}dt
+=2\lvert\theta'-\theta\rvert.
+$$
+取 $2\delta=1/(4n)$。由 (15.12b)，$\frac12 H^2(\mathbb U_\theta^n\Vert\mathbb U_{\theta'}^n)\le 1/4$，再由 Lemma 15.3 得 $\|\mathbb U_\theta^n-\mathbb U_{\theta'}^n\|_{\mathrm{TV}}^2\le 1/2$。$\Phi(t)=t^2$ 的 (15.14) 给出
+$$
+\inf_{\widehat\theta}\sup_{\theta}\mathbb E_\theta[(\widehat\theta-\theta)^2]
+\ge
+\frac{1-1/\sqrt2}{128}\cdot\frac1{n^2}.
+$$
+（核对：$\delta=1/(8n)$，$\Phi(\delta)/2=\delta^2/2=1/(128 n^2)$，再乘 $\{1-\mathrm{TV}\}\ge\{1-1/\sqrt2\}$。）阶 $n^{-2}$ 可由 $\widetilde\theta=\min_i Y_i$ 达到，见 Exercise 15.9。
+:::
+
+> 教材定位：Example 15.5，印刷页 493，PDF 页 512。
+
+对密度类 $\mathscr F$ 上的实值泛函 $\theta:\mathscr F\to\mathbb R$（例如点估计 $\theta(f)=f(0)$），关键几何量是相对赫林格的利普希茨常数
+
+$$
+\omega(\epsilon;\theta,\mathscr F)
+:=
+\sup\bigl\{\lvert\theta(f)-\theta(g)\rvert:f,g\in\mathscr F,\; H^2(f\Vert g)\le\epsilon^2\bigr\}.
+\tag{15.17}
+$$
+
+::: {.callout-important title="Corollary 15.6　泛函勒卡姆"}
+$$
+\inf_{\widehat\theta}\sup_{f\in\mathscr F}
+\mathbb E\bigl[\Phi\bigl(\lvert\widehat\theta-\theta(f)\rvert\bigr)\bigr]
+\ge
+\frac14\Phi\Bigl(\frac12\omega\bigl(\tfrac1{2\sqrt n};\theta,\mathscr F\bigr)\Bigr).
+\tag{15.18}
+$$
+:::
+
+> 教材定位：Corollary 15.6 / (15.18)，印刷页 494，PDF 页 513。
+
+证明：取 $\epsilon^2=1/(4n)$ 并取接近 $\omega(1/(2\sqrt n))$ 的一对 $f,g$。Lemma 15.3 加 (15.12b) 给出 $\|\mathbb P_f^n-\mathbb P_g^n\|_{\mathrm{TV}}^2\le 1/4$。再令 $\delta=\frac12\omega(1/(2\sqrt n))$，用 (15.14)。
+
+::: {.callout-note title="Example 15.7　利普希茨密度的点估计"}
+$\mathscr F$：$[-1/2,1/2]$ 上一致远离 $0$ 的 $1$-利普希茨密度，$\theta(f)=f(0)$。$f_0\equiv 1$，扰动用帽函数（印刷页 494–495，(15.19)；Figure 15.2 取 $\delta=0.12$）：在 $[-\delta,\delta]$ 上是三角峰、在 $[\delta,3\delta]$ 上是补偿的负三角，积分为 $0$，故 $g=f_0+\phi$ 仍是密度，$\lvert\theta(f_0)-\theta(g)\rvert=\delta$。泰勒展开 $\Psi(u)=\sqrt{1+u}$（$\lvert\Psi''\rvert\le 1/4$）给出
+$$
+H^2(f_0\Vert g)\le\tfrac13\delta^3.
+$$
+取 $\delta^3=3/(4n)$ 则 $H^2\le 1/(4n)$。Corollary 15.6 配 $\Phi(t)=t^2$ 得均方下界 $\gtrsim n^{-2/3}$。这个阶可由核估计达到，下界是尖的。
+:::
+
+> 教材定位：Example 15.7 / (15.19)–(15.20)，印刷页 494–495，PDF 页 513–514。
+
+::: {.callout-note title="Example 15.8　二次泛函：两点法不够"}
+类 $\mathscr F_2([0,1])$：密度取值于 $[c_0,c_1]$、$c_0<1<c_1$，且 $\|f''\|_\infty\le c_2$（(15.21)）。泛函 $\theta(f)=\int_0^1(f')^2$。$f_0\equiv 1$。把 $[0,1]$ 切成 $m$ 段，基函数 $\phi$ 满足 $\int\phi=0$、$\|\phi\|_\infty\le 1/2$，并令
+$$
+b_\ell:=\int_0^1\bigl(\phi^{(\ell)}(x)\bigr)^2\,dx>0
+\quad(\ell=0,1),
+\tag{15.22}
+$$
+$$
+\phi_j(x)
+:=\frac{C}{m^2}\phi\bigl(m(x-x_j)\bigr)
+\quad\text{在 }[x_j,x_{j+1}]\text{ 上}.
+\tag{15.23}
+$$
+$g=1+\sum_j\phi_j$（Figure 15.3：基函数、平移尺度、均匀密度、叠加密度）。泰勒给出 $\frac12 H^2(f_0\Vert g)\le c b_0/m^4$；取 $m^4:=2c b_0 n$ 则 $H^2\le 1/n$。另一方面 $\theta(f_0)=0$，而
+$$
+\theta(g)
+=\int_0^1\Bigl(\sum_j\phi_j'(x)\Bigr)^2dx
+=\frac{C^2 b_1}{m^2}
+\gtrsim n^{-1/2}.
+$$
+Corollary 15.6 配 $\Phi(t)=t$ 只给出
+$$
+\sup_{f\in\mathscr F_2}\mathbb E\lvert\widehat\theta(f)-\theta(f)\rvert
+\gtrsim n^{-1/2}.
+\tag{15.24}
+$$
+这个下界有效但**不是最优**：没有估计量能在 $\mathscr F_2$ 上一致达到 $n^{-1/2}$。最优阶是 $n^{-4/9}$，需要凸包。
+:::
+
+> 教材定位：Example 15.8 / (15.21)–(15.24)，印刷页 496–497，PDF 页 515–516。
+
+## 15.2.2 Le Cam's convex hull method　勒卡姆凸包法
+
+> 教材定位：§15.2.2，印刷页 497–500，PDF 页 516–519。
+
+两点法看的是一对分布的 TV。勒卡姆允许换成两类的凸包：凸包上的 TV 往往远小于点态 TV，下界更锐。
+
+两类 $\mathcal P_0,\mathcal P_1\subset\mathcal P$ 称为 $2\delta$-分离，若
+
+$$
+\rho\bigl(\theta(\mathbb P_0),\theta(\mathbb P_1)\bigr)\ge 2\delta
+\quad\text{对一切 }\mathbb P_0\in\mathcal P_0,\;\mathbb P_1\in\mathcal P_1.
+\tag{15.25}
+$$
+
+::: {.callout-important title="Lemma 15.9　勒卡姆凸包"}
+对任意 $2\delta$-分离的 $\mathcal P_0,\mathcal P_1$，任何估计量的最坏风险至少是
+$$
+\sup_{\mathbb P\in\mathcal P}\mathbb E_{\mathbb P}\bigl[\rho(\widehat\theta,\theta(\mathbb P))\bigr]
+\ge
+\frac{\delta}{2}
+\sup_{\substack{\mathbb P_0\in\mathrm{conv}(\mathcal P_0)\\ \mathbb P_1\in\mathrm{conv}(\mathcal P_1)}}
+\bigl\{1-\|\mathbb P_0-\mathbb P_1\|_{\mathrm{TV}}\bigr\}.
+\tag{15.26}
+$$
+:::
+
+> 教材定位：Lemma 15.9 / (15.26)，印刷页 498，PDF 页 517。
+
+证明骨架：令 $V_j(\widehat\theta)=\frac1{2\delta}\inf_{\mathbb P_j\in\mathcal P_j}\rho(\widehat\theta,\theta(\mathbb P_j))$。三角不等式推出 $V_0+V_1\ge 1$，且 $V_j\ge 0$。对凸包中的任意一对，Exercise 15.1 的变分表示给出 $\mathbb E_0[V_0]+\mathbb E_1[V_1]\ge 1-\|\mathbb P_1-\mathbb P_0\|_{\mathrm{TV}}$。右边对 $(\mathbb P_0,\mathbb P_1)$ 线性，故可把上确界扩到凸包。
+
+::: {.callout-note title="Example 15.10　高斯位置族：常数从 $1/12$ 升到 $3/20$"}
+$\mathcal P_0=\{\mathbb P_0^n\}$，$\mathcal P_1=\{\mathbb P_\theta^n,\mathbb P_{-\theta}^n\}$，$\theta=2\delta$。混合 $\overline{\mathbb P}=\frac12\mathbb P_\theta^n+\frac12\mathbb P_{-\theta}^n\in\mathrm{conv}(\mathcal P_1)$。Exercise 15.10(c) 给出
+$$
+\|\overline{\mathbb P}-\mathbb P_0^n\|_{\mathrm{TV}}^2
+\le
+\tfrac14\Bigl\{\exp\bigl(\tfrac12(\sqrt n\,\theta/\sigma)^4\bigr)-1\Bigr\}.
+\tag{15.27}
+$$
+取 $\delta=\sigma t/(2\sqrt n)$，(15.26) 变成
+$$
+\inf_{\widehat\theta}\sup_{\theta}\mathbb E_\theta\lvert\widehat\theta-\theta\rvert
+\ge
+\frac{\sigma}{4\sqrt n}
+\sup_{t>0}\Bigl\{t\Bigl(1-\tfrac12\sqrt{e^{t^4/2}-1}\Bigr)\Bigr\}
+\ge
+\frac{3}{20}\frac{\sigma}{\sqrt n}.
+$$
+$3/20=0.15$ 对比原来的 $1/12\approx 0.08$。同一分离 $\delta$，混合把 TV 压下去了。
+:::
+
+> 教材定位：Example 15.10 / (15.27)，印刷页 498–499，PDF 页 517–518。
+
+::: {.callout-important title="Example 15.11　二次泛函凸包：$n^{-4/9}$"}
+对 $\alpha\in\{-1,+1\}^m$ 令 $f_\alpha=1+\sum_j\alpha_j\phi_j$（Figure 15.4 画了若干符号模式）。$\mathcal P_0=\{\mathbb U^n\}$，$\mathcal P_1=\{\mathbb P_\alpha^n:\alpha\in\{-1,+1\}^m\}$。均匀混合 $\mathbb Q=2^{-m}\sum_\alpha\mathbb P_\alpha^n$ 不再是乘积，不能用 (15.12a)。Birgé–Massart 给出
+$$
+H^2(\mathbb U^n\Vert\mathbb Q)
+\le
+n^2\sum_{j=1}^m\Bigl(\int_0^1\phi_j^2\Bigr)^2.
+\tag{15.28}
+$$
+代入 Example 15.8 的 $b_0$：$H^2\le b_0^2 n^2/m^9$。取 $m^9=4b_0^2 n^2$ 则 TV $\le 1/2$。Lemma 15.9 给出
+$$
+\sup_{f\in\mathscr F_2}\mathbb E\lvert\widehat\theta(f)-\theta(f)\rvert
+\ge
+\frac{\delta}{4}
+=\frac{C^2 b_1}{8m^2}
+\gtrsim n^{-4/9}.
+$$
+$n^{-4/9}\gg n^{-1/2}$（作为下界：指数 $-4/9$ 比 $-1/2$ 更接近 $0$，下界更大、更尖）。该阶不可改进。
+:::
+
+> 教材定位：Example 15.11 / (15.28)，印刷页 499–500，PDF 页 518–519。
+
+::: {.callout-note title="作者解释：凸包在做什么"}
+两点法比较的是“均匀密度”对“所有峰同号的密度”，这两个分布在赫林格/TV 下分得很开，检验太容易，只能支撑 $n^{-1/2}$。凸包允许“随机符号模式”的混合：平均起来像均匀，TV 变小，但每个模式的 $\theta(f_\alpha)=\int(f_\alpha')^2$ 仍然与均匀差 $1/m^2$。检验变难，下界变好。
+:::
+
+# 15.3 Fano's method　范诺方法
+
+> 教材定位：§15.3，印刷页 500–515，PDF 页 519–534。
+
+$M\ge 3$ 时，二元贝叶斯风险没有简单闭式。范诺不等式用互信息控制 $M$ 元误差。
+
+## 15.3.1 Kullback–Leibler divergence and mutual information　KL 与互信息
+
+> 教材定位：§15.3.1，印刷页 501，PDF 页 520。
+
+$(Z,J)$ 独立当且仅当联合分布等于边缘之积。互信息用 KL 量这个差距：
+
+$$
+I(Z,J)
+:=
+D(\mathbb Q_{Z,J}\Vert\mathbb Q_Z\mathbb Q_J).
+\tag{15.29}
+$$
+
+$I\ge 0$，且 $I=0$ 当且仅当独立。均匀先验下
+
+$$
+I(Z;J)
+=\frac1M\sum_{j=1}^M D(\mathbb P_{\theta^j}\Vert\overline{\mathbb Q}).
+\tag{15.30}
+$$
+
+## 15.3.2 Fano lower bound on minimax risk　范诺极小极大下界
+
+> 教材定位：§15.3.2，印刷页 501–503，PDF 页 520–522。
+
+$J$ 在 $[M]$ 上均匀时，任意检验满足
+
+$$
+\mathbb P[\psi(Z)\neq J]
+\ge
+1-\frac{I(Z;J)+\log 2}{\log M}.
+\tag{15.31}
+$$
+
+配合 Proposition 15.1：
+
+::: {.callout-important title="Proposition 15.12　范诺极小极大下界"}
+设 $\{\theta^1,\ldots,\theta^M\}$ 是 $\rho$ 下的 $2\delta$-分离集，$J$ 均匀，$(Z\mid J=j)\sim\mathbb P_{\theta^j}$。则
+$$
+\mathfrak M(\theta(\mathcal P);\Phi\circ\rho)
+\ge
+\Phi(\delta)\left\{1-\frac{I(Z;J)+\log 2}{\log M}\right\}.
+\tag{15.32}
+$$
+:::
+
+> 教材定位：Proposition 15.12 / (15.32)，印刷页 502，PDF 页 521。(15.31) 的证明在 §15.4。
+
+$\delta\downarrow 0$ 时 $M=M(2\delta)$ 增大、互信息通常减小。目标是找到 $\delta$ 使
+
+$$
+\frac{I(Z;J)+\log 2}{\log M}\le\frac12,
+\tag{15.33}
+$$
+
+从而 $\mathfrak M\ge\frac12\Phi(\delta)$。两件技术活：(i) 构造大的 $2\delta$-分离集（第 5 章填装）；(ii) **上界** $I(Z;J)$（下界互信息对范诺没有用）。最简单的上界来自 KL 凸性（Exercise 15.3）：
+
+$$
+I(Z;J)
+\le
+\frac1{M^2}\sum_{j,k=1}^M D(\mathbb P_{\theta^j}\Vert\mathbb P_{\theta^k}).
+\tag{15.34}
+$$
+
+::: {.callout-note title="Example 15.13　三点高斯位置"}
+参数 $\{0,2\delta,-2\delta\}$。$D(\mathbb P_{\theta^j}^{1:n}\Vert\mathbb P_{\theta^k}^{1:n})=\frac n{2\sigma^2}(\theta^j-\theta^k)^2\le 2n\delta^2/\sigma^2$，故 $I\le 2n\delta^2/\sigma^2$。取 $\delta^2=\sigma^2/(20n)$ 则 $(2n\delta^2/\sigma^2+\log 2)/\log 3<0.75$。$\Phi(t)=t^2$ 给出
+$$
+\sup_{\theta}\mathbb E_\theta[(\widehat\theta-\theta)^2]
+\ge
+\frac{\delta^2}{4}
+=\frac1{80}\frac{\sigma^2}{n}.
+$$
+:::
+
+> 教材定位：Example 15.13，印刷页 502–503，PDF 页 521–522。
+
+## 15.3.3 Bounds based on local packings　基于局部填装的界
+
+> 教材定位：§15.3.3，印刷页 503–506，PDF 页 522–525。
+
+文献里的“广义范诺”其实是 (15.34) 对范诺的削弱。局部填装条件：若能找到 $2\delta$-分离集使
+
+$$
+\sqrt{D(\mathbb P_{\theta^j}\Vert\mathbb P_{\theta^k})}
+\le c\sqrt n\,\delta
+\quad(j\neq k),
+\tag{15.35a}
+$$
+
+则 $I\le c^2 n\delta^2$；再要
+
+$$
+\log M(2\delta)
+\ge
+2\bigl\{c^2 n\delta^2+\log 2\bigr\},
+\tag{15.35b}
+$$
+
+就有 $\mathfrak M\ge\frac12\Phi(\delta)$。
+
+::: {.callout-important title="Example 15.14　固定设计线性回归"}
+$y=\mathbf X\theta^*+w$，$\mathbf X\in\mathbb R^{n\times d}$ 固定，$w\sim N(0,\sigma^2 I_n)$。预测半范数 $\rho_{\mathbf X}(\widehat\theta,\theta)=\|\mathbf X(\widehat\theta-\theta)\|_2/\sqrt n$。在 $\mathrm{range}(\mathbf X)$ 里取半径 $4\delta\sqrt n$ 的欧氏球，用 Lemma 5.7 做 $2\delta\sqrt n$-填装，维数 $r=\mathrm{rank}(\mathbf X)$，故 $\log M\ge r\log 2$。所得 $\{\theta^j\}$ 满足
+$$
+\frac{\|\mathbf X\theta^j\|_2}{\sqrt n}\le 4\delta,
+\qquad
+2\delta\le\frac{\|\mathbf X(\theta^j-\theta^k)\|_2}{\sqrt n}\le 8\delta.
+\tag{15.36a,b}
+$$
+高斯 KL（Exercise 15.13）给出
+$$
+D(\mathbb P_{\theta^j}\Vert\mathbb P_{\theta^k})
+=\frac1{2\sigma^2}\|\mathbf X(\theta^j-\theta^k)\|_2^2
+\le\frac{32 n\delta^2}{\sigma^2}.
+\tag{15.37}
+$$
+取 $\delta^2=\sigma^2 r/(64 n)$（$r$ 足够大时 (15.35b) 成立），则
+$$
+\inf_{\widehat\theta}\sup_{\theta\in\mathbb R^d}
+\mathbb E\Bigl[\frac1n\|\mathbf X(\widehat\theta-\theta)\|_2^2\Bigr]
+\ge
+\frac{\sigma^2}{128}\frac{\mathrm{rank}(\mathbf X)}{n}.
+$$
+线性最小二乘达到同阶（Example 13.8、Exercise 13.2）。
+:::
+
+> 教材定位：Example 15.14 / (15.36)–(15.37)，印刷页 503–504，PDF 页 522–523。
+
+::: {.callout-important title="Example 15.15　$\mathscr F_2$ 密度估计"}
+在平方赫林格下估整个密度。用 Example 15.11 的 $f_\alpha$，但只留汉明 $1/4$-填装 $\mathbb T\subset\{-1,+1\}^m$：Example 5.3 给出 $\log M_H(1/4;\mathbb H^m)\ge m/10$，故 $\lvert\mathbb T\rvert\ge e^{m/10}$，且
+$$
+d_H(\alpha,\beta)
+=\frac1m\sum_j\mathbb I[\alpha_j\neq\beta_j]\ge 1/4
+\quad(\alpha\neq\beta).
+\tag{15.38}
+$$
+$\phi_j$ 支在 $I_j$ 上。印刷页 505 写 $(\sqrt{f_\alpha}+\sqrt{f_\beta})^2=2(f_\alpha+f_\beta)\le 4$。展开其实是 $f_\alpha+f_\beta+2\sqrt{f_\alpha f_\beta}$；当 $\alpha_j\neq\beta_j$ 时 $f_\alpha+f_\beta=2$，故 $\le 4$ 成立，等号一般不成立（`勘误待批`）。需要的是 $(\sqrt{f_\alpha}-\sqrt{f_\beta})^2=(f_\alpha-f_\beta)^2/(\sqrt{f_\alpha}+\sqrt{f_\beta})^2\ge\frac14(f_\alpha-f_\beta)^2$。于是 $H^2(\mathbb P_\alpha\Vert\mathbb P_\beta)\ge b_0/(4m^4)\equiv 4\delta^2$。KL 用 $f_\alpha\ge 1/2$ 上界为 $D(\mathbb P_\alpha^n\Vert\mathbb P_\beta^n)\le 4n\delta^2$（(15.39)）。取 $m=n^{1/5}/C$（$C$ 足够小）满足 (15.35b)，得
+$$
+\sup_{f\in\mathscr F_2}H^2(\widehat f\Vert f)\gtrsim n^{-4/5}.
+$$
+与第 13 章两次光滑非参数回归同阶。
+:::
+
+> 教材定位：Example 15.15 / (15.38)–(15.39)，印刷页 504–505，PDF 页 523–524。
+
+::: {.callout-important title="Example 15.16　稀疏线性回归"}
+极小极大风险在
+$$
+\mathbb S^d(s)
+:=\mathbb B_0^d(s)\cap\mathbb B_2(1)
+=\{\theta\in\mathbb R^d:\|\theta\|_0\le s,\|\theta\|_2\le 1\}
+\tag{15.40}
+$$
+上、用 $\ell_2$ 损失。Exercise 5.8：$\mathbb S^d(s)$ 有 $1/2$-填装满足 $\log M\ge\frac s2\log\frac{d-s}{s}$。缩放成 $2\delta$-填装且 $\|\theta^j-\theta^k\|_2\le 4\delta$。$\theta^j-\theta^k$ 至多 $2s$-稀疏，故
+$$
+\sqrt{D(\mathbb P_{\theta^j}\Vert\mathbb P_{\theta^k})}
+=\frac1{\sqrt2\sigma}\|\mathbf X(\theta^j-\theta^k)\|_2
+\le\frac{\gamma_{2s}}{\sqrt2\sigma}\,4\delta,
+$$
+其中 $\gamma_{2s}:=\max_{\lvert T\rvert=2s}\sigma_{\max}(\mathbf X_T)/\sqrt n$。条件变成
+$$
+\frac s2\log\frac{d-s}{s}
+\ge
+128\frac{\gamma_{2s}^2}{\sigma^2}\,n\delta^2+2\log 2.
+$$
+在 $10\le s\le d/2$ 取 $\delta^2=\sigma^2 s\log\frac{d-s}{s}/(400\gamma_{2s}^2)$，则
+$$
+\mathfrak M\bigl(\mathbb S^d(s);\|\cdot\|_2\bigr)
+\gtrsim
+\frac{\sigma^2}{\gamma_{2s}^2}\frac{s\log(ed/s)}{n}.
+\tag{15.41}
+$$
+常数不尖，阶不可改进。
+:::
+
+> 教材定位：Example 15.16 / (15.40)–(15.41)，印刷页 506，PDF 页 525。
+
+## 15.3.4 Local packings with Gaussian entropy bounds　高斯熵上界
+
+> 教材定位：§15.3.4，印刷页 506–512，PDF 页 525–531。
+
+当 $Z\mid J$ 是高斯时，互信息有比 (15.34) 更紧的上界，来自高斯最大熵（Exercise 15.14）。
+
+::: {.callout-important title="Lemma 15.17　高斯条件分布的互信息"}
+$J$ 均匀，$Z\mid J=j$ 为协方差 $\Sigma^j$ 的高斯，则
+$$
+I(Z;J)
+\le
+\frac12\Bigl\{\log\det\mathrm{cov}(Z)-\frac1M\sum_{j=1}^M\log\det(\Sigma^j)\Bigr\}.
+\tag{15.42}
+$$
+若 $\Sigma^j\equiv\Sigma$，则
+$$
+I(Z;J)
+\le
+\frac12\log\frac{\det\mathrm{cov}(Z)}{\det(\Sigma)}.
+\tag{15.43}
+$$
+:::
+
+> 教材定位：Lemma 15.17 / (15.42)–(15.43)，印刷页 506–507，PDF 页 525–526。
+
+::: {.callout-note title="Example 15.18　稀疏回归变量选择"}
+要恢复 $S=\mathrm{supp}(\theta^*)$，$\lvert S\rvert=s\ll d$，最小信号 $\theta_{\min}=\min_{j\in S}\lvert\theta_j^*\rvert$。先对设计 $\mathbf X$ 条件化，再对 $\mathbf X$ 平均。要让误差低于 $1/2$，样本量至少
+$$
+n
+>
+\max\left\{
+8\frac{\log(d+s-1)}{\log\bigl(1+\theta_{\min}^2/\sigma^2\bigr)},
+\;
+8\frac{\log\binom{d}{s}}{\log\bigl(1+s\theta_{\min}^2/\sigma^2\bigr)}
+\right\},
+\tag{15.44}
+$$
+并假定 $\min\{\log(d+s-1),\log\binom{d}{s}\}\ge 4\log 2$。
+
+**Ensemble A。** $M=\binom{d}{s}$ 个全体 $s$-子集；第 $\ell$ 个子集上坐标全为 $\theta_{\min}$。熵的链式法则（Exercise 15.4）给出 $I_{\mathbf X}(y;J)\le\sum_{i=1}^n I_{\mathbf X}(y_i;J)$。Lemma 15.17 加 Jensen：
+$$
+\mathbb E_{\mathbf X}[I_{\mathbf X}(y;J)]
+\le
+\frac n2\log\bigl(1+s\theta_{\min}^2/\sigma^2\bigr),
+$$
+因为每个坐标出现在 $\binom{d-1}{s-1}$ 个子集中，平均 $\mathrm{trace}(\frac1M\sum\theta^j\otimes\theta^j)=s\theta_{\min}^2$。这对应 (15.44) 带 $\binom{d}{s}$ 的那一项。
+
+**Ensemble B。** 前 $s-1$ 个坐标为 $\theta_{\min}$，再把剩下的 $M=d-s+1$ 个空位逐个填上 $\theta_{\min}$。平均方差 $\le\sigma^2+\theta_{\min}^2$（(15.46)）。印刷页 509 明确写 $\log(d-s+1)>4\log 2$，故 (15.44) 第一项的 $\log(d+s-1)$ 应按 $d-s+1$ 读（`勘误待批`）。
+:::
+
+> 教材定位：Example 15.18 / (15.44)–(15.46)，印刷页 507–509，PDF 页 526–528。
+
+尖刺协方差（spiked covariance）
+
+$$
+x\;\stackrel{d}{=}\;\sqrt{\nu}\,\xi\,\theta^*+w,
+\tag{15.47}
+$$
+
+其中 $\nu>0$，$\|\theta^*\|_2=1$，$\xi\sim N(0,1)$ 与 $w\sim N(0,I_d)$ 独立。则 $x\sim N(0,I_d+\nu\,\theta^*\otimes\theta^*)$，$\theta^*$ 是最大特征向量。估计特征向量时总有符号歧义，欧氏误差默认已选对方向。
+
+::: {.callout-important title="Example 15.19　PCA"}
+在 $\mathbb R^{d-1}$ 的单位球上取 $1/2$-填装 $\{\Delta^j\}$，$d\ge 3$ 时 $\log M\ge(d-1)\log 2\ge d/2$（Example 5.8）。对每个正交阵 $\mathbf U\in\mathbb R^{(d-1)\times(d-1)}$ 令
+$$
+\theta^j(\mathbf U)
+=\sqrt{1-\delta^2}\begin{pmatrix}1\\ 0_{d-1}\end{pmatrix}
++\delta\begin{pmatrix}0\\ \mathbf U\Delta^j\end{pmatrix}.
+\tag{15.48}
+$$
+这是 $\mathbb R^d$ 单位球上的 $\delta/2$-填装。对每个 $\mathbf U$ 做检验，再对均匀随机的 $\mathbf U$ 平均。范诺（(15.49)）的分母是 $d/2$。$n$ 次样本的互信息 $\le n$ 倍单样本。Lemma 15.17 加 $\log\det$ 凹性：
+$$
+\mathbb E_{\mathbf U}[I(Z(\mathbf U);J)]
+\le
+\tfrac12\bigl\{\log\det\mathbb E_{\mathbf U}[\mathrm{cov}(Z(\mathbf U))]-\log(1+\nu)\bigr\}.
+\tag{15.50}
+$$
+平均协方差 $\Gamma$ 是块对角：$\Gamma_{11}=1+\nu-\nu\delta^2$，右下角 $(1+\frac{\delta^2\nu}{d-1})I_{d-1}$。$\log(1+t)\le t$ 给出 $2\mathbb E[I]\le\nu^2\delta^2/(1+\nu)$。平方欧氏极小极大风险
+$$
+\mathfrak M(\mathrm{PCA};\mathbb S^{d-1},\|\cdot\|_2^2)
+\gtrsim
+\min\Bigl\{\frac{1+\nu}{\nu^2}\frac d n,\;1\Bigr\}.
+$$
+样本协方差最大特征向量达到同阶（Corollary 8.7）。
+:::
+
+> 教材定位：Example 15.19 / (15.48)–(15.50)，印刷页 509–511，PDF 页 528–530。
+
+::: {.callout-note title="Example 15.20　稀疏 PCA 支撑恢复"}
+$\theta^*$ 为 $s$-稀疏。若 $\theta_{\min}\gtrsim s^{-1/2}$，则任何方法需要
+$$
+n\gtrsim\frac{1+\nu}{\nu^2}\,s\log(d-s+1)
+$$
+才能正确恢复支撑。构造仿 Ensemble B：固定大小 $s-1$ 的 $S$，对 $j\in S^c$ 令
+$$
+[\theta^j(\varepsilon)]_\ell
+=
+\begin{cases}
+s^{-1/2} & \ell\in S,\\
+\varepsilon_j s^{-1/2} & \ell=j,\\
+0 & \text{否则},
+\end{cases}
+$$
+再对拉德马赫符号 $\varepsilon$ 平均。$\Gamma$ 块对角，$\Gamma_{SS}=I_{s-1}+\frac\nu s\mathbf E_{s-1}$，$\Gamma_{S^c S^c}=(1+\frac{\nu}{s(d-s+1)})I_{d-s+1}$，于是 $2\mathbb E_\varepsilon[I]\le\nu^2/(s(1+\nu))$。印刷页 512 先写 $\log M=\log(d-s-1)$，紧接着的比值用 $\log(d-s+1)$；基数是 $\lvert S^c\rvert=d-s+1$（`勘误待批`）。一般 $\theta_{\min}$ 见 Exercise 15.15。
+:::
+
+> 教材定位：Example 15.20，印刷页 511–512，PDF 页 530–531。
+
+## 15.3.5 Yang–Barron version of Fano's method　杨–巴伦形式
+
+> 教材定位：§15.3.5，印刷页 512–515，PDF 页 531–534。
+
+局部填装要手造一簇彼此既分开又不太远的分布。杨–巴伦改用**全局** KL 覆盖数，非参数问题尤其省事。
+
+::: {.callout-important title="Lemma 15.21　杨–巴伦"}
+设 $N_{\mathrm{KL}}(\epsilon;\mathcal P)$ 是 $\mathcal P$ 在平方根 KL 伪距离下的 $\epsilon$-覆盖数。则
+$$
+I(Z;J)
+\le
+\inf_{\epsilon>0}\bigl\{\epsilon^2+\log N_{\mathrm{KL}}(\epsilon;\mathcal P)\bigr\}.
+\tag{15.51}
+$$
+:::
+
+> 教材定位：Lemma 15.21 / (15.51)–(15.52)，印刷页 512，PDF 页 531。
+
+证明：$I=\frac1M\sum D(\mathbb P_{\theta^j}\Vert\overline{\mathbb Q})\le\frac1M\sum D(\mathbb P_{\theta^j}\Vert\mathbb Q)$，因为混合 $\overline{\mathbb Q}$ 最小化平均 KL（Exercise 15.11）。取 $\mathbb Q$ 为 $\epsilon$-覆盖 $\{\gamma^k\}$ 上的均匀混合：每个 $\theta^j$ 附近有 $\gamma^k$ 使 $D(\mathbb P_{\theta^j}\Vert\mathbb P_{\gamma^k})\le\epsilon^2$，于是
+$$
+D(\mathbb P_{\theta^j}\Vert\mathbb Q)
+\le
+D(\mathbb P_{\theta^j}\Vert\mathbb P_{\gamma^k})+\log N
+\le\epsilon^2+\log N.
+$$
+
+两步选 $(\epsilon_n,\delta_n)$：
+
+- (A) 取 $\epsilon_n>0$ 使 $\epsilon_n^2\ge\log N_{\mathrm{KL}}(\epsilon_n;\mathcal P)$（(15.53a)）；KL 通常随 $n$ 走，$\epsilon_n^2$ 也随 $n$ 涨。
+- (B) 取最大的 $\delta_n>0$ 使 $\log M(\delta_n;\rho,\Omega)\ge 4\epsilon_n^2+2\log 2$（(15.53b)）。
+
+::: {.callout-note title="Example 15.22　密度估计再用杨–巴伦"}
+$\mathscr F_2$ 上密度一致有界且远离 $0$，故平方赫林格、$L^2([0,1])$、KL 只差常数因子。经典结果：$\log N(\delta;\mathscr F_2,\|\cdot\|_2)\asymp(1/\delta)^{1/2}$。$n$ 次样本把平方根 KL 乘 $\sqrt n$，(15.53a) 变成 $\epsilon_n^2\gtrsim(\sqrt n/\epsilon_n)^{1/2}$，取 $\epsilon_n^2\asymp n^{1/5}$。再 (15.53b)：$(1/\delta_n)^{1/2}\gtrsim n^{2/5}$，即 $\delta_n^2\asymp n^{-4/5}$。与 Example 15.15 相同，但不必手造局部填装。
+:::
+
+> 教材定位：Example 15.22，印刷页 513–514，PDF 页 532–533。
+
+::: {.callout-important title="Example 15.23　广义索伯列夫"}
+$\alpha>1/2$，椭球
+$$
+\mathcal E_\alpha
+=\bigl\{(\theta_j)_{j=1}^\infty:\textstyle\sum_j j^{2\alpha}\theta_j^2\le 1\bigr\},
+\tag{15.54a}
+$$
+函数类 $\mathscr F_\alpha=\{f=\sum\theta_j\phi_j:(\theta_j)\in\mathcal E_\alpha\}$（(15.54b)），$(\phi_j)$ 在 $L^2(\mathbb P)$ 中标准正交。回归 $y_i=f^*(x_i)+\sigma w_i$。Parseval 把 $L^2$ 熵变成 $\ell^2$ 熵：Example 5.12 给出 $\log N(\delta;\mathscr F_\alpha,\|\cdot\|_2)\asymp(1/\delta)^{1/\alpha}$。高斯回归的 KL 是
+$$
+D(\mathbb P_{f^j}\times\mathbb Q\Vert\mathbb P_{f^k}\times\mathbb Q)
+=\frac n{2\sigma^2}\|f^j-f^k\|_2^2,
+$$
+故 $\log N_{\mathrm{KL}}(\epsilon)\lesssim(\sqrt n/(\sigma\epsilon))^{1/\alpha}$。取 $\epsilon_n^2\asymp(n/\sigma^2)^{1/(2\alpha+1)}$，再
+$$
+(1/\delta)^{1/\alpha}
+\ge c\bigl\{(n/\sigma^2)^{1/(2\alpha+1)}+2\log 2\bigr\}
+\tag{15.56}
+$$
+在 $n/\sigma^2$ 大于常数时由 $\delta_n^2\asymp(\sigma^2/n)^{2\alpha/(2\alpha+1)}$ 满足。于是
+$$
+\inf_{\widehat f}\sup_{f\in\mathscr F_\alpha}
+\mathbb E[\|\widehat f-f\|_2^2]
+\gtrsim
+\min\bigl\{1,(\sigma^2/n)^{2\alpha/(2\alpha+1)}\bigr\}.
+\tag{15.55}
+$$
+:::
+
+> 教材定位：Example 15.23 / (15.54)–(15.56)，印刷页 514–515，PDF 页 533–534。
+
+# 15.4 Appendix: Basic background in information theory　信息论附录
+
+> 教材定位：§15.4，印刷页 515–518，PDF 页 534–537。
+
+::: {.callout-important title="Definition 15.24　香农熵"}
+$\mathbb Q$ 对基测度 $\mu$ 有密度 $q$，
+$$
+H(\mathbb Q)
+:=-\mathbb E[\log q(X)]
+=-\int_{\mathcal X}q(x)\log q(x)\,\mu(dx),
+\tag{15.57}
+$$
+在积分有限时。离散情形（计数测度）
+$$
+H(\mathbb Q)
+=-\sum_{x\in\mathcal X}q(x)\log q(x).
+\tag{15.58}
+$$
+离散熵非负；$\mathcal X$ 有限时 $H(\mathbb Q)\le\log\lvert\mathcal X\rvert$，等号当且仅当均匀（Exercise 15.2）。习惯上对 $X\sim\mathbb Q$ 写 $H(X)$，尽管熵是分布的泛函。
+:::
+
+> 教材定位：Definition 15.24 / (15.57)–(15.58)，印刷页 516，PDF 页 535。
+
+::: {.callout-important title="Definition 15.25　条件熵"}
+$$
+H(X\mid Y)
+:=\mathbb E_Y\bigl[H(\mathbb Q_{X\mid Y})\bigr]
+=\mathbb E_Y\Bigl[-\int_{\mathcal X}q(x\mid Y)\log q(x\mid Y)\,\mu(dx)\Bigr].
+$$
+印刷 (15.59) 的积分前缺负号（`勘误待批`）；Notes 按 Definition 15.24 的 $-\int q\log q$ 使用。
+:::
+
+> 教材定位：Definition 15.25 / (15.59)，印刷页 516，PDF 页 535。
+
+基本性质：
+
+- 条件化减熵：$H(X\mid Y)\le H(X)$（(15.60a)），等价于 $I(X;Y)\ge 0$；
+- 链式法则：$H(X,Y)=H(Y)+H(X\mid Y)$（(15.60b)）；
+- 条件链式法则的正确形式是 $H(X,Y\mid Z)=H(X\mid Z)+H(Y\mid X,Z)$。印刷 (15.60c) 把第二项写成 $H(X\mid Y,Z)$（`勘误待批`）；
+- $I(X;Y)=H(X)+H(Y)-H(X,Y)=H(Y)-H(Y\mid X)$（(15.60d,e)）。
+
+**范诺标准形。** 记 $q_e=\mathbb P[\psi(Z)\neq J]$，$h(q_e)=-q_e\log q_e-(1-q_e)\log(1-q_e)$ 为二元熵。则
+
+$$
+h(q_e)+q_e\log(M-1)\ge H(J\mid Z).
+\tag{15.61}
+$$
+
+$H(J\mid Z)=H(J)-I(Z;J)=\log M-I(Z;J)$（$J$ 均匀），且 $h(q_e)\le\log 2$，再用 $q_e\log(M-1)\le q_e\log M$ 即得 (15.31)。
+
+(15.61) 的证明：令 $V=\mathbb I[\psi(Z)\neq J]$。一方面 $H(V,J\mid Z)=H(J\mid Z)+H(V\mid J,Z)=H(J\mid Z)$（$V$ 是 $(Z,J)$ 的函数）（(15.62)）。另一方面 $H(V,J\mid Z)=H(V\mid Z)+H(J\mid V,Z)\le h(q_e)+H(J\mid V,Z)$。$V=0$ 时 $J=\psi(Z)$，条件熵 $0$；$V=1$ 时 $J$ 至多 $M-1$ 个值，熵 $\le\log(M-1)$。因此 $H(J\mid V,Z)=q_e H(J\mid Z,V=1)\le q_e\log(M-1)$。印刷末句写成 $H(V,J\mid Z)\le h(q_e)+\log(M-1)$，丢掉了 $q_e$（`勘误待批`）；没有 $q_e$ 得不到 (15.61)。
+
+# 15.5 Bibliographic details and background　文献与背景
+
+> 教材定位：§15.5，印刷页 518–519，PDF 页 537–538。文献条目指回教材。
+
+史线锚点：Shannon (1948) 信息论；Kullback–Leibler (1951)；Le Cam (1973) 两点/凸包；Hasminskii (1978) 用 (15.34) 做密度估计下界；Assouad (1983) 超立方体顶点；Birgé 一系列精化；Yu (1996) 比较勒卡姆 / 范诺 / Assouad，Examples 15.8、15.11、15.15 沿她的构造；Birgé–Massart (1995) 证明 (15.28)；Yang–Barron (1999) 给出 Lemma 15.21。Guntuboyina (2011) 把范诺推到 $f$-散度（Exercise 15.12）。稀疏回归变量选择见 Wainwright (2009a)，稀疏 PCA 见 Amini–Wainwright (2009)。计算约束与隐私约束下的极小极大是更新的方向。
+
+# 常见错误
+
+1. **错误做法：** 对固定的 $\theta^*$ 谈“最优估计量”，并用永远输出 $\theta^*$ 的风险 $0$ 当结论。  
+   **为什么错：** 极小极大先对 $\mathbb P$ 取上确界再对估计量取下确界。逐点最优没有意义。  
+   **正确判断：** 先写 $\sup_{\mathbb P}$，再写 $\inf_{\widehat\theta}$。
+
+2. **错误做法：** 均匀位置族上对 $\theta\neq\theta'$ 用平斯克。  
+   **为什么错：** 支撑不套时 KL $=\infty$，(15.8) 的右端无信息。  
+   **正确判断：** 支撑问题用赫林格 + Lemma 15.3；KL 适用于互相绝对连续的族。
+
+3. **错误做法：** 以为两点勒卡姆总给出最优阶。  
+   **为什么错：** Example 15.8 的二次泛函，两点只给出 $n^{-1/2}$；凸包混合把 TV 压下去，阶变成 $n^{-4/9}$。  
+   **正确判断：** 若点态 TV 太大（检验太容易），先把一类换成凸包。
+
+4. **错误做法：** 范诺里去**下界**互信息，或把 $I$ 换成单个 $D(\mathbb P_{\theta^1}\Vert\mathbb P_{\theta^2})$ 却忘了 $M^2$ 平均。  
+   **为什么错：** (15.31) 中 $I$ 出现在被减项，只有上界 $I$ 才能保证误差下界。  
+   **正确判断：** 局部填装用 (15.34) 或 Lemma 15.17；全局用杨–巴伦 (15.51)。目标是 (15.33)。
+
+5. **错误做法：** 把 $H^2$ 的值域当成 $[0,1]$，或把 (15.12b) 的 $\frac12 H^2$ 丢掉。  
+   **为什么错：** 教材的 $H^2\in[0,2]$，亲和系数 $\int\sqrt{pq}=1-H^2/2$。(15.12b) 左端是 $\frac12 H^2(\mathbb P^{1:n}\Vert\mathbb Q^{1:n})$。  
+   **正确判断：** 先写亲和系数再翻译成 $H^2$；乘积公式记左边的 $1/2$。
+
+# 轻量自测
+
+1. 用一句话说明：为何“忽略数据、输出固定 $\theta_0$”不能拿来比较估计量，而极小极大可以。
+2. 高斯位置族，$n$ 次 i.i.d.，$2\delta$-分离的两点。用平斯克（不要用 (15.15)）选出 $\delta$，使 TV $\le 1/2$，并写出绝对值风险的两点勒卡姆下界。把常数与 (15.16a) 比较。
+3. 为何 Example 15.8 的两点下界 $n^{-1/2}$ 不能被任何估计量一致达到？凸包改了检验问题的哪一块？
+4. 范诺：(a) $I(Z;J)=0$ 时 (15.31) 说什么；(b) $M=2$ 时它与 (15.13) 相比松在哪里。
+5. 密度估计 $\mathscr F_2$：局部填装与杨–巴伦都给出平方赫林格 $n^{-4/5}$。各自的“熵输入”是什么？哪一步用到了 $f$ 一致远离 $0$？
+
+<details>
+<summary>查看参考答案</summary>
+
+1. 忽略数据的估计量只在那一个 $\theta_0$ 上风险为 $0$，对 $\theta\neq\theta_0$ 可以任意坏。极小极大先取 $\sup_{\mathbb P}$，强迫估计量在整个类上同时表现好；再对这个最坏风险取 $\inf$。
+2. $D(\mathbb P_{2\delta}^n\Vert\mathbb P_0^n)=n(2\delta)^2/(2\sigma^2)=2n\delta^2/\sigma^2$。平斯克：$\mathrm{TV}\le\sqrt{D/2}=\delta\sqrt n/\sigma$。取 $\delta=\sigma/(2\sqrt n)$ 则 $\mathrm{TV}\le 1/2$。绝对值、$\Phi(t)=t$：(15.14) 给出 $\ge(\delta/2)(1/2)=\delta/4=\sigma/(8\sqrt n)$。比 (15.16a) 的 $1/12$ 更锐，这就是 Exercise 15.8。
+3. 两点比较的是均匀密度与“所有峰同号”的密度，二者 TV 不够小，检验太容易，只能支撑 $n^{-1/2}$；而 $\mathscr F_2$ 上没有估计量能一致达到这个阶。凸包把 $\mathcal P_1$ 换成全部符号模式的混合，混合接近均匀，TV 降到 $1/2$，同时每个模式的 $\theta(f)$ 仍与均匀差 $1/m^2\sim n^{-4/9}$。
+4. (a) $I=0$ 则 $Z$ 与 $J$ 独立，(15.31) 给出误差 $\ge 1-(\log 2)/\log M$，即几乎是随机猜（$M=2$ 时右端 $0$，这个形式退化）。(b) $M=2$ 时范诺用 $I+\log 2$ 和 $\log 2$，比 (15.13) 的精确 TV 公式松：它不利用似然比检验的显式结构，也不给出 $1-\mathrm{TV}$ 的因子 $1/2$。
+5. 局部填装：手造 $f_\alpha=1+\sum\alpha_j\phi_j$，用汉明 $1/4$-填装控制 $H^2$ 下界与 KL 上界，再调 $m\sim n^{1/5}$。杨–巴伦：直接输入 $\log N(\delta;\mathscr F_2,\|\cdot\|_2)\asymp\delta^{-1/2}$，把 KL 覆盖通过 $f\ge c_0$ 换成 $L^2$ 覆盖。一致远离 $0$ 用于：(i) KL $\lesssim H^2\lesssim\|f-g\|_2^2$；(ii) Example 15.15 里 $f_\alpha\ge 1/2$ 从而 $D\le 2\int(f_\alpha-f_\beta)^2$。
+
+</details>
+
+# 本章小结
+
+- 极小极大风险 (15.1)–(15.2) 是与算法无关的最坏风险；逐点风险不能用来排序估计量。
+- 一切下界都经过 Proposition 15.1：在 $2\delta$-分离集上把估计变成检验，最近邻检验 (15.4) 把 $\{\rho<\delta\}$ 变成正确判决。
+- 二元情形贝叶斯风险 $= \frac12\{1-\mathrm{TV}\}$。勒卡姆两点法用一对分布；凸包法允许两类混合，TV 更小、下界更尖。高斯位置 $n^{-1}$、均匀位置 $n^{-2}$、利普希茨点估计 $n^{-2/3}$、二次泛函 $n^{-4/9}$ 都从这里来。
+- $M$ 元情形用范诺 (15.31)–(15.32)。局部填装用 (15.34) 或高斯熵 (15.42) 上界互信息；杨–巴伦用全局 KL 覆盖数，不必手造局部簇。线性回归 $\sigma^2\mathrm{rank}(\mathbf X)/n$、稀疏回归 $s\log(ed/s)/n$、密度 $n^{-4/5}$、索伯列夫 $(\sigma^2/n)^{2\alpha/(2\alpha+1)}$ 都从这里来。
+- 平斯克、勒卡姆不等式、KL/赫林格乘积公式是把 TV 换成可计算散度的三块积木；支撑不交时丢掉 KL。
+
+## 术语对照
+
+| 中文 | English | 备注 |
+|---|---|---|
+| 极小极大 | minimax | 名词委：极小极大；本章主对象 |
+| 极小极大风险 | minimax risk | (15.1)–(15.2)；$\mathfrak M$ |
+| 半度量 | semi-metric | 印刷页 486 脚注 |
+| 分离集 | separated set | $2\delta$-separated；(15.3) |
+| 填装 | packing | 第 5 章；$M(2\delta)$ |
+| 度量熵 | metric entropy | 第 5 章；杨–巴伦用 KL 覆盖 |
+| 最近邻检验 | nearest-neighbour test | (15.4) |
+| 全变差距离 | total variation distance | (15.5)–(15.6)；TV |
+| 库尔贝克–莱布勒散度 | Kullback–Leibler divergence | (15.7)；KL |
+| 平方赫林格距离 | squared Hellinger distance | (15.9)；$H^2\in[0,2]$ |
+| 平斯克–奇萨尔–库尔贝克不等式 | Pinsker–Csiszár–Kullback inequality | Lemma 15.2；(15.8) |
+| 勒卡姆不等式 | Le Cam's inequality | Lemma 15.3；(15.10) |
+| 勒卡姆方法 | Le Cam's method | 两点 (15.14) 与凸包 Lemma 15.9 |
+| 两点法 | two-point method | (15.14)；Example 15.4 |
+| 凸包法 | convex hull method | Lemma 15.9；Example 15.11 |
+| 贝叶斯风险 | Bayes risk | (15.13)；等先验二元 |
+| 互信息 | mutual information | (15.29)–(15.30) |
+| 范诺不等式 | Fano's inequality | (15.31)；标准形 (15.61) |
+| 局部填装 | local packing | §15.3.3；(15.35) |
+| 杨–巴伦方法 | Yang–Barron method | Lemma 15.21 |
+| 香农熵 | Shannon entropy | Definition 15.24 |
+| 条件熵 | conditional entropy | Definition 15.25 |
+| 链式法则 | chain rule | (15.60b)；Exercise 15.4 |
+| 二次泛函 | quadratic functional | Examples 15.8、15.11 |
+| 尖刺协方差 | spiked covariance | (15.47)；第 8 章 |
+| $f$-散度 | $f$-divergence | Exercise 15.12；(15.67) |
+
+: 本章术语（中文从名词委；英文从教材或国际通行用法）
+
+## 来源定位
+
+- 教材：第 15 章 §§15.1–15.5，印刷页 485–519，PDF 页 504–538。
+- 习题：§15.6 Exercises 15.1–15.18，印刷页 519–523，PDF 页 538–542；解答见 [Solutions](../solutions/ch15-solutions.qmd)。
+- 页码关系：**PDF 页 = 印刷页 + 19**（印刷页 485 = PDF 页 504）。

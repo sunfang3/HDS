@@ -1,0 +1,75 @@
+project:
+  type: website
+  output-dir: _site
+  render:
+    - index.qmd
+    - glossary.qmd
+    - notes/*.qmd
+    - solutions/*.qmd
+
+website:
+  title: "HDS Companion"
+  site-url: https://sunfang3.github.io/HDS/
+  description: "Wainwright High-Dimensional Statistics — Quarto Notes and Solutions"
+  repo-url: https://github.com/sunfang3/HDS
+  repo-actions: [source, issue]
+  navbar:
+    background: primary
+    left:
+      - href: index.qmd
+        text: Home
+      - href: glossary.qmd
+        text: Glossary
+      - text: Notes
+        menu:
+          - text: "Ch 1 Introduction"
+            href: notes/ch01-notes.qmd
+          - text: "Ch 2 Tail bounds"
+            href: notes/ch02-notes.qmd
+      - text: Solutions
+        menu:
+          - text: "Ch 1 Exercises"
+            href: solutions/ch01-solutions.qmd
+    right:
+      - icon: github
+        href: https://github.com/sunfang3/HDS
+  sidebar:
+    style: docked
+    search: true
+    collapse-level: 2
+    contents:
+      - glossary.qmd
+      - section: "Notes"
+        contents:
+          - notes/ch01-notes.qmd
+          - notes/ch02-notes.qmd
+      - section: "Solutions"
+        contents:
+          - solutions/ch01-solutions.qmd
+  page-footer:
+    left: "HDS Companion · Quarto website"
+    right:
+      - text: "sunfang3.github.io/HDS"
+        href: https://sunfang3.github.io/HDS/
+
+format:
+  html:
+    theme:
+      - cosmo
+      - styles.scss
+    toc: true
+    toc-depth: 3
+    toc-location: right
+    number-sections: false
+    code-fold: true
+    code-tools: false
+    html-math-method: mathjax
+    link-external-newwindow: true
+    smooth-scroll: true
+    standalone: false
+    embed-resources: false
+    reference-location: margin
+
+execute:
+  enabled: false
+  freeze: auto

@@ -1,0 +1,573 @@
+---
+title: "Chapter 10 Exercises"
+subtitle: "Wainwright, High-Dimensional Statistics §10.9"
+description: "Exercise list locked from the textbook; solved independently"
+execute:
+  enabled: false
+---
+
+# How to use this file
+
+- **Textbook:** Martin J. Wainwright, *High-Dimensional Statistics: A Non-Asymptotic Viewpoint* (Cambridge Series in Statistical and Probabilistic Mathematics, No. 48; 2019).
+- **Range:** Chapter 10, §10.9, Exercises 10.1–10.11 (locked from printed pp. 343–346).
+- **Pages:** printed pp. 343–346; PDF pp. 362–365 (offset **PDF = printed + 19**).
+- **Principle:** stems follow the textbook; solutions are independent. Printed identities are recomputed. Suspected typesetting errors are marked `勘误待批` and the original wording is kept.
+- **Companion notes:** [`ch10-notes.qmd`](../notes/ch10-notes.qmd).
+
+### Exercise 10.1 (Reduced rank regression)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+In the multivariate model of Example 10.1, for a target rank $r\le T\le p$,
+$$
+\widehat\Theta_{\mathrm{RR}}
+:=\arg\min_{\substack{\Theta\in\mathbb R^{p\times T}\\ \mathrm{rank}(\Theta)\le r}}
+\frac1{2n}\|Y-Z\Theta\|_{\mathrm{F}}^2.
+$$
+Let $\widehat\Sigma_{ZZ}=\frac1n Z^T Z$ and $\widehat\Sigma_{ZY}=\frac1n Z^T Y$. Assuming $\widehat\Sigma_{ZZ}$ is invertible, show
+$$
+\widehat\Theta_{\mathrm{RR}}
+=\widehat\Sigma_{ZZ}^{-1}\widehat\Sigma_{XY}VV^T,
+$$
+where the columns of $V\in\mathbb R^{T\times r}$ are the top $r$ eigenvectors of $\widehat\Sigma_{YZ}\widehat\Sigma_{ZZ}^{-1}\widehat\Sigma_{ZY}$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Expand the Frobenius loss:
+$$
+\frac1n\|Y-Z\Theta\|_{\mathrm{F}}^2
+=\frac1n\|Y\|_{\mathrm{F}}^2
+-2\langle\langle\widehat\Sigma_{YZ},\Theta\rangle\rangle
++\langle\langle\Theta,\widehat\Sigma_{ZZ}\Theta\rangle\rangle.
+$$
+Because $\widehat\Sigma_{ZZ}\succ 0$, the change of variables $\Gamma:=\widehat\Sigma_{ZZ}^{1/2}\Theta$ is a linear bijection on $\mathbb R^{p\times T}$ that preserves rank. Completing the square gives
+$$
+\langle\langle\Theta,\widehat\Sigma_{ZZ}\Theta\rangle\rangle
+-2\langle\langle\widehat\Sigma_{YZ},\Theta\rangle\rangle
+=\bigl\|\Gamma-\widehat\Sigma_{ZZ}^{-1/2}\widehat\Sigma_{ZY}\bigr\|_{\mathrm{F}}^2
+-\bigl\|\widehat\Sigma_{ZZ}^{-1/2}\widehat\Sigma_{ZY}\bigr\|_{\mathrm{F}}^2.
+$$
+Hence reduced-rank regression is equivalent to the Eckart–Young problem
+$$
+\min_{\mathrm{rank}(\Gamma)\le r}
+\bigl\|\Gamma-M\bigr\|_{\mathrm{F}}^2,
+\qquad
+M:=\widehat\Sigma_{ZZ}^{-1/2}\widehat\Sigma_{ZY}.
+$$
+If $M=P\,D\,Q^T$ is an SVD, the unique minimizer of rank at most $r$ (assuming a gap at the $r$th singular value) is the truncated SVD $M_r=P_r D_r Q_r^T=M\,Q_r Q_r^T$. Therefore
+$$
+\widehat\Gamma=M V V^T,
+\qquad
+\widehat\Theta_{\mathrm{RR}}
+=\widehat\Sigma_{ZZ}^{-1/2}\widehat\Gamma
+=\widehat\Sigma_{ZZ}^{-1}\widehat\Sigma_{ZY}VV^T,
+$$
+where $V=Q_r$. The right singular vectors of $M$ are the eigenvectors of
+$$
+M^T M
+=\widehat\Sigma_{YZ}\widehat\Sigma_{ZZ}^{-1}\widehat\Sigma_{ZY},
+$$
+which is the matrix named in the stem.
+
+**勘误待批 (printed p. 343; PDF p. 362).** The displayed formula writes $\widehat\Sigma_{XY}$, but the only cross-covariance defined on the same page is the $p\times T$ matrix $\widehat\Sigma_{ZY}=\frac1n Z^T Y$. The identity above holds with $\widehat\Sigma_{ZY}$ in place of $\widehat\Sigma_{XY}$. Keep the printed token until a teacher approves the correction.
+:::
+
+### Exercise 10.2 (Vector autoregressive processes)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Recall the VAR of Example 10.5.
+(a) If $z^1\sim N(0,\Sigma)$ and the symmetric matrix $\Sigma$ solves $\Sigma-\Theta^*\Sigma(\Theta^*)^T-\Gamma=0$ with $\Gamma\succ 0$, show that $\{z^t\}_{t\ge 1}$ is stationary.
+(b) If a solution $\Sigma\succ 0$ exists, show $\|\Theta^*\|_2<1$.
+(c) Conversely, if $\|\Theta^*\|_2<1$, show that a solution $\Sigma\succ 0$ exists.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** The recursion $z^{t+1}=\Theta^* z^t+w^t$ with $w^t\sim N(0,\Gamma)$ independent of $z^t$ is a time-homogeneous Gaussian Markov process. If $z^t\sim N(0,\Sigma)$, then $\mathbb E[z^{t+1}]=0$ and
+$$
+\mathrm{cov}(z^{t+1})
+=\Theta^*\Sigma(\Theta^*)^T+\Gamma
+=\Sigma
+$$
+by (10.58), so $z^{t+1}\sim N(0,\Sigma)$. Thus the invariant law $N(0,\Sigma)$ is preserved. A time-homogeneous Markov process started from an invariant distribution is strictly stationary: for every $k$ the block $(z^t,\ldots,z^{t+k})$ has a $t$-independent Gaussian law, determined by the Lyapunov covariance and the linear dynamics.
+
+**(b).** The claim as printed is false. The discrete Lyapunov equation $X-AXA^T=Q$ with $Q\succ 0$ admits a positive-definite solution if and only if the spectral radius satisfies $\rho(A)<1$. The operator-norm bound $\|\Theta^*\|_2<1$ is sufficient (it implies $\rho(\Theta^*)<1$) but not necessary.
+
+**Counter-example.** Take
+$$
+\Theta^*
+=\begin{pmatrix}0&2\\0&0\end{pmatrix},
+\qquad
+\Gamma=I_2,
+\qquad
+\Sigma=\mathrm{diag}(5,1).
+$$
+Then $\|\Theta^*\|_2=2>1$, while $\rho(\Theta^*)=0<1$. A direct computation gives
+$$
+\Theta^*\Sigma(\Theta^*)^T
+=\begin{pmatrix}4&0\\0&0\end{pmatrix},
+\qquad
+\Sigma-\Theta^*\Sigma(\Theta^*)^T
+=I_2=\Gamma,
+$$
+so $\Sigma\succ 0$ solves (10.58).
+
+**勘误待批 (printed p. 343; PDF p. 362).** Part (b) should conclude $\rho(\Theta^*)<1$, not $\|\Theta^*\|_2<1$. The printed operator-norm statement is strictly stronger than the Lyapunov criterion.
+
+**(c).** Assume $\|\Theta^*\|_2<1$ and $\Gamma\succ 0$. The Neumann series
+$$
+\Sigma
+:=\sum_{k=0}^\infty (\Theta^*)^k\,\Gamma\,\bigl((\Theta^*)^T\bigr)^k
+$$
+converges in operator norm: the $k$th term is bounded by $\|\Theta^*\|_2^{2k}\|\Gamma\|_2$. The partial sums $\Sigma_N=\sum_{k=0}^{N-1}(\Theta^*)^k\Gamma((\Theta^*)^T)^k$ satisfy
+$$
+\Sigma_N-\Theta^*\Sigma_N(\Theta^*)^T
+=\Gamma-(\Theta^*)^N\Gamma\bigl((\Theta^*)^T\bigr)^N,
+$$
+and the remainder vanishes as $N\to\infty$. Hence $\Sigma$ solves (10.58). Moreover $\Sigma\succeq\Gamma\succ 0$, so $\Sigma$ is strictly positive definite.
+:::
+
+### Exercise 10.3 (Nullspace in matrix completion)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $\mathfrak X_n:\mathbb R^{d\times d}\to\mathbb R$ be formed by $n$ i.i.d. rescaled mask matrices (value $d$ in one uniformly chosen entry). For $\Theta^{\mathrm{bad}}$ from (10.37), show $\mathbb P[\mathfrak X_n(\Theta^{\mathrm{bad}})=0]=1-o(1)$ whenever $n=o(d^2)$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**勘误待批 (printed p. 344; PDF p. 363).** The operator maps into $\mathbb R^n$, not $\mathbb R$. The argument below uses $\mathfrak X_n:\mathbb R^{d\times d}\to\mathbb R^n$.
+
+Each mask $X_i$ equals $d$ in a single pair $(A_i,B_i)$ drawn uniformly from $\{1,\ldots,d\}^2$, independently. The matrix $\Theta^{\mathrm{bad}}=e_1\otimes e_1$ has a unique nonzero entry of value $1$ at $(1,1)$, so
+$$
+\langle\langle X_i,\Theta^{\mathrm{bad}}\rangle\rangle
+=d\cdot\mathbf 1_{\{(A_i,B_i)=(1,1)\}}.
+$$
+Thus $\mathfrak X_n(\Theta^{\mathrm{bad}})=0$ if and only if none of the $n$ samples hits position $(1,1)$. Independence gives
+$$
+\mathbb P\bigl[\mathfrak X_n(\Theta^{\mathrm{bad}})=0\bigr]
+=\Bigl(1-\frac1{d^2}\Bigr)^n
+=\exp\bigl(n\log(1-d^{-2})\bigr).
+$$
+The expansion $\log(1-u)=-u+O(u^2)$ for $u=d^{-2}$ yields
+$$
+n\log(1-d^{-2})
+=-\frac n{d^2}+O\Bigl(\frac n{d^4}\Bigr).
+$$
+If $n=o(d^2)$ then $n/d^2\to 0$ and $n/d^4\to 0$, so the exponent tends to $0$ and the probability tends to $1$. Equivalently, $1-(1-d^{-2})^n\le n/d^2\to 0$.
+:::
+
+### Exercise 10.4 (Cone inequalities for nuclear norm)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Suppose $\|\widehat\Theta\|_{\mathrm{nuc}}\le\|\Theta^*\|_{\mathrm{nuc}}$ with $\mathrm{rank}(\Theta^*)=r$. Show that $\widehat\Delta=\widehat\Theta-\Theta^*$ satisfies $\|\widehat\Delta_{\overline{\mathbb M}^\perp}\|_{\mathrm{nuc}}\le\|\widehat\Delta_{\overline{\mathbb M}}\|_{\mathrm{nuc}}$, where $\overline{\mathbb M}^\perp$ is as in (10.14).
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Let $\mathbb U,\mathbb V$ be the spans of the left and right singular vectors of $\Theta^*$ associated with its $r$ nonzero singular values, and let $(\mathbb M,\overline{\mathbb M})$ be the pair (10.12)–(10.14). Then $\Theta^*=\Theta^*_{\mathbb M}$ and $\Theta^*_{\mathbb M^\perp}=0$. Decomposability of the nuclear norm on $(\mathbb M,\overline{\mathbb M}^\perp)$ and the triangle inequality give
+\begin{align*}
+\|\widehat\Theta\|_{\mathrm{nuc}}
+&=\|\Theta^*+\widehat\Delta\|_{\mathrm{nuc}}
+=\|\Theta^*_{\mathbb M}+\widehat\Delta_{\overline{\mathbb M}}+\widehat\Delta_{\overline{\mathbb M}^\perp}\|_{\mathrm{nuc}} \\
+&\ge\|\Theta^*_{\mathbb M}+\widehat\Delta_{\overline{\mathbb M}^\perp}\|_{\mathrm{nuc}}
+-\|\widehat\Delta_{\overline{\mathbb M}}\|_{\mathrm{nuc}} \\
+&=\|\Theta^*_{\mathbb M}\|_{\mathrm{nuc}}
++\|\widehat\Delta_{\overline{\mathbb M}^\perp}\|_{\mathrm{nuc}}
+-\|\widehat\Delta_{\overline{\mathbb M}}\|_{\mathrm{nuc}}.
+\end{align*}
+The hypothesis $\|\widehat\Theta\|_{\mathrm{nuc}}\le\|\Theta^*\|_{\mathrm{nuc}}=\|\Theta^*_{\mathbb M}\|_{\mathrm{nuc}}$ therefore rearranges to
+$\|\widehat\Delta_{\overline{\mathbb M}^\perp}\|_{\mathrm{nuc}}\le\|\widehat\Delta_{\overline{\mathbb M}}\|_{\mathrm{nuc}}$.
+(The regularized cone (10.15) has a factor $3$ because the first-order condition only controls a neighbourhood of $\Theta^*$; the exact nuclear-norm constraint produces the factor $1$.)
+:::
+
+### Exercise 10.5 (Operator norm bounds)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+(a) Verify the $\Phi^*$-curvature form (10.20).
+(b) If $\mathrm{rank}(\Theta^*)=r$ and $\widehat\Theta-\Theta^*$ obeys the cone (10.15) for $r$-dimensional $(\mathbb U,\mathbb V)$, show
+$\|\widehat\Theta-\Theta^*\|_{\mathrm{F}}\le 4\sqrt{2r}\,\|\widehat\Theta-\Theta^*\|_2$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** Table 9.1 records that the dual of the nuclear norm is the $\ell_2$-operator (spectral) norm. For the least-squares cost,
+$$
+\nabla\mathcal L_n(\Theta)
+=\frac1n\mathfrak X_n^*\bigl(y-\mathfrak X_n(\Theta)\bigr),
+$$
+hence
+$$
+\nabla\mathcal L_n(\Theta^*+\Delta)-\nabla\mathcal L_n(\Theta^*)
+=\frac1n\mathfrak X_n^*\mathfrak X_n(\Delta).
+$$
+Definition 9.22 asks for a lower bound of the form
+$\Phi^*\bigl(\nabla\mathcal L_n(\Theta^*+\Delta)-\nabla\mathcal L_n(\Theta^*)\bigr)\ge\kappa\,\Phi^*(\Delta)-\tau_n\Phi(\Delta)$.
+Substituting $\Phi=\|\cdot\|_{\mathrm{nuc}}$ and $\Phi^*=\|\cdot\|_2$ produces exactly (10.20).
+
+**(b).** Rank $r$ forces $\Theta^*_{\mathbb M^\perp}=0$, so (10.15) reduces to
+$\|\widehat\Delta_{\overline{\mathbb M}^\perp}\|_{\mathrm{nuc}}\le 3\|\widehat\Delta_{\overline{\mathbb M}}\|_{\mathrm{nuc}}$.
+Adding the $\overline{\mathbb M}$ piece,
+$$
+\|\widehat\Delta\|_{\mathrm{nuc}}
+\le 4\|\widehat\Delta_{\overline{\mathbb M}}\|_{\mathrm{nuc}}.
+$$
+Every matrix in $\overline{\mathbb M}$ has rank at most $2r$ by (10.14), therefore
+$\|\widehat\Delta_{\overline{\mathbb M}}\|_{\mathrm{nuc}}\le\sqrt{2r}\,\|\widehat\Delta_{\overline{\mathbb M}}\|_{\mathrm{F}}\le\sqrt{2r}\,\|\widehat\Delta\|_{\mathrm{F}}$,
+and $\|\widehat\Delta\|_{\mathrm{nuc}}\le 4\sqrt{2r}\,\|\widehat\Delta\|_{\mathrm{F}}$. Hölder's pairing $\langle\langle\widehat\Delta,\widehat\Delta\rangle\rangle\le\|\widehat\Delta\|_{\mathrm{nuc}}\|\widehat\Delta\|_2$ yields
+$$
+\|\widehat\Delta\|_{\mathrm{F}}^2
+\le 4\sqrt{2r}\,\|\widehat\Delta\|_{\mathrm{F}}\,\|\widehat\Delta\|_2.
+$$
+Cancel $\|\widehat\Delta\|_{\mathrm{F}}$ (or note that the claim is vacuous if $\widehat\Delta=0$).
+:::
+
+### Exercise 10.6 (Analysis of matrix compressed sensing)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+For $\Sigma=I_D$ with $D=d_1 d_2$, let
+$\mathbb B(t)=\{\Delta\in\mathbb R^{d_1\times d_1}:\|\Delta\|_{\mathrm{F}}=1,\ \|\Delta\|_{\mathrm{nuc}}\le t\}$.
+Show that
+$$
+\inf_{\Delta\in\mathbb B(t)}
+\sqrt{\frac1n\sum_{i=1}^n\langle\langle X_i,\Delta\rangle\rangle^2}
+\ge
+\frac12-\delta-2\Bigl(\sqrt{\frac{d_1}{n}}+\sqrt{\frac{d_2}{n}}\Bigr)t
+$$
+with probability at least $1-e^{-n\delta^2/2}$.
+(a) Reduce to lower bounding
+$Z_n(t)=\inf_{\Delta\in\mathbb B(t)}\sup_{\|u\|_2=1}n^{-1/2}\sum_i u_i\langle\langle X_i,\Delta\rangle\rangle$.
+(b) Show $\mathbb E[Z_n(t)]\ge n^{-1/2}\{\mathbb E[\|w\|_2]-\mathbb E[\|W\|_2]\,t\}$ with $w\in\mathbb R^n$ and $W\in\mathbb R^{d_1\times d_2}$ standard Gaussian.
+(c) Finish by concentration.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**勘误待批 (printed p. 344; PDF p. 363).** The set $\mathbb B(t)$ is a subset of $\mathbb R^{d_1\times d_2}$, not $\mathbb R^{d_1\times d_1}$: the same exercise populates $W$ with $d_1\times d_2$ Gaussians. Read $\mathbb B(t)\subset\mathbb R^{d_1\times d_2}$.
+
+**(a).** For each fixed $\Delta$,
+$$
+\frac1{\sqrt n}\|\mathfrak X_n(\Delta)\|_2
+=\sup_{\|u\|_2=1}\frac1{\sqrt n}\sum_{i=1}^n u_i\langle\langle X_i,\Delta\rangle\rangle,
+$$
+because the Euclidean dual of $\mathbb R^n$ is itself. Taking the infimum over $\mathbb B(t)$ produces $Z_n(t)$. The claimed lower bound is a lower bound on $Z_n(t)$.
+
+**(b).** Write $A$ for the $n\times(d_1 d_2)$ matrix with rows $\mathrm{vec}(X_i)$. Then $Z_n(t)=\inf_{\Delta\in\mathbb B(t)}n^{-1/2}\|A\,\mathrm{vec}(\Delta)\|_2$. Gordon's comparison (Chapter 5) applied to a standard Gaussian matrix $A$ yields
+$$
+\mathbb E\inf_{x\in T}\|Ax\|_2
+\ge
+\mathbb E\|w\|_2-w(T),
+$$
+where $w\in\mathbb R^n$ is standard Gaussian and $w(T)=\mathbb E\sup_{x\in T}\langle g,x\rangle$ is the Gaussian width of $T=\mathrm{vec}(\mathbb B(t))$. Duality between the nuclear and spectral norms gives
+$$
+\sup_{\Delta\in\mathbb B(t)}\langle\langle W,\Delta\rangle\rangle
+\le
+\|W\|_2\sup_{\Delta\in\mathbb B(t)}\|\Delta\|_{\mathrm{nuc}}
+\le t\|W\|_2,
+$$
+so $w(T)\le t\,\mathbb E[\|W\|_2]$. Dividing by $\sqrt n$ is the display in the stem.
+
+**(c).** The map from the concatenated Gaussian vector $\mathrm{vec}(A)\in\mathbb R^{n d_1 d_2}$ to $Z_n(t)$ is $n^{-1/2}$-Lipschitz: if $A,A'$ are two designs then
+$$
+\bigl|Z_n(A)-Z_n(A')\bigr|
+\le n^{-1/2}\sup_{\|\Delta\|_{\mathrm{F}}=1}\| (A-A')\mathrm{vec}(\Delta)\|_2
+\le n^{-1/2}\|A-A'\|_{\mathrm{F}}.
+$$
+Gaussian Lipschitz concentration (Theorem 2.26) therefore yields the sub-Gaussian tail
+$$
+\mathbb P\bigl(Z_n(t)\le\mathbb E[Z_n(t)]-\delta\bigr)
+\le e^{-n\delta^2/2}.
+$$
+It remains to bound the expectation. $\mathbb E[\|w\|_2]\ge\sqrt{n}/2$ as soon as $n\ge 4$ (in fact $\mathbb E[\|w\|_2]\ge\sqrt{n-1}$). For a $d_1\times d_2$ Gaussian matrix, $\mathbb E[\|W\|_2]\le\sqrt{d_1}+\sqrt{d_2}$ (Theorem 6.1), and the slightly looser majorant $2(\sqrt{d_1}+\sqrt{d_2})$ produces the factor $2$ in the stem. Combining the pieces,
+$$
+\mathbb E[Z_n(t)]
+\ge
+\frac12-2\Bigl(\sqrt{\frac{d_1}{n}}+\sqrt{\frac{d_2}{n}}\Bigr)t,
+$$
+and subtracting $\delta$ gives the high-probability bound.
+:::
+
+### Exercise 10.7 (Bounds for approximately low-rank matrices)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+For $y=\mathfrak X_n(\Theta^*)+w$ with $w\sim N(0,\sigma^2 I_n)$, consider
+$$
+\widehat\Theta
+=\arg\min_{\|\Theta\|_{\mathrm{nuc}}\le\|\Theta^*\|_{\mathrm{nuc}}}
+\frac1{2n}\|y-\mathfrak X_n(\Theta)\|_2^2.
+$$
+Assume $\Theta^*\in\mathbb B_q(R_q)$ from (10.26) and that $\mathfrak X_n$ obeys Theorem 10.8.
+(a) Prove $\|\widehat\Delta_{\overline{\mathbb M}^\perp}\|_{\mathrm{nuc}}\le 2\sqrt{2r}\,\|\widehat\Delta\|_{\mathrm{F}}+2\sum_{j>r}\sigma_j(\Theta^*)$.
+(b) If $n>Crd$, show
+$\|\widehat\Delta\|_{\mathrm{F}}^2\lesssim\max\{T_1(r),T_1(r)^2\}+\sigma\sqrt{rd/n}\,\|\widehat\Delta\|_{\mathrm{F}}$,
+with $T_1(r):=\sigma\sqrt{d/n}\sum_{j>r}\sigma_j(\Theta^*)$.
+(c) Choose $r$ to balance the two errors.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** Let $\mathbb M=\mathbb M(\mathbb U,\mathbb V)$ be generated by the top $r$ singular spaces of $\Theta^*$. The constraint $\|\widehat\Theta\|_{\mathrm{nuc}}\le\|\Theta^*\|_{\mathrm{nuc}}$ and decomposability give, as in Exercise 10.4 but now with a nonzero tail,
+\begin{align*}
+\|\Theta^*\|_{\mathrm{nuc}}
+&\ge\|\Theta^*+\widehat\Delta\|_{\mathrm{nuc}} \\
+&\ge\|\Theta^*_{\mathbb M}+\widehat\Delta_{\overline{\mathbb M}^\perp}\|_{\mathrm{nuc}}
+-\|\widehat\Delta_{\overline{\mathbb M}}\|_{\mathrm{nuc}}
+-\|\Theta^*_{\mathbb M^\perp}\|_{\mathrm{nuc}} \\
+&=\|\Theta^*_{\mathbb M}\|_{\mathrm{nuc}}
++\|\widehat\Delta_{\overline{\mathbb M}^\perp}\|_{\mathrm{nuc}}
+-\|\widehat\Delta_{\overline{\mathbb M}}\|_{\mathrm{nuc}}
+-\|\Theta^*_{\mathbb M^\perp}\|_{\mathrm{nuc}}.
+\end{align*}
+Since $\|\Theta^*\|_{\mathrm{nuc}}=\|\Theta^*_{\mathbb M}\|_{\mathrm{nuc}}+\|\Theta^*_{\mathbb M^\perp}\|_{\mathrm{nuc}}$, this rearranges to
+$$
+\|\widehat\Delta_{\overline{\mathbb M}^\perp}\|_{\mathrm{nuc}}
+\le
+\|\widehat\Delta_{\overline{\mathbb M}}\|_{\mathrm{nuc}}
++2\|\Theta^*_{\mathbb M^\perp}\|_{\mathrm{nuc}}.
+$$
+The first term on the right is at most $\sqrt{2r}\,\|\widehat\Delta\|_{\mathrm{F}}$ by (10.14), and $\|\Theta^*_{\mathbb M^\perp}\|_{\mathrm{nuc}}=\sum_{j>r}\sigma_j(\Theta^*)$. The printed factor $2\sqrt{2r}$ is a convenient majorant of $\sqrt{2r}$.
+
+**(b).** Feasibility of both $\widehat\Theta$ and $\Theta^*$ yields the basic inequality
+$$
+\frac1n\|\mathfrak X_n(\widehat\Delta)\|_2^2
+\le
+\frac2n\langle w,\mathfrak X_n(\widehat\Delta)\rangle
+\le
+2\Bigl\|\frac1n\sum_{i=1}^n w_i X_i\Bigr\|_2\|\widehat\Delta\|_{\mathrm{nuc}}.
+$$
+The hint supplies $\bigl\|\frac1n\sum w_i X_i\bigr\|_2\lesssim\sigma\sqrt{d/n}$ with $d=d_1+d_2$. Theorem 10.8 (identity ensemble) gives
+$$
+\frac1n\|\mathfrak X_n(\widehat\Delta)\|_2^2
+\ge
+c_1\|\widehat\Delta\|_{\mathrm{F}}^2
+-c_2\frac d n\|\widehat\Delta\|_{\mathrm{nuc}}^2.
+$$
+From (a),
+$\|\widehat\Delta\|_{\mathrm{nuc}}\le\|\widehat\Delta_{\overline{\mathbb M}}\|_{\mathrm{nuc}}+\|\widehat\Delta_{\overline{\mathbb M}^\perp}\|_{\mathrm{nuc}}\le 3\sqrt{2r}\,\|\widehat\Delta\|_{\mathrm{F}}+2\sum_{j>r}\sigma_j(\Theta^*)$.
+The hypothesis $n>Crd$ with $C$ large absorbs the $r\|\widehat\Delta\|_{\mathrm{F}}^2$ piece of the nuclear-norm remainder into $c_1/2$. The cross terms that remain are of size $\sigma\sqrt{d/n}\sum_{j>r}\sigma_j=T_1(r)$ and $(d/n)(\sum_{j>r}\sigma_j)^2=T_1(r)^2/\sigma^2$. Absorbing the constant $\sigma$ into the $\lesssim$ notation (or restricting to the natural scaling $\sigma\asymp 1$) produces
+$$
+\|\widehat\Delta\|_{\mathrm{F}}^2
+\lesssim
+\max\{T_1(r),T_1(r)^2\}
++\sigma\sqrt{\frac{rd}{n}}\,\|\widehat\Delta\|_{\mathrm{F}}.
+$$
+(The quadratic $T_1^2$ is the slow-rate remainder; $T_1$ itself is the inner-product remainder.)
+
+**(c).** Write $a:=\|\widehat\Delta\|_{\mathrm{F}}$. The inequality $a^2\lesssim M+\sigma\sqrt{rd/n}\,a$ with $M:=\max\{T_1,T_1^2\}$ implies $a^2\lesssim M+\sigma^2(rd/n)$. For $\Theta^*\in\mathbb B_q(R_q)$ one has $\sigma_j(\Theta^*)\le(R_q/j)^{1/q}$ and therefore
+$$
+\sum_{j>r}\sigma_j(\Theta^*)
+\lesssim
+R_q^{1/q} r^{1-1/q}.
+$$
+Hence $T_1(r)\lesssim\sigma\sqrt{d/n}\,R_q^{1/q} r^{1-1/q}$. Balancing the estimation piece $\sigma^2 rd/n$ against the approximation piece $(T_1)^2$ (or $T_1$, whichever dominates) by the choice
+$$
+r
+\asymp
+R_q\Bigl(\frac{n}{\sigma^2 d}\Bigr)^{q/2}
+$$
+(and clipping $r$ to $\{1,\ldots,d\}$) yields
+$$
+\|\widehat\Delta\|_{\mathrm{F}}^2
+\lesssim
+R_q\Bigl(\frac{\sigma^2 d}{n}\Bigr)^{1-q/2},
+$$
+which is (10.27). For $q=0$ one recovers the exact-rank bound of Corollary 10.10.
+:::
+
+### Exercise 10.8
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Under the assumptions of Corollary 10.14, prove (10.35):
+$$
+\mathbb P\Bigl[
+\Bigl\|\tfrac1n Z^T W\Bigr\|_2
+\ge
+5\sigma\sqrt{\gamma_{\max}(\widehat\Sigma)}
+\Bigl(\sqrt{\tfrac{d+T}{n}}+\delta\Bigr)
+\Bigr]
+\le 2e^{-2n\delta^2}.
+$$
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Let $Q:=\frac1n Z^T W\in\mathbb R^{p\times T}$ (the $d$ in (10.35) is the covariate dimension $p$). For unit vectors $u\in\mathbb R^p$ and $v\in\mathbb R^T$,
+$$
+\langle u,Qv\rangle
+=\frac1n\langle Zu,\,Wv\rangle.
+$$
+The vector $Wv\in\mathbb R^n$ has independent $\sigma$-sub-Gaussian coordinates, and $\langle Zu,Wv\rangle$ is therefore sub-Gaussian with parameter $\sigma\|Zu\|_2$. Consequently $\langle u,Qv\rangle$ is sub-Gaussian with parameter
+$$
+\frac{\sigma\|Zu\|_2}n
+=\sigma\sqrt{\frac{u^T\widehat\Sigma u}{n}}
+\le\sigma\sqrt{\frac{\gamma_{\max}(\widehat\Sigma)}{n}}.
+$$
+Let $\{u_j\}_{j=1}^M$ and $\{v_\ell\}_{\ell=1}^N$ be $1/4$-covers of the unit spheres in $\mathbb R^p$ and $\mathbb R^T$. Lemma 5.7 supplies $M\le 9^p$ and $N\le 9^T$. The same covering argument as in the proof of Corollary 10.10 yields $\|Q\|_2\le 2\max_{j,\ell}|\langle u_j,Q v_\ell\rangle|$. A union bound and the sub-Gaussian tail then give, for any $t>0$,
+$$
+\mathbb P\bigl(\|Q\|_2\ge t\bigr)
+\le
+2\cdot 9^{p+T}\exp\Bigl(-\frac{n t^2}{32\sigma^2\gamma_{\max}(\widehat\Sigma)}\Bigr).
+$$
+(The constant $32$ comes from passing $t\mapsto t/4$ through a parameter-$\sigma\sqrt{\gamma_{\max}/n}$ tail.) Substitute
+$t=5\sigma\sqrt{\gamma_{\max}(\widehat\Sigma)}\bigl(\sqrt{(p+T)/n}+\delta\bigr)$:
+the exponent is at most
+$$
+-\frac{25}{32}\bigl(\sqrt{p+T}+\delta\sqrt n\bigr)^2+(p+T)\log 9
+\le
+-2n\delta^2
+$$
+after using $\log 9\le 2.2$ and $25/32>2.2/2$ to absorb the packing entropy into the $\sqrt{(p+T)/n}$ piece (the numerical slack in the factor $5$ is exactly the analogue of the factor $10$ in Corollary 10.10). Replacing $p$ by the symbol $d$ used in (10.35) completes the proof.
+:::
+
+### Exercise 10.9 (Phase retrieval with Gaussian masks)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $f_\Theta(X)=\langle\langle X,\Theta\rangle\rangle$ with $X=x\otimes x$ and $x\sim N(0,I_n)$.
+(a) If $\Theta=U^T D U$ is an SVD, explain why $f_\Theta(X)$ and $f_D(X)$ are equal in law.
+(b) Prove $\mathbb E[f_\Theta(X)^2]=\|\Theta\|_{\mathrm{F}}^2+2(\mathrm{trace}\Theta)^2$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** The quadratic form $x^T\Theta x$ depends on $\Theta$ only through its symmetric part $(\Theta+\Theta^T)/2$, so one may assume $\Theta$ is symmetric and interpret $U^T D U$ as an eigenvalue decomposition (the printed “SVD” for a symmetric matrix). Then
+$$
+f_\Theta(X)
+=x^T U^T D U x
+=(Ux)^T D(Ux).
+$$
+Orthogonal invariance of $N(0,I_n)$ gives $Ux\stackrel{d}{=}x$, hence $f_\Theta(X)\stackrel{d}{=}f_D(X)$.
+
+**(b).** Compute the fourth-moment contraction directly. Write $\langle\langle x\otimes x,\Theta\rangle\rangle=\sum_{jk}\Theta_{jk}x_j x_k$. Isserlis' theorem for standard Gaussians yields
+$$
+\mathbb E[x_a x_b x_c x_d]
+=\delta_{ab}\delta_{cd}+\delta_{ac}\delta_{bd}+\delta_{ad}\delta_{bc},
+$$
+and therefore
+\begin{align*}
+\mathbb E[f_\Theta(X)^2]
+&=\sum_{jk\ell m}\Theta_{jk}\Theta_{\ell m}
+\bigl(\delta_{jk}\delta_{\ell m}+\delta_{j\ell}\delta_{km}+\delta_{jm}\delta_{k\ell}\bigr) \\
+&=(\mathrm{trace}\Theta)^2
++\|\Theta\|_{\mathrm{F}}^2
++\langle\langle\Theta,\Theta^T\rangle\rangle.
+\end{align*}
+If $\Theta$ is symmetric, $\langle\langle\Theta,\Theta^T\rangle\rangle=\|\Theta\|_{\mathrm{F}}^2$ and
+$$
+\mathbb E[f_\Theta(X)^2]
+=2\|\Theta\|_{\mathrm{F}}^2+(\mathrm{trace}\Theta)^2.
+$$
+The same identity follows from the diagonal reduction of part (a): $f_D=\sum_j D_{jj}g_j^2$ with $g_j$ i.i.d. standard normal, $\mathbb E[g_j^4]=3$, $\mathbb E[g_j^2 g_k^2]=1$ for $j\neq k$, whence
+$$
+\mathbb E[f_D^2]
+=3\sum_j D_{jj}^2+\sum_{j\neq k}D_{jj}D_{kk}
+=2\|D\|_{\mathrm{F}}^2+(\mathrm{trace} D)^2.
+$$
+
+**勘误待批 (printed pp. 328 and 345; PDF pp. 347 and 364).** Display (10.31a) and Exercise 10.9(b) both print $\|\Theta\|_{\mathrm{F}}^2+2(\mathrm{trace}\Theta)^2$. The Wick expansion puts the factor $2$ on the Frobenius term. The remainder of the proof of Theorem 10.12 only uses that the quadratic form is equivalent to $\|\Delta\|_{\mathrm{F}}^2$ on traceless matrices and is bounded below by $\|\Delta\|_{\mathrm{F}}^2$ in general, so the argument survives the coefficient swap.
+:::
+
+### Exercise 10.10 (Analysis of noisy matrix completion)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Work through the proof of Corollary 10.18.
+(a) With $\lambda_n\ge\bigl\|\frac1n\sum_i w_i E_i\bigr\|_2$, show
+$\|\widehat\Delta\|_{\mathrm{nuc}}/\|\widehat\Delta\|_{\mathrm{F}}\le 2\sqrt{2r}$ and $\|\widehat\Delta\|_{\max}\le 2\alpha$.
+(b) With high probability at least one of
+$\|\widehat\Delta\|_{\mathrm{F}}^2\le (c_2/2)\alpha^2(d\log d)/n+128 c_1^2\alpha^2(rd\log d)/n$
+or
+$\|\mathfrak X_n(\widehat\Delta)\|_2^2/n\ge\|\widehat\Delta\|_{\mathrm{F}}^2/4$
+holds.
+(c) “Use part (c) to establish the bound.”
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** The side constraint in (10.42) and the hypothesis $\|\Theta^*\|_{\max}\le\alpha/\sqrt{d_1 d_2}$ give $\|\widehat\Delta\|_{\max}\le 2\alpha/\sqrt{d_1 d_2}$. The stem writes $\|\widehat\Delta\|_{\max}\le 2\alpha$; that is the same bound after absorbing the $\sqrt{d_1 d_2}$ normalisation into the definition of $\alpha$ used in this exercise (or, equivalently, after working with un-rescaled coordinates). Either reading is enough for part (b).
+
+On the nuclear-norm side, the choice of $\lambda_n$ places the pair $(\widehat\Theta,\Theta^*)$ in the constrained cone of Exercise 10.4 (factor $1$, not the regularised factor $3$):
+$\|\widehat\Delta_{\overline{\mathbb M}^\perp}\|_{\mathrm{nuc}}\le\|\widehat\Delta_{\overline{\mathbb M}}\|_{\mathrm{nuc}}$.
+Rank$(\overline{\mathbb M})\le 2r$ then yields
+$\|\widehat\Delta\|_{\mathrm{nuc}}\le 2\sqrt{2r}\,\|\widehat\Delta\|_{\mathrm{F}}$.
+
+**(b).** Combine (a) with Theorem 10.17. The spikiness of $\widehat\Delta$ is bounded by a constant multiple of $\alpha/\|\widehat\Delta\|_{\mathrm{F}}$, and the weak-rank ratio is at most $2\sqrt{2r}$. Substituting these controls into (10.41) produces a lower bound of the same shape as (10.44). If either
+$$
+\|\widehat\Delta\|_{\mathrm{F}}
+\le C c_1\alpha\sqrt{\frac{rd\log d}{n}}
+\quad\text{or}\quad
+\|\widehat\Delta\|_{\mathrm{F}}^2
+\le C' c_2\alpha^2\Bigl(\frac{d\log d}{n}+\delta^2\Bigr)
+$$
+holds, the first alternative of the claim is valid (the numerical factors $1/2$ and $128$ are those obtained by doubling the coefficients in the case split of Corollary 10.18). Otherwise both remainder terms in (10.44) are at most one-quarter of $\|\widehat\Delta\|_{\mathrm{F}}^2$, which is the second alternative.
+
+**(c).** **勘误待批 (printed p. 346; PDF p. 365).** The sentence reads “Use part (c) to establish the bound.” The exercise has only parts (a)–(c), so the intended reference is part (b).
+
+If the second alternative of (b) holds, the observation operator satisfies RSC with curvature $1/4$ on the error, and the standard argument from Proposition 10.6 (or the case-2 computation under (10.44)) produces $\|\widehat\Delta\|_{\mathrm{F}}^2\lesssim\lambda_n^2 r$, which is (10.43) after inserting the stated $\lambda_n$. If the first alternative holds, (10.43) is already true. In either case Corollary 10.18 follows.
+:::
+
+### Exercise 10.11 (Alternative estimator for matrix completion)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Observations $y_i=\langle\langle X_i,\Theta^*\rangle\rangle+w_i$ with $d$-rescaled masks $X_i\in\mathbb R^{d\times d}$. Consider
+$$
+\widehat\Theta
+=\arg\min_{\Theta\in\mathbb R^{d\times d}}
+\Bigl\{\tfrac12\|\Theta\|_{\mathrm{F}}^2
+-\bigl\langle\bigl\langle\Theta,\tfrac1n\sum_{i=1}^n y_i X_i\bigr\rangle\bigr\rangle
++\lambda_n\|\Theta\|_{\mathrm{nuc}}\Bigr\}.
+$$
+(a) Show that $\widehat\Theta$ is unique and is obtained by soft-thresholding the singular values of $M:=\frac1n\sum_i y_i X_i$.
+(b) If $\mathrm{rank}(\Theta^*)=r$ and
+$$
+\lambda_n
+\ge
+2\max_{\|U\|_{\mathrm{nuc}}\le 1}
+\Bigl|\frac1n\sum_{i=1}^n\langle\langle U,X_i\rangle\rangle\langle\langle X_i,\Theta^*\rangle\rangle
+-\langle\langle U,\Theta^*\rangle\rangle\Bigr|
++2\Bigl\|\frac1n\sum_{i=1}^n w_i X_i\Bigr\|_2,
+$$
+show $\|\widehat\Theta-\Theta^*\|_{\mathrm{F}}\le(3/\sqrt 2)\sqrt r\,\lambda_n$.
+(c) For i.i.d. $\sigma$-sub-Gaussian noise, specify a useful $\lambda_n$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** Completing the square rewrites the objective as
+$$
+\frac12\|\Theta-M\|_{\mathrm{F}}^2+\lambda_n\|\Theta\|_{\mathrm{nuc}}+\text{const},
+\qquad
+M:=\frac1n\sum_{i=1}^n y_i X_i.
+$$
+The quadratic term is strictly convex, so the minimiser is unique. The proximal mapping of the nuclear norm in Frobenius geometry is singular-value soft-thresholding: if $M=UDV^T$ is an SVD, then
+$\widehat\Theta=U\,T_{\lambda_n}(D)\,V^T$,
+where $T_{\lambda_n}$ subtracts $\lambda_n$ from each positive singular value and clips at zero (and acts oddly on negative values, which do not occur).
+
+**(b).** The displayed lower bound on $\lambda_n$ is $2\|A(\Theta^*)-\Theta^*\|_2+2\|N\|_2$, where $A(\Theta)=\frac1n\sum_i\langle\langle X_i,\Theta\rangle\rangle X_i$ and $N=\frac1n\sum_i w_i X_i$. Thus $\lambda_n\ge 2\|M-\Theta^*\|_2$. Soft-thresholding satisfies $\|M-\widehat\Theta\|_2\le\lambda_n$ (each retained singular value of $M$ is shifted by exactly $\lambda_n$, and each discarded singular value is at most $\lambda_n$). Weyl's inequality implies that every singular value of $M$ beyond the $r$th is at most $\|M-\Theta^*\|_2\le\lambda_n/2<\lambda_n$, hence is set to zero: $\mathrm{rank}(\widehat\Theta)\le r$ and $\mathrm{rank}(\widehat\Theta-\Theta^*)\le 2r$. Combining the two operator-norm bounds,
+$$
+\|\widehat\Theta-\Theta^*\|_2
+\le\|M-\widehat\Theta\|_2+\|M-\Theta^*\|_2
+\le\lambda_n+\frac{\lambda_n}2
+=\frac32\lambda_n.
+$$
+A rank-$2r$ matrix satisfies $\|\cdot\|_{\mathrm{F}}\le\sqrt{2r}\,\|\cdot\|_2$, therefore
+$$
+\|\widehat\Theta-\Theta^*\|_{\mathrm{F}}
+\le\sqrt{2r}\cdot\frac32\lambda_n
+=\frac3{\sqrt 2}\sqrt r\,\lambda_n,
+$$
+which is the printed constant.
+
+**(c).** Each rescaled mask has $\|X_i\|_2=d$ and $\mathbb E[X_i\langle\langle X_i,\Theta^*\rangle\rangle]=\Theta^*$ (unbiasedness of $A$). Matrix Bernstein / Example 6.18, applied to the operator-valued sum $\frac1n\sum_i w_i X_i$ with $\sigma$-sub-Gaussian multipliers, yields the tail
+$$
+\mathbb P\Bigl(\Bigl\|\frac1n\sum_{i=1}^n w_i X_i\Bigr\|_2
+\ge C\sigma\sqrt{\frac{d\log d}{n}}+\delta\Bigr)
+\le
+2d\,e^{-c n\delta^2/(\sigma^2 d)}
+$$
+for a pair of universal constants $(C,c)$, in the regime $n\gtrsim d\log d$. The sampling bias $A(\Theta^*)-\Theta^*$ is a centred matrix-valued average whose summands are bounded in operator norm by $d\|\Theta^*\|_{\max}$; the same Bernstein bound, now with range $d\|\Theta^*\|_{\max}$, produces
+$$
+\|A(\Theta^*)-\Theta^*\|_2
+\lesssim
+\|\Theta^*\|_{\max}\,d\sqrt{\frac{\log d}{n}}
++\text{a $\delta$ term}.
+$$
+If $\Theta^*$ obeys the spikiness bound $\|\Theta^*\|_{\max}\le\alpha/d$ of Corollary 10.18 (square case $d_1=d_2=d$), this is $O(\alpha\sqrt{(d\log d)/n})$. The choice
+$$
+\lambda_n
+=C'(\sigma+\alpha)\Bigl(\sqrt{\frac{d\log d}{n}}+\delta\Bigr)
+$$
+therefore satisfies the hypothesis of (b) with high probability, and part (b) delivers
+$$
+\|\widehat\Theta-\Theta^*\|_{\mathrm{F}}
+\lesssim
+(\sigma+\alpha)\sqrt{\frac{r d\log d}{n}},
+$$
+the same Frobenius rate as Corollary 10.18.
+:::

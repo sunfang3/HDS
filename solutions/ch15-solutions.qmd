@@ -1,0 +1,585 @@
+---
+title: "Chapter 15 Exercises"
+subtitle: "Wainwright, High-Dimensional Statistics §15.6"
+description: "Exercise list locked from the textbook; solved independently"
+execute:
+  enabled: false
+---
+
+# How to use this file
+
+- **Textbook:** Martin J. Wainwright, *High-Dimensional Statistics: A Non-Asymptotic Viewpoint* (Cambridge Series in Statistical and Probabilistic Mathematics, No. 48; 2019).
+- **Range:** §15.6 Exercises 15.1–15.18.
+- **Pages:** printed pp. 519–523; PDF pp. 538–542 (offset **PDF = printed + 19**).
+- **Principle:** stems follow the textbook; solutions are independent. Identities printed in the book are recomputed.
+- **Companion notes:** [`ch15-notes.qmd`](../notes/ch15-notes.qmd).
+
+### Exercise 15.1 (Alternative representation of TV norm)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Show that
+$$
+\|\mathbb P_1-\mathbb P_0\|_{\mathrm{TV}}
+=1-\inf_{f_0+f_1\ge 1}\bigl\{\mathbb E_0[f_0]+\mathbb E_1[f_1]\bigr\},
+$$
+where the infimum runs over nonnegative measurable functions and the inequality is pointwise.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Let $\nu=\mathbb P_0+\mathbb P_1$ and write $p_j=d\mathbb P_j/d\nu$. Then
+$$
+\int\min(p_0,p_1)\,d\nu
+=1-\|\mathbb P_0-\mathbb P_1\|_{\mathrm{TV}},
+$$
+because $\int(p_0+p_1)=2$ and $\int\lvert p_0-p_1\rvert=2\,\mathrm{TV}$, so $\int\min=\frac12\bigl(2-\int\lvert p_0-p_1\rvert\bigr)=1-\mathrm{TV}$.
+
+For any feasible pair $f_0,f_1\ge 0$ with $f_0+f_1\ge 1$,
+$$
+\mathbb E_0[f_0]+\mathbb E_1[f_1]
+=\int(p_0 f_0+p_1 f_1)\,d\nu
+\ge\int\min(p_0,p_1)\,(f_0+f_1)\,d\nu
+\ge\int\min(p_0,p_1)\,d\nu,
+$$
+hence the infimum is at least $1-\mathrm{TV}$. For the matching upper bound take $f_0=\mathbb I[p_0\le p_1]$ and $f_1=\mathbb I[p_1\le p_0]$ (assign the tie set arbitrarily so that $f_0+f_1\equiv 1$). Then
+$$
+\mathbb E_0[f_0]+\mathbb E_1[f_1]
+=\int\min(p_0,p_1)\,d\nu
+=1-\mathrm{TV}.
+$$
+Therefore the infimum equals $1-\mathrm{TV}$, which is the claimed identity.
+:::
+
+### Exercise 15.2 (Basics of discrete entropy)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $\mathbb Q$ be supported on a finite set $\mathcal X$, with $H(\mathbb Q)=-\sum_x q(x)\log q(x)$ and the convention $0\log 0=0$.
+(a) Show $H(X)\ge 0$.
+(b) Show $H(X)\le\log\lvert\mathcal X\rvert$, with equality when $X$ is uniform on $\mathcal X$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) For $q\in(0,1]$ one has $\log q\le 0$, so $-q\log q\ge 0$. The $q=0$ term is $0$ by convention. Summing yields $H\ge 0$.
+
+(b) Let $U$ be uniform on $\mathcal X$, so $u(x)=1/\lvert\mathcal X\rvert$. Then
+$$
+D(\mathbb Q\Vert U)
+=\sum_x q(x)\log\frac{q(x)}{1/\lvert\mathcal X\rvert}
+=\log\lvert\mathcal X\rvert-H(\mathbb Q).
+$$
+Nonnegativity of KL (Exercise 15.3(a)) gives $H(\mathbb Q)\le\log\lvert\mathcal X\rvert$, with equality if and only if $q=u$ almost everywhere, i.e. $X$ is uniform.
+:::
+
+### Exercise 15.3 (Properties of Kullback–Leibler divergence)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $\mathbb P,\mathbb Q$ have densities $p,q$ w.r.t. a common base measure.
+(a) Show $D(\mathbb P\Vert\mathbb Q)\ge 0$, with equality iff $p=q$ holds $\mathbb P$-a.e.
+(b) For nonnegative weights summing to $1$, prove the two convexity bounds (15.63a) and (15.63b).
+(c) Prove the product decoupling (15.11a).
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) On the set $\{p>0\}$ write $D(\mathbb P\Vert\mathbb Q)=-\int p\log(q/p)$. Jensen's inequality for the convex function $-\log$ yields
+$$
+-\int p\log\frac q p
+\ge
+-\log\int p\cdot\frac q p
+=-\log\int_{p>0} q
+\ge 0,
+$$
+with equality if and only if $q/p$ is $\mathbb P$-a.s. constant and $\mathbb Q(\{p>0\})=1$, hence $p=q$ holds $\mathbb P$-a.e. (If $\mathbb Q$ fails to dominate $\mathbb P$ then $D=+\infty$.)
+
+(b) The map $t\mapsto t\log t$ is convex on $[0,\infty)$. For a fixed density $q$, the integrand $x\mapsto \bigl(\sum_j\lambda_j p_j(x)\bigr)\log\bigl(\sum_j\lambda_j p_j(x)/q(x)\bigr)$ is therefore convex in the mixture, which is (15.63a): $\mathbb P\mapsto D(\mathbb P\Vert\mathbb Q)$ is convex.
+
+For (15.63b), the map $\mathbb Q\mapsto D(\mathbb P\Vert\mathbb Q)$ is convex because $-\log$ is convex:
+$$
+-\log\Bigl(\sum_j\lambda_j q_j\Bigr)
+\le
+-\sum_j\lambda_j\log q_j
+$$
+pointwise (Jensen). Multiplying by $p$ and integrating gives $D(\mathbb P\Vert\sum\lambda_j\mathbb Q_j)\le\sum\lambda_j D(\mathbb P\Vert\mathbb Q_j)$. Relabelling $\mathbb P$ as the fixed distribution in (15.63b) yields the claim.
+
+(c) For product measures, $\log(p^{1:n}/q^{1:n})=\sum_{i=1}^n\log(p_i/q_i)$. Taking the expectation under $\mathbb P^{1:n}=\bigotimes_i\mathbb P_i$ and using Fubini produces $\sum_i D(\mathbb P_i\Vert\mathbb Q_i)$.
+:::
+
+### Exercise 15.4 (More properties of Shannon entropy)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+(a) Prove $H(X\mid Y)\le H(X)$.
+(b) Prove $H(X,Y,Z)=H(X)+H(Y\mid X)+H(Z\mid Y,X)$.
+(c) Conclude $H(X,Y,Z)\le H(X)+H(Y)+H(Z)$, so joint entropy is maximised by independent variables.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) By (15.60e) and nonnegativity of KL, $I(X;Y)=H(X)-H(X\mid Y)=D(\mathbb Q_{X,Y}\Vert\mathbb Q_X\mathbb Q_Y)\ge 0$.
+
+(b) The two-variable chain rule (15.60b) applied to the pair $(X,(Y,Z))$ gives $H(X,Y,Z)=H(X)+H(Y,Z\mid X)$. Applying (15.60b) conditionally on $X$ to the pair $(Y,Z)$ yields $H(Y,Z\mid X)=H(Y\mid X)+H(Z\mid Y,X)$.
+
+(c) Part (a) gives $H(Y\mid X)\le H(Y)$ and $H(Z\mid Y,X)\le H(Z)$. Substituting into (b) produces the sum bound. Equality holds throughout if and only if $X,Y,Z$ are mutually independent (each mutual information vanishes).
+:::
+
+### Exercise 15.5 (Le Cam's inequality)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Prove (15.10): $\|\mathbb P-\mathbb Q\|_{\mathrm{TV}}\le H(\mathbb P\Vert\mathbb Q)\sqrt{1-H^2(\mathbb P\Vert\mathbb Q)/4}$. Hint: Cauchy–Schwarz.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Write $H^2=\int(\sqrt p-\sqrt q)^2$ and $\mathrm{TV}=\frac12\int\lvert p-q\rvert$. Then $\lvert p-q\rvert=\lvert\sqrt p-\sqrt q\rvert\cdot\lvert\sqrt p+\sqrt q\rvert$, so
+$$
+2\,\mathrm{TV}
+=\int\lvert\sqrt p-\sqrt q\rvert\cdot\lvert\sqrt p+\sqrt q\rvert.
+$$
+Cauchy–Schwarz yields
+$$
+(2\,\mathrm{TV})^2
+\le
+\int(\sqrt p-\sqrt q)^2\cdot\int(\sqrt p+\sqrt q)^2
+=H^2\int\bigl(p+q+2\sqrt{pq}\bigr).
+$$
+The affinity identity $\int\sqrt{pq}=1-H^2/2$ (because $H^2=2-2\int\sqrt{pq}$) gives
+$$
+\int(\sqrt p+\sqrt q)^2
+=2+2\bigl(1-H^2/2\bigr)
+=4-H^2.
+$$
+Hence $4\,\mathrm{TV}^2\le H^2(4-H^2)$, i.e. $\mathrm{TV}\le H\sqrt{1-H^2/4}$.
+:::
+
+### Exercise 15.6 (Pinsker–Csiszár–Kullback inequality)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+(a) For Bernoulli$(\delta_p)$ and Bernoulli$(\delta_q)$, show that (15.8) reduces to (15.64) and prove it.
+(b) Deduce the general case via Jensen, using $A=\{p\ge q\}$, $\delta_p=\mathbb P[A]$, $\delta_q=\mathbb Q[A]$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) For Bernoulli laws, $\mathrm{TV}=\lvert\delta_p-\delta_q\rvert$ and $D=\delta_p\log(\delta_p/\delta_q)+(1-\delta_p)\log((1-\delta_p)/(1-\delta_q))$, so (15.8) is precisely $2(\delta_p-\delta_q)^2\le D$, i.e. (15.64). Differentiating the Bernoulli KL in the second argument gives
+$$
+\frac{\partial}{\partial q}D(\mathrm{Bern}(p)\Vert\mathrm{Bern}(q))
+=\frac{q-p}{q(1-q)},
+$$
+hence
+$$
+D(\mathrm{Bern}(p)\Vert\mathrm{Bern}(q))
+=\int_q^p\frac{p-t}{t(1-t)}\,dt.
+$$
+The elementary bound $t(1-t)\le 1/4$ yields $1/(t(1-t))\ge 4$, so
+$$
+D
+\ge
+4\int_q^p(p-t)\,dt
+=2(p-q)^2,
+$$
+which is (15.64).
+
+(b) Let $A=\{x:p(x)\ge q(x)\}$. Then $\mathrm{TV}(\mathbb P,\mathbb Q)=\mathbb P(A)-\mathbb Q(A)=\delta_p-\delta_q$ (Hahn decomposition). The binary random variable $\mathbb I_A$ is a function of the observation, so the data-processing inequality for KL (or direct computation of the KL of the induced Bernoullis) yields
+$$
+D\bigl(\mathrm{Bern}(\delta_p)\Vert\mathrm{Bern}(\delta_q)\bigr)
+\le
+D(\mathbb P\Vert\mathbb Q).
+$$
+Part (a) then gives $2\,\mathrm{TV}^2\le D(\mathbb P\Vert\mathbb Q)$, which is (15.8).
+:::
+
+### Exercise 15.7 (Decoupling for Hellinger distance)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Prove the product formula (15.12a).
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The Hellinger affinity of a pair is $\int\sqrt{p q}=1-\frac12 H^2(\mathbb P\Vert\mathbb Q)$. For product measures the densities multiply, so
+$$
+\int\sqrt{p^{1:n}q^{1:n}}
+=\prod_{i=1}^n\int\sqrt{p_i q_i}
+=\prod_{i=1}^n\bigl(1-\tfrac12 H^2(\mathbb P_i\Vert\mathbb Q_i)\bigr).
+$$
+The left-hand side equals $1-\frac12 H^2(\mathbb P^{1:n}\Vert\mathbb Q^{1:n})$, which is (15.12a).
+:::
+
+### Exercise 15.8 (Sharper bounds for Gaussian location family)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Using the two-point Le Cam bound and Pinsker's inequality, derive
+$$
+\inf_{\widehat\theta}\sup_{\theta}\mathbb E_\theta\lvert\widehat\theta-\theta\rvert
+\ge\frac1 8\frac{\sigma}{\sqrt n},
+\qquad
+\inf_{\widehat\theta}\sup_{\theta}\mathbb E_\theta[(\widehat\theta-\theta)^2]
+\ge\frac1{16}\frac{\sigma^2}{n}.
+$$
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Take the pair $\mathbb P_0^n$ and $\mathbb P_{2\delta}^n$. The Gaussian KL (Exercise 15.13) is
+$$
+D(\mathbb P_{2\delta}^n\Vert\mathbb P_0^n)
+=\frac{n(2\delta)^2}{2\sigma^2}
+=\frac{2n\delta^2}{\sigma^2}.
+$$
+Pinsker (15.8) yields $\mathrm{TV}\le\sqrt{D/2}=\delta\sqrt n/\sigma$. The choice $\delta=\sigma/(2\sqrt n)$ gives $\mathrm{TV}\le 1/2$. The two-point bound (15.14) with $\Phi(t)=t$ then produces
+$$
+\mathfrak M
+\ge
+\frac{\delta}{2}\bigl\{1-\mathrm{TV}\bigr\}
+\ge
+\frac{\delta}{2}\cdot\frac12
+=\frac{\delta}{4}
+=\frac{\sigma}{8\sqrt n}.
+$$
+With $\Phi(t)=t^2$ the same $\delta$ gives $\Phi(\delta)/2=\delta^2/2$, hence
+$$
+\mathfrak M
+\ge
+\frac{\delta^2}{2}\cdot\frac12
+=\frac{\delta^2}{4}
+=\frac{\sigma^2}{16 n}.
+$$
+Both prefactors improve on (15.16).
+:::
+
+### Exercise 15.9 (Achievable rates for uniform shift family)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+For the uniform shift family of Example 15.5, show that $\widetilde\theta=\min\{Y_1,\ldots,Y_n\}$ satisfies $\sup_\theta\mathbb E[(\widetilde\theta-\theta)^2]\le 2/n^2$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Write $U_i=Y_i-\theta$. Then $U_i$ are i.i.d. Unif$[0,1]$ and $\widetilde\theta-\theta=U_{(1)}$. The density of $U_{(1)}$ is $n(1-u)^{n-1}$ on $[0,1]$, so
+$$
+\mathbb E[U_{(1)}^2]
+=\int_0^1 u^2\, n(1-u)^{n-1}\,du
+=n\,B(3,n)
+=\frac{n\cdot\Gamma(3)\Gamma(n)}{\Gamma(n+3)}
+=\frac{2}{(n+1)(n+2)}.
+$$
+Since $(n+1)(n+2)\ge n^2$, one has $2/((n+1)(n+2))\le 2/n^2$. The right-hand side does not depend on $\theta$, so the claimed uniform bound follows. Combined with Example 15.5, the minimax MSE is of exact order $n^{-2}$.
+:::
+
+### Exercise 15.10 (Bounds on the TV distance)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+(a) Prove $\|\mathbb P-\mathbb Q\|_{\mathrm{TV}}^2\le\frac14\bigl\{\int p^2/q\,d\nu-1\bigr\}$.
+(b) Deduce (15.65) for $n$-fold $N(\theta,\sigma^2)$ versus $N(0,\sigma^2)$.
+(c) Deduce (15.66) for the mixture $\overline{\mathbb P}=\frac12\mathbb P_{\theta,\sigma}^n+\frac12\mathbb P_{-\theta,\sigma}^n$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) Write $2\,\mathrm{TV}=\int\lvert p-q\rvert=\int\lvert p-q\rvert q^{-1/2}\cdot q^{1/2}$. Cauchy–Schwarz and $\int q=1$ give
+$$
+4\,\mathrm{TV}^2
+\le
+\int\frac{(p-q)^2}{q}\,d\nu
+=\int\frac{p^2}{q}\,d\nu-2\int p+\int q
+=\int\frac{p^2}{q}\,d\nu-1.
+$$
+
+(b) Let $\mu=\theta\mathbf 1_n\in\mathbb R^n$ and write $p,q$ for the $N(\mu,\sigma^2 I_n)$ and $N(0,\sigma^2 I_n)$ densities. Then
+$$
+\frac p q
+=\exp\Bigl(\frac{\langle y,\mu\rangle}{\sigma^2}-\frac{\|\mu\|_2^2}{2\sigma^2}\Bigr),
+$$
+and $\int p^2/q=\mathbb E_0[(p/q)^2]$. Under $\mathbb Q$ one has $\langle Y,\mu\rangle\sim N(0,\sigma^2\|\mu\|_2^2)$, so
+$$
+\mathbb E_0\Bigl[\exp\Bigl(\frac{2\langle Y,\mu\rangle}{\sigma^2}-\frac{\|\mu\|_2^2}{\sigma^2}\Bigr)\Bigr]
+=\exp\bigl(\|\mu\|_2^2/\sigma^2\bigr)
+=\exp\bigl(n\theta^2/\sigma^2\bigr)
+=\exp\bigl((\sqrt n\,\theta/\sigma)^2\bigr).
+$$
+Part (a) yields (15.65).
+
+(c) Now $\overline p/q=e^{-\|\mu\|_2^2/(2\sigma^2)}\cosh(\langle y,\mu\rangle/\sigma^2)$. Let $A=\langle Y,\mu\rangle/\sigma^2\sim N(0,\tau^2)$ under $\mathbb Q$, with $\tau^2=n\theta^2/\sigma^2$. Then
+$$
+\mathbb E_0[(\overline p/q)^2]
+=e^{-\tau^2}\mathbb E[\cosh^2(A)]
+=e^{-\tau^2}\cdot\frac{e^{2\tau^2}+1}{2}
+=\cosh(\tau^2),
+$$
+because $\mathbb E\cosh(2A)=e^{2\tau^2}$. The elementary bound $\cosh(u)\le e^{u^2/2}$ (compare Taylor coefficients: $(2k)!\ge 2^k k!$) gives $\cosh(\tau^2)\le\exp(\tau^4/2)$, hence
+$$
+\int\frac{\overline p^2}{q}-1
+\le
+e^{\tau^4/2}-1
+=e^{\frac12(\sqrt n\,\theta/\sigma)^4}-1.
+$$
+Part (a) yields (15.66).
+:::
+
+### Exercise 15.11 (Mixture distributions and KL divergence)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+For $\overline{\mathbb Q}=\frac1M\sum_{j=1}^M\mathbb P_j$, show that $\frac1M\sum_j D(\mathbb P_j\Vert\overline{\mathbb Q})\le\frac1M\sum_j D(\mathbb P_j\Vert\mathbb Q)$ for every $\mathbb Q$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The difference of the two averages is
+$$
+\frac1M\sum_j\bigl(D(\mathbb P_j\Vert\mathbb Q)-D(\mathbb P_j\Vert\overline{\mathbb Q})\bigr)
+=\frac1M\sum_j\int p_j\log\frac{\overline q}{q}
+=\int\overline q\log\frac{\overline q}{q}
+=D(\overline{\mathbb Q}\Vert\mathbb Q)
+\ge 0.
+$$
+Thus $\overline{\mathbb Q}$ minimises the average KL over the finite family, which is the variational fact used in the proof of Lemma 15.21.
+:::
+
+### Exercise 15.12 ($f$-divergences)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+$D_f(\mathbb P\Vert\mathbb Q)=\int q\, f(p/q)\,d\nu$ for strictly convex $f:\mathbb R_+\to\mathbb R$.
+(a) KL corresponds to $f(t)=t\log t$.
+(b) Compute the divergence for $f(t)=-\log t$.
+(c) Show that $H^2$ is an $f$-divergence.
+(d) Compute the divergence for $f(t)=1-\sqrt t$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) $\int q\cdot(p/q)\log(p/q)=\int p\log(p/q)=D(\mathbb P\Vert\mathbb Q)$.
+
+(b) $\int q\bigl(-\log(p/q)\bigr)=\int q\log(q/p)=D(\mathbb Q\Vert\mathbb P)$, the reverse KL.
+
+(c) $H^2(\mathbb P\Vert\mathbb Q)=\int(\sqrt p-\sqrt q)^2=\int q\bigl(\sqrt{p/q}-1\bigr)^2$, so $f(t)=(\sqrt t-1)^2$ (equivalently $f(t)=t+1-2\sqrt t$) generates $H^2$.
+
+(d) $\int q\bigl(1-\sqrt{p/q}\bigr)=1-\int\sqrt{pq}=\frac12 H^2(\mathbb P\Vert\mathbb Q)$.
+:::
+
+### Exercise 15.13 (KL divergence for multivariate Gaussian)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $\mathbb Q_j=N(\mu_j,\Sigma_j)$ with $\Sigma_j\succ 0$.
+(a) If $\Sigma_1=\Sigma_2=\Sigma$, show $D(\mathbb Q_1\Vert\mathbb Q_2)=\frac12\langle\mu_1-\mu_2,\Sigma^{-1}(\mu_1-\mu_2)\rangle$.
+(b) In general, show
+$$
+D(\mathbb Q_1\Vert\mathbb Q_2)
+=\frac12\Bigl\{\langle\mu_1-\mu_2,\Sigma_2^{-1}(\mu_1-\mu_2)\rangle+\log\frac{\det\Sigma_2}{\det\Sigma_1}+\mathrm{trace}(\Sigma_2^{-1}\Sigma_1)-d\Bigr\}.
+$$
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The Gaussian log-density is $-\frac d2\log(2\pi)-\frac12\log\det\Sigma-\frac12\langle x-\mu,\Sigma^{-1}(x-\mu)\rangle$. Subtracting and taking $\mathbb E_{\mathbb Q_1}$ produces
+\begin{align*}
+D(\mathbb Q_1\Vert\mathbb Q_2)
+&=\frac12\log\frac{\det\Sigma_2}{\det\Sigma_1}
++\frac12\mathbb E_1\bigl[\langle X-\mu_2,\Sigma_2^{-1}(X-\mu_2)\rangle
+-\langle X-\mu_1,\Sigma_1^{-1}(X-\mu_1)\rangle\bigr].
+\end{align*}
+The second expectation is $\mathrm{trace}(\Sigma_2^{-1}\Sigma_1)+\langle\mu_1-\mu_2,\Sigma_2^{-1}(\mu_1-\mu_2)\rangle-d$, which is (b). If $\Sigma_1=\Sigma_2=\Sigma$ the log-det and trace$-d$ terms cancel, leaving (a).
+:::
+
+### Exercise 15.14 (Gaussian distributions and maximum entropy)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Over densities on $\mathbb R$ with $\int x q(x)\,dx=0$ and $\int x^2 q(x)\,dx\le\sigma^2$, show that $N(0,\sigma^2)$ maximises Shannon entropy.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Let $\gamma$ be the $N(0,\sigma^2)$ density and let $q$ be any competitor. Then
+$$
+D(q\Vert\gamma)
+=-H(q)-\int q\log\gamma
+=-H(q)+\frac{\mathbb E_q[X^2]}{2\sigma^2}+\frac12\log(2\pi\sigma^2).
+$$
+Nonnegativity of KL and the constraint $\mathbb E_q[X^2]\le\sigma^2$ yield
+$$
+H(q)
+\le
+\frac{\mathbb E_q[X^2]}{2\sigma^2}+\frac12\log(2\pi\sigma^2)
+\le
+\frac12+\frac12\log(2\pi\sigma^2)
+=H(\gamma),
+$$
+with equality if and only if $q=\gamma$ and $\mathbb E_q[X^2]=\sigma^2$. This is the one-dimensional input to Lemma 15.17; the multivariate case is identical with $\frac12\log\det(2\pi e\,\Sigma)$ in place of $H(\gamma)$.
+:::
+
+### Exercise 15.15 (Sharper bound for variable selection in sparse PCA)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+In the setting of Example 15.20, show that support recovery is impossible whenever
+$$
+n
+<
+c_0\frac{1+\nu}{\nu^2}\frac{\log(d-s+1)}{\theta_{\min}^2}
+$$
+for some universal $c_0>0$, where $\theta_{\min}=\min_{j\in S}\lvert\theta_j^*\rvert\in(0,1)$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Follow Ensemble B of Example 15.20, but insert a general $\theta_{\min}$ on the distinguishing coordinate. Fix a subset $S$ of size $s-1$ and a remainder $r=\sqrt{1-\theta_{\min}^2}$. For each $j\in S^c$ and sign vector $\varepsilon$, define a unit vector $\theta^j(\varepsilon)$ by
+$$
+[\theta^j(\varepsilon)]_\ell
+=
+\begin{cases}
+\varepsilon_\ell\, r/\sqrt{s-1} & \ell\in S\quad(s>1),\\
+\varepsilon_j\,\theta_{\min} & \ell=j,\\
+0 & \text{otherwise}.
+\end{cases}
+$$
+(If $s=1$ the $S$-block is empty and $r=0$, $\theta_{\min}=1$.) Average the spiked covariance $\Sigma^j=I_d+\nu\,\theta^j\otimes\theta^j$ over $j\in S^c$ and over Rademacher signs. The averaged covariance $\Gamma$ is block diagonal, with
+
+- $S$-block $I_{s-1}+\frac{\nu r^2}{s-1}\mathbf E_{s-1}$ (or empty),
+- $S^c$-block $\bigl(1+\frac{\nu\theta_{\min}^2}{d-s+1}\bigr)I_{d-s+1}$.
+
+Lemma 15.17 and $\log\det$ concavity give, as in Example 15.20,
+\begin{align*}
+2\mathbb E[I(Z;J)]
+&\le
+\log\bigl(1+\nu r^2\bigr)+(d-s+1)\log\Bigl(1+\frac{\nu\theta_{\min}^2}{s(d-s+1)}\Bigr)-\log(1+\nu)\\
+&\le
+\log\Bigl(1-\frac{\nu\theta_{\min}^2}{1+\nu}\Bigr)+(d-s+1)\log\Bigl(1+\frac{\nu\theta_{\min}^2}{d-s+1}\Bigr)\\
+&\le
+\frac{\nu^2\theta_{\min}^2}{1+\nu},
+\end{align*}
+where the last step uses $\log(1+t)\le t$ and $\log(1-u)\le -u$ with $u=\nu\theta_{\min}^2/(1+\nu)$. For $n$ i.i.d. samples the mutual information is at most $n$ times this quantity. Fano's inequality with $M=d-s+1$ therefore keeps the error probability bounded away from zero as long as
+$$
+\frac{n\nu^2\theta_{\min}^2}{(1+\nu)\log(d-s+1)}
+$$
+is smaller than a sufficiently small universal constant, which is the claim. When $\theta_{\min}^2\le 1/s$ (forced by unit norm and $s$-sparsity) this recovers Example 15.20.
+:::
+
+### Exercise 15.16 (Lower bounds for sparse PCA in $\ell_2$-error)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+For $s$-sparse unit eigenvectors in the spiked model (15.47), show
+$$
+\sup_{\theta^*\in\mathbb B_0(s)\cap\mathbb S^{d-1}}
+\mathbb E[\|\widehat\theta-\theta^*\|_2^2]
+\ge
+c_0\frac{\nu+1}{\nu^2}\frac{s\log(ed/s)}{n}.
+$$
+Hint: packing from Example 15.16; replace the random orthogonal $\mathbf U$ of Example 15.19 by a random permutation with random sign flips.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+By Exercise 5.8 / Example 15.16, the set $\mathbb S^d(s)=\mathbb B_0^d(s)\cap\mathbb B_2(1)$ admits a $1/2$-packing $\{\Delta^1,\ldots,\Delta^M\}$ with $\log M\ge c\,s\log(ed/s)$ (for a universal $c>0$ and $s\le d/2$). Rescale to a $\delta$-packing of $s$-sparse unit vectors by setting $\theta^j=\sqrt{1-\delta^2}\,e_1+\delta\,\Pi\varepsilon\Delta^j_{\mathrm{rest}}$ after embedding the packing into the last $d-1$ coordinates, or more simply (as the hint suggests) act on a fixed $s$-sparse packing by a uniformly random permutation matrix together with a Rademacher sign vector $\varepsilon$. The resulting ensemble $\{\theta^j\}$ remains $s$-sparse and $\delta/2$-separated on the sphere for $\delta\in(0,1)$ small.
+
+Each observation is $N(0,I_d+\nu\,\theta^j\otimes\theta^j)$. Average the covariance over the random permutation and signs: the same block computation as in Example 15.19, now with the mass $\delta^2$ spread over an $s$-dimensional random coordinate subspace rather than over all $d-1$ directions, yields
+$$
+\mathbb E[I(Z;J)]
+\le
+\frac12\cdot\frac{\nu^2\delta^2}{1+\nu}
+$$
+up to a universal factor (the $\log\det$ expansion is $\log(1+\nu-\nu\delta^2)+(s\text{-block of size }\delta^2\nu/s)$, and $\log(1+t)\le t$ produces $\nu^2\delta^2/(1+\nu)$). For $n$ samples, $I_n\le n\nu^2\delta^2/(2(1+\nu))$ up to a universal constant. Fano (15.32) with $\Phi(t)=t^2$ gives a squared-error lower bound of order $\delta^2$ as soon as
+$$
+\log M
+\gtrsim
+n\frac{\nu^2\delta^2}{1+\nu}+\log 2.
+$$
+Substituting $\log M\gtrsim s\log(ed/s)$ and solving for $\delta^2$ produces
+$$
+\delta^2
+\gtrsim
+\frac{1+\nu}{\nu^2}\frac{s\log(ed/s)}{n},
+$$
+capped at $1$ because $\|\theta\|_2=1$. This is the claim.
+:::
+
+### Exercise 15.17 (Lower bounds for generalized linear models)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Observations follow
+$$
+\mathbb P_\theta(y_1,\ldots,y_n)
+=\prod_{i=1}^n
+\Biggl[h(y_i)\exp\Biggl(\frac{y_i\langle x_i,\theta\rangle-\Phi(\langle x_i,\theta\rangle)}{s(\sigma)}\Biggr)\Biggr],
+$$
+with $\|\theta\|_2\le 1$.
+(a) Express $D(\mathbb P_\theta\Vert\mathbb P_{\theta'})$ in terms of $\Phi$ and its derivatives.
+(b) If $\|\Phi''\|_\infty\le L<\infty$, give a quadratic upper bound in $\|\theta-\theta'\|_2$.
+(c) Deduce $\inf\sup\mathbb E[\|\widehat\theta-\theta\|_2^2]\ge\min\bigl\{1,\, c\,s(\sigma)\,d/(L\eta_{\max}^2 n)\bigr\}$, where $\eta_{\max}=\sigma_{\max}(\mathbf X/\sqrt n)$.
+(d) Recover the linear-regression lower bound as a special case.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) The log-likelihood ratio is
+$$
+\log\frac{d\mathbb P_\theta}{d\mathbb P_{\theta'}}
+=\frac1{s(\sigma)}\sum_{i=1}^n
+\Bigl(y_i\langle x_i,\theta-\theta'\rangle
+-\bigl(\Phi(\langle x_i,\theta\rangle)-\Phi(\langle x_i,\theta'\rangle)\bigr)\Bigr).
+$$
+Under $\mathbb P_\theta$ one has $\mathbb E_\theta[y_i]=\Phi'(\langle x_i,\theta\rangle)$, therefore
+$$
+D(\mathbb P_\theta\Vert\mathbb P_{\theta'})
+=\frac1{s(\sigma)}\sum_{i=1}^n
+\Bigl(\Phi'(a_i)(a_i-b_i)-\bigl(\Phi(a_i)-\Phi(b_i)\bigr)\Bigr),
+$$
+where $a_i=\langle x_i,\theta\rangle$ and $b_i=\langle x_i,\theta'\rangle$.
+
+(b) Taylor expansion with remainder gives $\Phi(a)-\Phi(b)=\Phi'(a)(a-b)-\frac12\Phi''(\xi)(a-b)^2$, hence
+$$
+\Phi'(a)(a-b)-\bigl(\Phi(a)-\Phi(b)\bigr)
+=\frac12\Phi''(\xi)(a-b)^2
+\le\frac L2\langle x_i,\theta-\theta'\rangle^2.
+$$
+Summing and using $\|\mathbf X(\theta-\theta')\|_2^2\le n\eta_{\max}^2\|\theta-\theta'\|_2^2$ produces
+$$
+D(\mathbb P_\theta\Vert\mathbb P_{\theta'})
+\le
+\frac{L n\eta_{\max}^2}{2s(\sigma)}\,\|\theta-\theta'\|_2^2.
+$$
+
+(c) Pack the Euclidean unit ball $\mathbb B_2^d(1)$ at scale $2\delta$ with $\log M\ge d\log 2$ whenever $4\delta\le 1$ (Lemma 5.7). Then pairwise KL is at most $C L n\eta_{\max}^2\delta^2/s(\sigma)$. The local-packing condition (15.35b) holds as soon as
+$$
+d\log 2
+\gtrsim
+\frac{L n\eta_{\max}^2\delta^2}{s(\sigma)}+\log 2,
+$$
+so one may take $\delta^2\asymp s(\sigma)\,d/(L\eta_{\max}^2 n)$, or $\delta^2\asymp 1$ if this quantity exceeds $1$. Fano with $\Phi(t)=t^2$ yields the claimed minimax lower bound.
+
+(d) Gaussian linear regression $y_i=\langle x_i,\theta\rangle+\sigma w_i$ is the GLM with cumulant $\Phi(u)=u^2/2$ (so $L=1$) and scale $s(\sigma)=\sigma^2$. Part (c) becomes
+$$
+\mathfrak M
+\gtrsim
+\min\Bigl\{1,\,\frac{\sigma^2 d}{\eta_{\max}^2 n}\Bigr\},
+$$
+which matches Example 15.14 up to the prefactor $1/128$ when $\mathrm{rank}(\mathbf X)=d$ (then $\gamma_d=\eta_{\max}$).
+:::
+
+### Exercise 15.18 (Lower bounds for additive nonparametric regression)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $\mathscr G$ satisfy $\log N(\delta;\mathscr G,\|\cdot\|_2)\asymp(1/\delta)^{1/\alpha}$ for $\alpha>1/2$, and let $L^2(\mathbb P)$ be computed with a product measure on $\mathbb R^d$.
+(a) For $\mathscr F_{\mathrm{add}}=\{f=\sum_{j=1}^d g_j:g_j\in\mathscr G\}$, show
+$$
+\inf_{\widehat f}\sup_{f\in\mathscr F_{\mathrm{add}}}\mathbb E[\|\widehat f-f\|_2^2]
+\gtrsim
+d\Bigl(\frac{\sigma^2}{n}\Bigr)^{2\alpha/(2\alpha+1)}.
+$$
+(b) For the SPAM class with $\lvert S\rvert\le s$, show
+$$
+\inf_{\widehat f}\sup_{f\in\mathscr F_{\mathrm{spam}}}\mathbb E[\|\widehat f-f\|_2^2]
+\gtrsim
+s\Bigl(\frac{\sigma^2}{n}\Bigr)^{2\alpha/(2\alpha+1)}
++\sigma^2\frac{s\log(ed/s)}{n}.
+$$
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Assume as usual that elements of $\mathscr G$ may be taken mean-zero (otherwise subtract constants, which are absorbed in the $L^2(\mathbb P)$ geometry under a product measure). Then $f=\sum_j g_j$ satisfies $\|f\|_2^2=\sum_j\|g_j\|_2^2$.
+
+(a) Let $\{\psi_1,\ldots,\psi_{M_0}\}$ be a $2\gamma$-packing of $\mathscr G$ in $L^2$ with $\log M_0\asymp(1/\gamma)^{1/\alpha}$. Form the product packing $f_\alpha=\sum_{j=1}^d\psi_{\alpha_j}(x_j)$ over $\alpha\in[M_0]^d$. A Gilbert–Varshamov subset $T\subset[M_0]^d$ with $\log\lvert T\rvert\gtrsim d\log M_0$ and Hamming fraction at least $1/4$ yields pairwise distances
+$$
+\|f_\alpha-f_\beta\|_2^2
+\ge
+\frac d4\cdot(2\gamma)^2
+\asymp d\gamma^2.
+$$
+Gaussian regression has $D(\mathbb P_{f_\alpha}\Vert\mathbb P_{f_\beta})=n\|f_\alpha-f_\beta\|_2^2/(2\sigma^2)\lesssim n d\gamma^2/\sigma^2$. Fano's condition (15.33) holds for
+$$
+d\cdot(1/\gamma)^{1/\alpha}
+\gtrsim
+\frac{n d\gamma^2}{\sigma^2},
+$$
+i.e. $\gamma^2\asymp(\sigma^2/n)^{2\alpha/(2\alpha+1)}$. The squared $L^2$ separation is then of order $d\gamma^2$, which is the claimed lower bound. (Yang–Barron with the product entropy $\log N(\delta;\mathscr F_{\mathrm{add}})\gtrsim d(\sqrt d/\delta)^{1/\alpha}$ gives the same scaling after the Hamming identification $\delta^2\asymp d\gamma^2$.)
+
+Comparison with Exercise 14.8: the least-squares estimator over $\mathscr F_{\mathrm{add}}$ attains the same rate up to constants, hence is minimax-optimal at this scaling.
+
+(b) Two packings, one for each term.
+
+*Estimation term.* Restrict to a fixed support $S_0$ of size $s$ (e.g. $\{1,\ldots,s\}$). The subclass is an $s$-dimensional additive model, so part (a) yields $s(\sigma^2/n)^{2\alpha/(2\alpha+1)}$.
+
+*Selection term.* Because $\alpha>1/2$, the class $\mathscr G$ contains a one-dimensional Lipschitz (in particular, linear) direction of uniformly positive $L^2$-norm. Running the sparse linear packing of Example 15.16 along that direction produces an $s\log(ed/s)$-sized $2\delta$-packing of $\mathscr F_{\mathrm{spam}}$ with pairwise KL $\lesssim n\delta^2/\sigma^2$. Fano gives the parametric term $\sigma^2 s\log(ed/s)/n$.
+
+Adding the two lower bounds (each is valid on its subclass, hence on $\mathscr F_{\mathrm{spam}}$) produces the claim.
+:::

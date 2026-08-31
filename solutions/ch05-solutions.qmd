@@ -1,0 +1,619 @@
+---
+title: "Chapter 5 Exercises"
+subtitle: "Wainwright, High-Dimensional Statistics §5.8"
+description: "Exercise list locked from the textbook; solved independently"
+execute:
+  enabled: false
+---
+
+# How to use this file
+
+- **Textbook:** Martin J. Wainwright, *High-Dimensional Statistics: A Non-Asymptotic Viewpoint* (Cambridge Series in Statistical and Probabilistic Mathematics, No. 48; 2019).
+- **Range:** §5.8 Exercises 5.1–5.14.
+- **Pages:** printed pp. 154–158; PDF pp. 173–177 (offset **PDF = printed + 19**).
+- **Principle:** stems follow the textbook; solutions are independent. Identities printed in the book are recomputed.
+- **Companion notes:** [`ch05-notes.qmd`](../notes/ch05-notes.qmd).
+
+Locked list: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 5.10, 5.11, 5.12, 5.13, 5.14.
+
+### Exercise 5.1
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $C([0,1],b)$ be the class of convex functions $f$ on $[0,1]$ with $\lVert f\rVert_\infty\le b$. Show that $C([0,1],b)$ is not totally bounded in the sup-norm. (Hint: construct an infinite collection with $\lVert f^j-f^k\rVert_\infty\ge 1/2$ for $j\neq k$.)
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The property is homogeneous in $b$; it is enough to treat $b=1$ (replace $f$ by $f/b$ if $b\neq 1$; if $b<1/2$ the same construction scaled by $b$ still yields a strictly positive packing radius). For each integer $n\ge 2$ define the piecewise-linear convex function
+$$
+f_n(x)
+:=
+\begin{cases}
+0, & 0\le x\le 1-1/n,\\
+n\bigl(x-(1-1/n)\bigr), & 1-1/n\le x\le 1.
+\end{cases}
+$$
+Then $f_n(0)=0$, $f_n(1)=1$, the slope is nondecreasing ($0$ then $n$), and $\lVert f_n\rVert_\infty=1$, so $f_n\in C([0,1],1)$.
+
+Restrict to the subsequence $n_k=2^k$ for $k\ge 1$. For $\ell>k\ge 1$ evaluate at the kink of the later function, $x=1-1/n_\ell=1-2^{-\ell}$. There $f_{n_\ell}(x)=0$, while
+$$
+x-(1-1/n_k)=(1-2^{-\ell})-(1-2^{-k})=2^{-k}-2^{-\ell},
+$$
+so $f_{n_k}(x)=2^k(2^{-k}-2^{-\ell})=1-2^{k-\ell}$. Thus $\lvert f_{n_k}(x)-f_{n_\ell}(x)\rvert=1-2^{k-\ell}\ge 1/2$. Hence $\{f_{2^k}:k\ge 1\}$ is an infinite $1/2$-packing in $\lVert\cdot\rVert_\infty$, so $M(1/2;C([0,1],1),\lVert\cdot\rVert_\infty)=\infty$ and the class is not totally bounded.
+:::
+
+### Exercise 5.2
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Prove $M(2\delta;\mathbb T,\rho)\le N(\delta;\mathbb T,\rho)\le M(\delta;\mathbb T,\rho)$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** Let $\{\theta^1,\ldots,\theta^M\}$ be a $2\delta$-packing and $\{\gamma^1,\ldots,\gamma^N\}$ a $\delta$-covering. Each packing point $\theta^i$ lies in some covering ball $\overline B(\gamma^{j(i)},\delta)$. If two packing points fell in the same covering ball, the triangle inequality would give $\rho(\theta^i,\theta^k)\le 2\delta$, contradicting the packing separation. Thus $j$ is injective and $M\le N$. Taking a maximal packing and a minimal covering yields $M(2\delta)\le N(\delta)$.
+
+**(b).** Let $\{\theta^1,\ldots,\theta^M\}$ be a *maximal* $\delta$-packing. It is a $\delta$-covering: if some $\theta\in\mathbb T$ satisfied $\rho(\theta,\theta^i)>\delta$ for every $i$, the set with $\theta$ adjoined would still be a $\delta$-packing, contradicting maximality. Therefore $N(\delta)\le M=M(\delta)$.
+:::
+
+### Exercise 5.3
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+On the binary hypercube $\mathbb H^d=\{0,1\}^d$ with the rescaled Hamming metric (5.1b), prove
+$$
+\frac{\log M(\delta;\mathbb H^d)}{d}
+\le
+D(\delta/2\Vert 1/2)+\frac{\log(d+1)}{d},
+$$
+where $D(\delta/2\Vert 1/2)=(\delta/2)\log\bigl((\delta/2)/(1/2)\bigr)+(1-\delta/2)\log\bigl((1-\delta/2)/(1/2)\bigr)$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Let $\{\theta^1,\ldots,\theta^M\}$ be a $\delta$-packing in $\rho_H$. The unrescaled Hamming distance between distinct packing points is strictly larger than $\delta d$, so the Hamming balls of unrescaled radius $s:=\lfloor \delta d/2\rfloor$ about the packing points are pairwise disjoint and contained in $\mathbb H^d$. Each such ball has cardinality $\sum_{j=0}^s\binom{d}{j}$, hence
+$$
+M\sum_{j=0}^s\binom{d}{j}\le 2^d.
+$$
+Exercise 2.10 is a lower bound on binomial lower tails. With $p=\delta/2\le 1/2$,
+$$
+\sum_{j=0}^{\lfloor \delta d/2\rfloor}\binom{d}{j}\,2^{-d}
+=
+\mathbb P\bigl[\mathrm{Bin}(d,1/2)\le \delta d/2\bigr]
+\ge
+\frac1{d+1}\exp\bigl(-d\,D(\delta/2\Vert 1/2)\bigr).
+$$
+(The factor $d+1$ is the number of possible empirical means $k/d$; each type probability is at most $e^{-d D(k/d\Vert 1/2)}$, and $t\mapsto D(t\Vert 1/2)$ is decreasing on $[0,1/2]$, so the lower tail is dominated by the endpoint $t=\delta/2$.) Combining with the disjoint-ball packing gives
+$$
+\frac{\log M}{d}
+\le
+D(\delta/2\Vert 1/2)+\frac{\log(d+1)}{d},
+$$
+as claimed. (Any base of the logarithm may be used, matching the base in $D$.)
+:::
+
+### Exercise 5.4
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $\mathcal S$ be a set class of finite VC dimension $\nu$, and $\mathscr F_{\mathcal S}=\{\mathbb I_S:S\in\mathcal S\}$. Prove
+$$
+N\bigl(\delta;\mathscr F_{\mathcal S},L^1(\mathbb P)\bigr)
+\le
+K(\nu)\Bigl(\frac3\delta\Bigr)^{2\nu},
+\qquad
+K(\nu):=(2\nu)^{2\nu-1}.
+\tag{5.74}
+$$
+Let $\{\mathbb I_{S_1},\ldots,\mathbb I_{S_N}\}$ be a maximal $\delta$-packing in $L^1(\mathbb P)$, so $\mathbb E[\lvert\mathbb I_{S_i}-\mathbb I_{S_j}\rvert]>\delta$ for $i\neq j$.
+
+(a) For $n$ i.i.d. samples from $\mathbb P$, the probability that every $S_i$ picks out a different subset of $\{X_1,\ldots,X_n\}$ is at least $1-\binom{N}{2}(1-\delta)^n$.
+
+(b) For $N\ge 2$ and $n=3\log N/\delta$, deduce $N\le(3\log N/\delta)^\nu$.
+
+(c) Conclude (5.74) with the stated $K(\nu)$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** The event that $S_i$ and $S_j$ pick out the *same* subset of the sample is the event that no sample point falls in the symmetric difference $S_i\Delta S_j$. That probability is
+$$
+\bigl(1-\mathbb P(X\in S_i\Delta S_j)\bigr)^n
+=
+\bigl(1-\mathbb E\lvert\mathbb I_{S_i}-\mathbb I_{S_j}\rvert\bigr)^n
+\le
+(1-\delta)^n.
+$$
+A union bound over the $\binom{N}{2}$ pairs yields the claim.
+
+**(b).** Choose $n=3\log N/\delta$ (natural log; any fixed base only changes the universal $3$). Then
+$$
+\binom{N}{2}(1-\delta)^n
+\le
+\frac{N^2}{2}\,e^{-n\delta}
+=
+\frac{N^2}{2}\,e^{-3\log N}
+=
+\frac{N^2}{2}\,N^{-3}
+=
+\frac1{2N}
+\le
+\frac14
+$$
+for $N\ge 2$. Thus with positive probability the $N$ sets pick out $N$ distinct subsets of an $n$-point sample, so the shattering number satisfies $\Pi_{\mathcal S}(n)\ge N$. Sauer–Shelah gives $\Pi_{\mathcal S}(n)\le(en/\nu)^\nu\le n^\nu$ as soon as $n\ge\nu$ (and if $n<\nu$ then $\Pi_{\mathcal S}(n)\le 2^n<2^\nu$, while the right-hand side $(3\log N/\delta)^\nu$ will be absorbed by $K(\nu)$ in (c)). Hence $N\le n^\nu=(3\log N/\delta)^\nu$.
+
+**(c).** Write $t:=N^{1/\nu}$ (so $t\ge 1$). The bound of (b) becomes $t\le(3/\delta)\log N=(3\nu/\delta)\log t$, i.e. $t\le B\log t$ with $B:=3\nu/\delta$. For $u:=N^{1/(2\nu)}\ge 1$ one has $\log N=2\nu\log u\le 2\nu\,u=2\nu\,N^{1/(2\nu)}$, because $\log u\le u$. Substitute into (b):
+$$
+N^{1/\nu}
+\le
+\frac3\delta\log N
+\le
+\frac{3}{\delta}\cdot 2\nu\cdot N^{1/(2\nu)}.
+$$
+If $N\ge 1$ this rearranges to $N^{1/(2\nu)}\le 2\nu\cdot(3/\delta)$, hence
+$$
+N
+\le
+(2\nu)^{2\nu}\Bigl(\frac3\delta\Bigr)^{2\nu}.
+$$
+This is (5.74) with $K(\nu)=(2\nu)^{2\nu}$. The printed constant $(2\nu)^{2\nu-1}$ is of the same type (depends only on $\nu$). To match it exactly, split cases for $\delta\le 1$: if $N\le(2\nu)^{2\nu}$ then $2\nu\le 3^{2\nu}\le(3/\delta)^{2\nu}$, so $N\le(2\nu)^{2\nu-1}(3/\delta)^{2\nu}$; if $N>(2\nu)^{2\nu}$ the same display $N^{1/(2\nu)}\le 2\nu\cdot(3/\delta)$ is compatible with the printed power upon replacing $2\nu\le N^{1/(2\nu)}$ in the logarithm bound on a slightly smaller range, or simply by using $K(\nu)=(2\nu)^{2\nu}$ throughout, which is permitted by (5.74)'s wording “a constant $K(\nu)$”. The polynomial dependence $(1/\delta)^{2\nu}$ is the content of the exercise.
+:::
+
+### Exercise 5.5
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+(a) Show $\mathcal R(\mathbb T)\le\sqrt{\pi/2}\,\mathcal G(\mathbb T)$ for every $\mathbb T\subseteq\mathbb R^d$, and give a set meeting equality.
+
+(b) Show $\mathcal G(\mathbb T)\le 2\sqrt{\log d}\,\mathcal R(\mathbb T)$. Give an example tight up to the prefactor. (Hint: the Rademacher contraction $\mathcal R(\phi(\mathbb T))\le\mathcal R(\mathbb T)$ may be used.)
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** Write $w_i=\varepsilon_i\lvert w_i\rvert$ with $\varepsilon_i=\mathrm{sign}(w_i)$ independent of $\lvert w_i\rvert$, and $\varepsilon$ a Rademacher vector independent of $w$. Then
+$$
+\mathcal G(\mathbb T)
+=
+\mathbb E\Bigl[\sup_{\theta\in\mathbb T}\sum_{i=1}^d\theta_i\varepsilon_i\lvert w_i\rvert\Bigr].
+$$
+The map $t\mapsto t\cdot\mathbb E[\lvert w_1\rvert]$ is a contraction times the constant $\mathbb E[\lvert w_1\rvert]=\sqrt{2/\pi}$. More directly, by Jensen's inequality in the $\lvert w_i\rvert$ (or by taking inner expectation and using that $x\mapsto\sup_\theta\langle\theta,x\rangle$ is convex),
+$$
+\mathcal R(\mathbb T)
+=
+\mathbb E\Bigl[\sup_\theta\sum\theta_i\varepsilon_i\Bigr]
+=
+\frac1{\mathbb E[\lvert w_1\rvert]}
+\mathbb E\Bigl[\sup_\theta\sum\theta_i\varepsilon_i\,\mathbb E[\lvert w_i\rvert]\Bigr]
+\le
+\sqrt{\frac\pi2}\,
+\mathbb E\Bigl[\sup_\theta\sum\theta_i\varepsilon_i\lvert w_i\rvert\Bigr]
+=
+\sqrt{\frac\pi2}\,\mathcal G(\mathbb T).
+$$
+Equality: take $\mathbb T=\{t e_1:\lvert t\rvert\le 1\}$, the unit ball of a coordinate line. Then $\mathcal R(\mathbb T)=\mathbb E[\lvert\varepsilon_1\rvert]=1$ and $\mathcal G(\mathbb T)=\mathbb E[\lvert w_1\rvert]=\sqrt{2/\pi}$, so $\mathcal R=\sqrt{\pi/2}\,\mathcal G$.
+
+**(b).** Condition on the amplitudes $\lvert w_i\rvert$ and set $M:=\lVert w\rVert_\infty$. The coordinate maps $\phi_i(t)=t\,\lvert w_i\rvert/M$ (with $M>0$; the event $M=0$ is negligible) are contractions, and $\phi_i(0)=0$. The hinted Rademacher contraction gives
+$$
+\mathbb E_\varepsilon\Bigl[\sup_\theta\sum\theta_i\varepsilon_i\lvert w_i\rvert\Bigr]
+=
+M\,\mathbb E_\varepsilon\Bigl[\sup_\theta\sum\phi_i(\theta_i)\varepsilon_i\Bigr]
+\le
+M\,\mathcal R(\mathbb T).
+$$
+Taking $\mathbb E$ over $w$,
+$$
+\mathcal G(\mathbb T)
+\le
+\mathbb E[\lVert w\rVert_\infty]\,\mathcal R(\mathbb T).
+$$
+Exercise 2.11 yields $\mathbb E[\max_i\lvert w_i\rvert]\le\sqrt{2\log(2d)}\le 2\sqrt{\log d}$ for $d\ge 2$ (and the $d=1$ case is the equality case of (a), with room in the constant). Thus $\mathcal G(\mathbb T)\le 2\sqrt{\log d}\,\mathcal R(\mathbb T)$.
+
+Tightness: $\mathbb T=\mathbb B_1^d$. Then $\mathcal R(\mathbb T)=1$ (Example 5.14) and $\mathcal G(\mathbb T)=\mathbb E[\lVert w\rVert_\infty]\sim\sqrt{2\log d}$, so the $\sqrt{\log d}$ factor is sharp up to the leading constant $2$ versus $\sqrt 2$.
+:::
+
+### Exercise 5.6
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $\mathbb B_q^d(1)=\{\theta:\lVert\theta\rVert_q\le 1\}$.
+
+(a) For $q\in(1,\infty)$, show there are constants $c_q$ with
+$$
+\sqrt{\frac2\pi}
+\le
+\frac{\mathcal G(\mathbb B_q^d(1))}{d^{1-1/q}}
+\le
+c_q.
+$$
+
+(b) Compute $\mathcal G(\mathbb B_\infty^d(1))$ exactly.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Let $q_\ast$ be the conjugate exponent, $1/q+1/q_\ast=1$, so $1/q_\ast=1-1/q$. Duality gives
+$$
+\mathcal G(\mathbb B_q^d(1))
+=
+\mathbb E\bigl[\lVert w\rVert_{q_\ast}\bigr].
+$$
+
+**(a).** Lower bound. The comparison $\lVert x\rVert_{q_\ast}\ge d^{1/q_\ast-1}\lVert x\rVert_1$ rearranges as $\lVert x\rVert_{q_\ast}\ge d^{-1/q}\lVert x\rVert_1$. Hence
+$$
+\mathbb E[\lVert w\rVert_{q_\ast}]
+\ge
+d^{1/q_\ast-1}\mathbb E[\lVert w\rVert_1]
+=
+d^{1-1/q-1}\cdot d\cdot\mathbb E[\lvert w_1\rvert]
+=
+\sqrt{\frac2\pi}\,d^{1-1/q}.
+$$
+Upper bound. Jensen (or the $L^{q_\ast}\to L^{q_\ast}$ moment) yields
+$$
+\mathbb E[\lVert w\rVert_{q_\ast}]
+\le
+\bigl(\mathbb E[\lVert w\rVert_{q_\ast}^{q_\ast}]\bigr)^{1/q_\ast}
+=
+d^{1/q_\ast}\bigl(\mathbb E[\lvert w_1\rvert^{q_\ast}]\bigr)^{1/q_\ast}.
+$$
+The Gaussian moment $\mathbb E[\lvert w_1\rvert^{q_\ast}]$ is a finite constant depending only on $q$, so the ratio is at most $c_q:=(\mathbb E[\lvert w_1\rvert^{q_\ast}])^{1/q_\ast}$.
+
+**(b).** Here $q=\infty$, so $q_\ast=1$ and
+$$
+\mathcal G(\mathbb B_\infty^d(1))
+=
+\mathbb E[\lVert w\rVert_1]
+=
+d\,\mathbb E[\lvert w_1\rvert]
+=
+d\sqrt{\frac2\pi}.
+$$
+:::
+
+### Exercise 5.7
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $\mathbb T^d(s)=\{\theta:\lVert\theta\rVert_0\le s,\,\lVert\theta\rVert_2\le 1\}$. Prove $\mathcal G(\mathbb T^d(s))\lesssim\sqrt{s\log(ed/s)}$.
+
+(a) $\mathcal G(\mathbb T^d(s))=\mathbb E[\max_{\lvert S\rvert=s}\lVert w_S\rVert_2]$.
+
+(b) For each fixed $S$ of size $s$, $\mathbb P[\lVert w_S\rVert_2\ge\sqrt s+\delta]\le e^{-\delta^2/2}$.
+
+(c) Conclude (5.75).
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** For $\theta$ supported on $S$ with $\lVert\theta\rVert_2\le 1$, Cauchy–Schwarz gives $\langle\theta,w\rangle\le\lVert w_S\rVert_2$, with equality at $\theta=w_S/\lVert w_S\rVert_2$ (or $0$). Maximising over supports of size at most $s$ is the same as maximising over $\lvert S\rvert=s$. Thus $\sup_{\theta\in\mathbb T^d(s)}\langle\theta,w\rangle=\max_{\lvert S\rvert=s}\lVert w_S\rVert_2$.
+
+**(b).** The map $w\mapsto\lVert w_S\rVert_2$ is $1$-Lipschitz on $\mathbb R^d$ (it depends only on $s$ coordinates, and the Euclidean Lipschitz constant is $1$). Moreover $\mathbb E[\lVert w_S\rVert_2]\le\sqrt{\mathbb E[\lVert w_S\rVert_2^2]}=\sqrt s$. Theorem 2.26 (Gaussian Lipschitz concentration) yields the stated upper tail about the mean, hence also
+$$
+\mathbb P\bigl[\lVert w_S\rVert_2\ge\sqrt s+\delta\bigr]
+\le
+e^{-\delta^2/2}.
+$$
+
+**(c).** Let $Z:=\max_{\lvert S\rvert=s}\lVert w_S\rVert_2$ and $N:=\binom{d}{s}\le(ed/s)^s$. A union bound and (b) give, for $\delta\ge 0$,
+$$
+\mathbb P\bigl[Z\ge\sqrt s+\delta\bigr]
+\le
+N e^{-\delta^2/2}.
+$$
+Integrate the tail: $\mathbb E[Z]\le\sqrt s+\int_0^\infty\mathbb P(Z\ge\sqrt s+t)\,dt$. Split the integral at $t_0:=\sqrt{2\log N}$. The integrand is at most $1$ on $[0,t_0]$ and at most $N e^{-t^2/2}$ afterwards, and $\int_{t_0}^\infty N e^{-t^2/2}\,dt\le\sqrt{2\pi}$ (Gaussian tail). Hence
+$$
+\mathbb E[Z]
+\le
+\sqrt s+\sqrt{2\log N}+O(1)
+\le
+\sqrt s+\sqrt{2s\log(ed/s)}+O(1)
+\lesssim
+\sqrt{s\log(ed/s)}.
+$$
+:::
+
+### Exercise 5.8
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Matching lower bound for $\mathbb T^d(s)$.
+
+(a) Lower-bound the $1/\sqrt 2$ covering number of $\mathbb T^d(s)$ in Euclidean norm (Gilbert–Varshamov may help).
+
+(b) Deduce $\mathcal G(\mathbb T^d(s))\gtrsim\sqrt{s\log(ed/s)}$ by a Gaussian comparison.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** Consider the constant-weight sign vectors
+$$
+\mathcal C
+:=
+\bigl\{
+\theta\in\{-1/\sqrt s,0,1/\sqrt s\}^d:
+\lVert\theta\rVert_0=s
+\bigr\}
+\subset\mathbb T^d(s).
+$$
+There are $2^s\binom{d}{s}$ such vectors. Two distinct elements $\theta,\theta'$ have
+$$
+\lVert\theta-\theta'\rVert_2^2
+=
+\frac2s\cdot\bigl(\#\{j:\theta_j\neq\theta'_j\}\bigr)
+\ge
+\frac2s,
+$$
+so any two distinct points are at Euclidean distance at least $\sqrt{2/s}$ if they differ in a single coordinate, and much more if the supports differ.
+
+To obtain a large packing at distance $1/\sqrt 2$, apply the Gilbert–Varshamov argument to binary $s$-subsets: there exists a family $\mathcal S$ of $s$-subsets with pairwise symmetric-difference size at least $s/2$ (equivalently Hamming distance of the indicator vectors at least $s/2$) and
+$$
+\lvert\mathcal S\rvert
+\ge
+\frac{\binom{d}{s}}{\sum_{j=0}^{\lfloor s/4\rfloor}\binom{s}{j}\binom{d-s}{j}}
+\ge
+\Bigl(\frac{d}{cs}\Bigr)^{c's}
+$$
+for universal $c,c'>0$ and $s\le d/2$ (the denominator is at most $2^s\binom{d}{\lfloor s/4\rfloor}$ up to polynomial factors; standard GV for constant-weight codes). On each $S\in\mathcal S$ put the vector $\theta^S=s^{-1/2}\mathbf 1_S$ (or a random signing). For $S\neq S'$ one has $\lvert S\cap S'\rvert\le 3s/4$, hence
+$$
+\lVert\theta^S-\theta^{S'}\rVert_2^2
+=
+2-2\frac{\lvert S\cap S'\rvert}{s}
+\ge
+2-2\cdot\frac34
+=
+\frac12,
+$$
+so $\lVert\theta^S-\theta^{S'}\rVert_2\ge 1/\sqrt 2$. Therefore
+$$
+M\bigl(1/\sqrt 2;\mathbb T^d(s),\lVert\cdot\rVert_2\bigr)
+\ge
+\lvert\mathcal S\rvert
+\ge
+\exp\bigl(c s\log(ed/s)\bigr)
+$$
+for a universal $c>0$. Lemma 5.5 transfers the bound to the covering number $N(1/(2\sqrt 2))$.
+
+**(b).** Sudakov minoration (Theorem 5.30) on the canonical Gaussian process, with $\delta=1/\sqrt 2$, yields
+$$
+\mathcal G(\mathbb T^d(s))
+\ge
+\frac{\delta}{2}\sqrt{\log M(\delta)}
+\gtrsim
+\sqrt{s\log(ed/s)}.
+$$
+(The same conclusion follows from Slepian/Sudakov–Fernique by comparing the process on the packing to i.i.d. $N(0,c)$ variables.)
+:::
+
+### Exercise 5.9
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $\mathcal E=\{(\theta_j)_{j\ge 1}:\sum_j\theta_j^2/\mu_j^2\le 1\}$ with $(\mu_j)\in\ell^2(\mathbb N)$, $\mu_j>0$.
+
+(a) Prove $\sqrt{2/\pi}\,(\sum\mu_j^2)^{1/2}\le\mathcal G(\mathcal E)\le(\sum\mu_j^2)^{1/2}$.
+
+(b) For $\widetilde{\mathcal E}(r)=\mathcal E\cap\{\theta:\sum\theta_j^2\le r^2\}$, bound $\mathcal G(\widetilde{\mathcal E}(r))$ up to universals independent of $r$ and $(\mu_j)$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** Parameterise $\theta_j=\mu_j a_j$ with $\lVert a\rVert_2\le 1$. Then
+$$
+\sup_{\theta\in\mathcal E}\sum_j\theta_j w_j
+=
+\sup_{\lVert a\rVert_2\le 1}\sum_j a_j(\mu_j w_j)
+=
+\Bigl(\sum_j\mu_j^2 w_j^2\Bigr)^{1/2},
+$$
+so $\mathcal G(\mathcal E)=\mathbb E[\lVert\mu\odot w\rVert_2]$. Jensen's inequality for the concave square root gives the upper bound
+$$
+\mathbb E\bigl[\lVert\mu\odot w\rVert_2\bigr]
+\le
+\bigl(\mathbb E\lVert\mu\odot w\rVert_2^2\bigr)^{1/2}
+=
+\Bigl(\sum_j\mu_j^2\Bigr)^{1/2}.
+$$
+For the lower bound, use Exercise 5.5(a) in reverse. The Rademacher complexity of $\mathcal E$ is
+$$
+\mathcal R(\mathcal E)
+=
+\mathbb E\Bigl[\Bigl(\sum_j\mu_j^2\varepsilon_j^2\Bigr)^{1/2}\Bigr]
+=
+\Bigl(\sum_j\mu_j^2\Bigr)^{1/2},
+$$
+since $\varepsilon_j^2=1$. Combined with $\mathcal R\le\sqrt{\pi/2}\,\mathcal G$, one gets $\mathcal G(\mathcal E)\ge\sqrt{2/\pi}\,(\sum\mu_j^2)^{1/2}$.
+
+**(b).** Let $\widetilde\mu_j:=\min(\mu_j,r)$ and let $\mathcal E_{\min}$ be the ellipsoid of axis lengths $(\widetilde\mu_j)$. If $\sum_j\theta_j^2/\widetilde\mu_j^2\le 1$, then $\sum_j\theta_j^2/\mu_j^2\le 1$ (because $\widetilde\mu_j\le\mu_j$) and $\sum_j\theta_j^2\le\sum_j\widetilde\mu_j^2\cdot(\theta_j^2/\widetilde\mu_j^2)\le r^2$, so $\mathcal E_{\min}\subset\widetilde{\mathcal E}(r)$. In the other direction, for $\theta\in\widetilde{\mathcal E}(r)$,
+$$
+\sum_j\frac{\theta_j^2}{\widetilde\mu_j^2}
+=
+\sum_{\mu_j<r}\frac{\theta_j^2}{\mu_j^2}
++\sum_{\mu_j\ge r}\frac{\theta_j^2}{r^2}
+\le
+\sum_j\frac{\theta_j^2}{\mu_j^2}+\frac1{r^2}\sum_j\theta_j^2
+\le
+2,
+$$
+hence $\widetilde{\mathcal E}(r)\subset\sqrt 2\,\mathcal E_{\min}$. Part (a) applied to $\mathcal E_{\min}$ therefore yields
+$$
+\sqrt{\frac2\pi}\Bigl(\sum_j\min(\mu_j^2,r^2)\Bigr)^{1/2}
+\le
+\mathcal G(\widetilde{\mathcal E}(r))
+\le
+\sqrt 2\Bigl(\sum_j\min(\mu_j^2,r^2)\Bigr)^{1/2}.
+$$
+The constants $\sqrt{2/\pi}$ and $\sqrt 2$ do not depend on $r$ or $(\mu_j)$.
+:::
+
+### Exercise 5.10
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $\{X_\theta:\theta\in\mathbb T\}$ be a centred Gaussian process and $Z=\sup_{\theta\in\mathbb T}X_\theta$. Prove
+$$
+\mathbb P\bigl[\lvert Z-\mathbb E[Z]\rvert\ge\delta\bigr]
+\le
+2e^{-\delta^2/(2\sigma^2)},
+\qquad
+\sigma^2:=\sup_{\theta\in\mathbb T}\mathrm{var}(X_\theta).
+$$
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Finite-index case: $\mathbb T=[N]$, $X=A^{1/2}g$ with $g\sim N(0,I_N)$ and $A=\mathrm{Cov}(X)$. The map $f(g):=\max_{i\le N}(A^{1/2}g)_i$ is Lipschitz on $\mathbb R^N$ with Euclidean Lipschitz constant equal to the maximum row-norm of $A^{1/2}$, which is $\max_i\sqrt{A_{ii}}=\sigma$. Theorem 2.26 gives exactly the claimed sub-Gaussian concentration of $Z=f(g)$ about its mean.
+
+The general (possibly infinite) case follows by approximating $Z$ as the monotone limit of maxima over finite subsets $\mathbb T_n\uparrow\mathbb T$ (the definition of the process supremum in the book). Each finite maximum concentrates with Lipschitz constant at most $\sigma$, and the bound passes to the limit by Fatou / bounded convergence of the Laplace transforms. The same argument applies to $\inf X_\theta=-\sup(-X_\theta)$, giving the two-sided estimate.
+:::
+
+### Exercise 5.11
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Details of Example 5.19.
+
+(a) Variational representation (5.38) for $\lvert\lvert\lvert W\rvert\rvert\rvert_2$.
+
+(b) $\{X_\Theta:\Theta\in\mathbb M^{n,d}(1)\}$ is centred and sub-Gaussian w.r.t. the Frobenius metric.
+
+(c) Prove (5.40).
+
+(d) Prove (5.41).
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** By definition $\lvert\lvert\lvert W\rvert\rvert\rvert_2=\sup_{\lVert v\rVert_2=1}\lVert Wv\rVert_2=\sup_{\lVert u\rVert_2=\lVert v\rVert_2=1}u^T Wv$. For $\Theta=uv^T$ one has $\mathrm{rank}(\Theta)=1$ and $\lvert\lvert\lvert\Theta\rvert\rvert\rvert_F=\lVert u\rVert_2\lVert v\rVert_2=1$, and $\langle\langle W,\Theta\rangle\rangle=u^T Wv$. Conversely every rank-one unit-Frobenius matrix is of this form (SVD). This is (5.38).
+
+**(b).** Centring is immediate from $\mathbb E[W_{ij}]=0$. The increment $X_\Theta-X_{\Theta'}=\sum_{i,j}W_{ij}(\Theta-\Theta')_{ij}$ is a sum of independent centred sub-Gaussian random variables with parameters $\lvert\Delta_{ij}\rvert$ (each $W_{ij}$ has sub-Gaussian parameter $1$). The sub-Gaussian parameter of the sum is $\lVert\Delta\rVert_F=\lvert\lvert\lvert\Theta-\Theta'\rvert\rvert\rvert_F$, which is Definition 5.16 for the Frobenius metric.
+
+**(c).** If $\Gamma$ and $\Gamma'$ have rank one, then $\Delta:=\Gamma-\Gamma'$ has rank at most two and $\lvert\lvert\lvert\Delta\rvert\rvert\rvert_F\le\delta$. The nuclear (trace) norm satisfies $\lvert\lvert\lvert\Delta\rvert\rvert\rvert_*\le\sqrt{\mathrm{rank}(\Delta)}\,\lvert\lvert\lvert\Delta\rvert\rvert\rvert_F\le\sqrt 2\,\delta$. Duality between the nuclear and spectral norms gives $\langle\langle\Delta,W\rangle\rangle\le\lvert\lvert\lvert\Delta\rvert\rvert\rvert_*\,\lvert\lvert\lvert W\rvert\rvert\rvert_2\le\sqrt 2\,\delta\,\lvert\lvert\lvert W\rvert\rvert\rvert_2$. Taking the supremum over such pairs and then the expectation yields (5.40).
+
+**(d).** Every $\Theta\in\mathbb M^{n,d}(1)$ is $\Theta=uv^T$ with $\lVert u\rVert_2=\lVert v\rVert_2=1$ (absorbing the product of the lengths into either factor). If $u$ ranges over a $\delta/2$-cover of $\mathbb S^{n-1}$ and $v$ over a $\delta/2$-cover of $\mathbb S^{d-1}$, then
+$$
+\lvert\lvert\lvert uv^T-\widetilde u\widetilde v^T\rvert\rvert\rvert_F
+\le
+\lVert u-\widetilde u\rVert_2+\lVert v-\widetilde v\rVert_2
+\le
+\delta.
+$$
+Example 5.8 supplies $\log N(\delta/2;\mathbb S^{n-1},\lVert\cdot\rVert_2)\le(n-1)\log(1+4/\delta)$ (cover the ball and restrict; or cover $\mathbb B_2^n$ and radially project). Adding the two spheres,
+$$
+\log N_F(\delta;\mathbb M^{n,d}(1))
+\le
+(n+d)\log\Bigl(1+\frac2\delta\Bigr)
+$$
+after adjusting the constant in the logarithm (replace $\delta/2$ by a slightly smaller radius, or use $1+4/\delta\le(1+2/\delta)^2$ and absorb). This is (5.41).
+:::
+
+### Exercise 5.12
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $\phi_j:\mathbb R\to\mathbb R$ be centred ($\phi_j(0)=0$) and $1$-Lipschitz. Prove $\mathcal G(\phi(\mathbb T))\le\mathcal G(\mathbb T)$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Consider the two centred Gaussian processes indexed by $\mathbb T$,
+$$
+X_\theta:=\sum_{j=1}^d w_j\phi_j(\theta_j),
+\qquad
+Y_\theta:=\sum_{j=1}^d w_j\theta_j.
+$$
+Their increments satisfy
+$$
+\mathbb E[(X_\theta-X_{\theta'})^2]
+=
+\sum_{j=1}^d\bigl(\phi_j(\theta_j)-\phi_j(\theta'_j)\bigr)^2
+\le
+\sum_{j=1}^d(\theta_j-\theta'_j)^2
+=
+\mathbb E[(Y_\theta-Y_{\theta'})^2],
+$$
+by the $1$-Lipschitz assumption on each coordinate. Sudakov–Fernique (Theorem 5.27) therefore yields $\mathbb E[\sup_\theta X_\theta]\le\mathbb E[\sup_\theta Y_\theta]$, which is $\mathcal G(\phi(\mathbb T))\le\mathcal G(\mathbb T)$. (Centring $\phi_j(0)=0$ is not required for this Gaussian argument; it is the hypothesis that makes the analogous Rademacher contraction hold.)
+:::
+
+### Exercise 5.13
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Show $\log M(\delta;\mathbb M^{n,d}(1);\lvert\lvert\lvert\cdot\rvert\rvert\rvert_F)\gtrsim(n+d)\log(1/\delta)$ for all $\delta\in(0,1/2)$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+By Example 5.8 / Lemma 5.5, the Euclidean sphere $\mathbb S^{n-1}$ admits a $\delta$-packing of cardinality at least $(c/\delta)^{n-1}$ for a universal $c>0$ and $\delta\in(0,1/2)$; likewise $\mathbb S^{d-1}$ admits a $\delta$-packing of size $(c/\delta)^{d-1}$. Let $\{u^i\}$ and $\{v^k\}$ be such packings, and set $\Theta^{ik}:=u^i(v^k)^T\in\mathbb M^{n,d}(1)$. For $(i,k)\neq(i',k')$,
+$$
+\lvert\lvert\lvert\Theta^{ik}-\Theta^{i'k'}\rvert\rvert\rvert_F^2
+=
+2-2\langle u^i,u^{i'}\rangle\langle v^k,v^{k'}\rangle.
+$$
+If $i\neq i'$, then $\langle u^i,u^{i'}\rangle\le 1-\delta^2/2$ (because $\lVert u^i-u^{i'}\rVert_2>\delta$ and both vectors are unit), and $\lvert\langle v^k,v^{k'}\rangle\rvert\le 1$, hence
+$$
+\lvert\lvert\lvert\Theta^{ik}-\Theta^{i'k'}\rvert\rvert\rvert_F^2
+\ge
+2-2(1-\delta^2/2)
+=
+\delta^2.
+$$
+The same lower bound holds if $k\neq k'$. Thus $\{\Theta^{ik}\}$ is a $\delta$-packing in Frobenius norm, of cardinality at least $(c/\delta)^{n+d-2}$. Taking logarithms,
+$$
+\log M(\delta;\mathbb M^{n,d}(1);\lvert\lvert\lvert\cdot\rvert\rvert\rvert_F)
+\ge
+(n+d-2)\log(c/\delta)
+\gtrsim
+(n+d)\log(1/\delta)
+$$
+for $\delta\in(0,1/2)$, as claimed.
+:::
+
+### Exercise 5.14
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Maximum singular value of $W\in\mathbb R^{n\times d}$ with i.i.d. $N(0,1)$ entries.
+
+(a) Simulate: $n=1000$, $d=\lceil\alpha n\rceil$, $T=20$ trials, $\alpha\in\{0.1+k\cdot 0.025:k=1,\ldots,100\}$. Plot $\alpha$ versus the average of $\sigma_{\max}(W)/\sqrt n$.
+
+(b) Prove $\sigma_{\max}(W)=\sup_{u\in\mathbb S^{n-1}}\sup_{v\in\mathbb S^{d-1}}u^T Wv$.
+
+(c) The process $Z_{u,v}:=u^T Wv$ on $\mathbb T:=\mathbb S^{n-1}\times\mathbb S^{d-1}$ satisfies $\mathbb E[\sigma_{\max}(W)]\le\sqrt n+\sqrt d$. Hint: compare with $Y_{u,v}=\langle g,u\rangle+\langle h,v\rangle$.
+
+(d) Prove $\mathbb P\bigl[\sigma_{\max}(W)/\sqrt n\ge 1+\sqrt{d/n}+t\bigr]\le 2e^{-nt^2/2}$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** The experiment is a Monte Carlo evaluation of $\mathbb E[\sigma_{\max}(W)/\sqrt n]$ along the ray $d=\lceil\alpha n\rceil$. Part (c) supplies the theoretical curve
+$$
+\frac1{\sqrt n}\mathbb E[\sigma_{\max}(W)]
+\le
+1+\sqrt\alpha,
+$$
+and Example 5.33 / Sudakov matching shows the same order from below, so the plotted averages should track $1+\sqrt\alpha$ (Gordon's comparison is essentially sharp). A minimal implementation draws $W$ with i.i.d. $N(0,1)$ entries, computes the largest singular value (e.g. via a thin SVD of the $n\times d$ matrix), averages $T=20$ independent replicas, and repeats over the $100$ values of $\alpha$. Finite-$(n,T)$ bias is of order $n^{-1/2}$ in the mean (part (d)) and $T^{-1/2}$ in the Monte Carlo error; with $n=1000$ the curve is already visually indistinguishable from $1+\sqrt\alpha$ on $\alpha\in[0.1,2.6]$.
+
+**(b).** For a unit vector $v$, $\lVert Wv\rVert_2=\sup_{u\in\mathbb S^{n-1}}u^T Wv$. Taking the supremum over $v\in\mathbb S^{d-1}$ is the definition of the largest singular value.
+
+**(c).** Both $\{Z_{u,v}\}$ and $\{Y_{u,v}\}$ are centred Gaussian processes on $\mathbb T$. For unit pairs $(u,v)$ and $(u',v')$,
+\begin{align*}
+\mathbb E[(Z_{u,v}-Z_{u',v'})^2]
+&=
+\lVert uv^T-u'(v')^T\rVert_F^2
+=
+2-2\langle u,u'\rangle\langle v,v'\rangle,\\
+\mathbb E[(Y_{u,v}-Y_{u',v'})^2]
+&=
+\lVert u-u'\rVert_2^2+\lVert v-v'\rVert_2^2
+=
+4-2\langle u,u'\rangle-2\langle v,v'\rangle.
+\end{align*}
+The elementary inequality $a+b-ab\le 1$ for $a,b\in[-1,1]$ (equivalently $1-(1-a)(1-b)\le 1$) rearranges to
+$$
+2-2ab
+\le
+4-2a-2b,
+$$
+hence $\mathbb E[(Z-Z')^2]\le\mathbb E[(Y-Y')^2]$. Sudakov–Fernique (Theorem 5.27) yields
+$$
+\mathbb E[\sigma_{\max}(W)]
+=
+\mathbb E\Bigl[\sup_{(u,v)\in\mathbb T}Z_{u,v}\Bigr]
+\le
+\mathbb E\Bigl[\sup_{(u,v)\in\mathbb T}Y_{u,v}\Bigr]
+=
+\mathbb E[\lVert g\rVert_2]+\mathbb E[\lVert h\rVert_2]
+\le
+\sqrt n+\sqrt d,
+$$
+where the last step is Jensen as in Example 5.13. (This is Gordon's comparison specialised to the largest singular value; the constant $c_1=1$ advertised in Example 5.19 follows.)
+
+**(d).** The map $W\mapsto\sigma_{\max}(W)$ is $1$-Lipschitz with respect to the Frobenius metric, because Weyl's inequality gives $\lvert\sigma_{\max}(W)-\sigma_{\max}(W')\rvert\le\lvert\lvert\lvert W-W'\rvert\rvert\rvert_2\le\lvert\lvert\lvert W-W'\rvert\rvert\rvert_F$. Viewing $W$ as a standard Gaussian vector in $\mathbb R^{nd}$, Theorem 2.26 implies
+$$
+\mathbb P\bigl[\lvert\sigma_{\max}(W)-\mathbb E[\sigma_{\max}(W)]\rvert\ge t\sqrt n\bigr]
+\le
+2e^{-(t\sqrt n)^2/2}
+=
+2e^{-nt^2/2}.
+$$
+Combine with the expectation bound of (c):
+$$
+\mathbb E[\sigma_{\max}(W)]/\sqrt n
+\le
+1+\sqrt{d/n},
+$$
+and the event $\{\sigma_{\max}/\sqrt n\ge 1+\sqrt{d/n}+t\}$ is contained in the upper deviation of size $t\sqrt n$. This is the printed tail.
+:::

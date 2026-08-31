@@ -1,0 +1,945 @@
+---
+title: "第 10 章　带秩约束的矩阵估计"
+subtitle: "Wainwright, High-Dimensional Statistics 伴读 Notes"
+description: "面向已学陈希孺本科概率统计并读过第 9 章的读者：把可分解正则与限制强凸落到核范数矩阵回归、压缩感知、相位恢复、多元回归、矩阵补全与可加分解"
+execute:
+  enabled: false
+lang: zh-CN
+---
+
+# 本章导览
+
+第 9 章已经把 $M$-估计写成「可分解正则 + 限制强凸（RSC）」，并给出神谕不等式。本章不再抽象，而是把那套语言接到**矩阵**上：未知对象是 $\Theta^*\in\mathbb R^{d_1\times d_2}$，低维结构是**低秩或近低秩**，凸代理是**核范数**（nuclear norm）。
+
+阅读时抓住一条标度。秩 $r$ 的 $d_1\times d_2$ 矩阵大约有 $r(d_1+d_2)$ 个自由度；高斯设计下，$n\gtrsim r(d_1+d_2)$ 次线性观测就够精确恢复。矩阵补全的观测是稀疏掩码，同样的计数还要乘对数、并排除「只在一个格子上非零」的尖刺矩阵。相位恢复把 $|\langle x_i,\theta^*\rangle|$ 提升成秩一矩阵 $\theta^*\otimes\theta^*$，于是又回到核范数 / 半定规划。
+
+本章阅读主线：
+
+$$
+\text{矩阵回归 }y=\mathfrak X_n(\Theta^*)+w
+\longrightarrow
+\text{核范数可分解 + RSC}
+\longrightarrow
+\text{压缩感知 / 相位恢复 / 多元回归}
+\longrightarrow
+\text{尖刺比下的矩阵补全}
+\longrightarrow
+\text{低秩 + 稀疏的可加分解}.
+$$
+
+> 教材定位：第 10 章 §§10.1–10.8，印刷页 312–343，PDF 页 331–362。习题 §10.9 印刷页 343–346，PDF 页 362–365，不进入 Notes。页码关系：**PDF 页 = 印刷页 + 19**。教材矩阵范数用三竖线 $\lvert\!\lvert\!\lvert\cdot\rvert\!\rvert\!\rvert$；Notes 写成 $\|\cdot\|_{\mathrm{nuc}}$、$\|\cdot\|_{\mathrm{F}}$、$\|\cdot\|_2$。
+
+## 学习目标
+
+学完本章后，你应能：
+
+- **写出** 迹内积 (10.1)、观测算子 $\mathfrak X_n$ 与核范数正则最小二乘 (10.4)，并把多元回归、补全、相位恢复改写成这一模型；
+- **陈述** 核范数对 $(\mathbb M,\overline{\mathbb M}^\perp)$ 的可分解性，以及锥约束 (10.15) 与神谕不等式 Proposition 10.6；
+- **应用** Theorem 10.8：$\Sigma$-高斯系综下 $n\gtrsim r(d_1+d_2)$ 给出无噪精确恢复与含噪 Frobenius 界；
+- **说明** 相位恢复 SDP (10.29) 在 $n\gtrsim d$ 时唯一解为 $\theta^*\otimes\theta^*$，并指出印刷锥 (10.30) 与证明集合 $A_1(\sqrt{\rho})$ 方向相反；
+- **区分** 奇异向量不相干 (10.38) 与尖刺比 (10.40)，并写出含噪补全 Corollary 10.18 的标度 $r(d\log d)/n$；
+- **写出** 低秩加稀疏程序的正则形状（核范数 + 元素 $\ell_1$）及神谕界 Corollary 10.22。
+
+# 必要先修
+
+第 9 章的可分解正则、对偶范数、RSC 与神谕不等式（Theorem 9.19、9.24），本章直接当引擎用。下面只钉三处第一次接到矩阵上容易卡壳的接口。
+
+::: {.callout-note title="为什么现在需要迹内积"}
+$\mathbb R^{d_1\times d_2}$ 上的欧氏结构不是另起一套，而是把矩阵拉直：$\langle\langle A,B\rangle\rangle=\mathrm{trace}(A^T B)=\sum_{j_1,j_2}A_{j_1 j_2}B_{j_1 j_2}$。它诱导的范数就是 Frobenius 范数 $\|\cdot\|_{\mathrm{F}}$。线性观测 $y_i=\langle\langle X_i,\Theta^*\rangle\rangle+w_i$ 是向量回归 $\langle x_i,\theta^*\rangle$ 的逐字推广，设计矩阵换成观测算子 $\mathfrak X_n$。
+:::
+
+::: {.callout-note title="作者解释：核范数是秩的凸包"}
+$\mathrm{rank}(\Theta)$ 等于非零奇异值的个数，直接罚秩会得到非凸程序。核范数 $\|\Theta\|_{\mathrm{nuc}}=\sum_j\sigma_j(\Theta)$ 是单位算子球上秩函数的凸包（Example 9.8）。对偶是 $\ell_2$-算子范数（谱范数）$\|\Theta\|_2=\sigma_{\max}(\Theta)$。正则化参数必须压过 $\|\nabla\mathcal L_n(\Theta^*)\|_2$，不是 Frobenius 范数。
+:::
+
+::: {.callout-note title="作者解释：可分解的模型空间比行/列空间大一圈"}
+向量 $\ell_1$ 的模型空间就是支撑坐标。核范数的 $\mathbb M(\mathbb U,\mathbb V)$ 要求行空间$\subseteq\mathbb V$、列空间$\subseteq\mathbb U$，秩 $\le r$；它的正交补之补 $\overline{\mathbb M}$ 允许「十字」块，秩 $\le 2r$。这就是后文所有 $\sqrt{2r}$ 的来源：锥上核范数与 Frobenius 只差一个 $\sqrt{2r}$，不是 $\sqrt{r}$。
+:::
+
+# 10 Matrix estimation with rank constraints　带秩约束的矩阵估计
+
+> 教材定位：章首，印刷页 312，PDF 页 331。
+
+第 8 章的 PCA 已经是一种低秩估计。本章处理更广的一类：在秩（或近低秩、低秩加稀疏）约束下估计矩阵，并把第 9 章的一般理论直接接到核范数正则及其可加分解。
+
+# 10.1 Matrix regression and applications　矩阵回归与应用
+
+> 教材定位：§10.1，印刷页 312–316，PDF 页 331–335。
+
+矩阵空间 $\mathbb R^{d_1\times d_2}$ 上的欧氏内积是**迹内积**（trace inner product）
+
+::: {.callout-important title="(10.1) 迹内积"}
+$$
+\langle\langle A,B\rangle\rangle
+:=\mathrm{trace}(A^T B)
+=\sum_{j_1=1}^{d_1}\sum_{j_2=1}^{d_2}A_{j_1 j_2}B_{j_1 j_2}.
+$$
+:::
+
+它诱导 **Frobenius 范数**
+$$
+\|A\|_{\mathrm{F}}
+=\Bigl(\sum_{j_1=1}^{d_1}\sum_{j_2=1}^{d_2}(A_{j_1 j_2})^2\Bigr)^{1/2},
+$$
+即把矩阵拉直后的欧氏范数。观测是对 $(X_i,y_i)$，$X_i\in\mathbb R^{d_1\times d_2}$，$y_i\in\mathbb R$。线性模型为
+
+$$
+y_i=\langle\langle X_i,\Theta^*\rangle\rangle+w_i.
+\tag{10.2}
+$$
+
+定义**观测算子**（observation operator）$\mathfrak X_n:\mathbb R^{d_1\times d_2}\to\mathbb R^n$，
+$[\mathfrak X_n(\Theta)]_i=\langle\langle X_i,\Theta\rangle\rangle$，则
+
+$$
+y=\mathfrak X_n(\Theta^*)+w.
+\tag{10.3}
+$$
+
+伴随 $\mathfrak X_n^*:\mathbb R^n\to\mathbb R^{d_1\times d_2}$ 由 $u\mapsto\sum_{i=1}^n u_i X_i$ 给出。这正是向量回归里设计矩阵 $X:\mathbb R^d\to\mathbb R^n$ 的矩阵版。
+
+许多应用里 $\Theta^*$ 低秩或近低秩。直接罚秩会得到非凸最小二乘；换成核范数得到凸程序
+
+::: {.callout-important title="(10.4)–(10.5) 核范数正则最小二乘"}
+$$
+\widehat\Theta
+\in
+\arg\min_{\Theta\in\mathbb R^{d_1\times d_2}}
+\Bigl\{
+\frac1{2n}\|y-\mathfrak X_n(\Theta)\|_2^2
++\lambda_n\|\Theta\|_{\mathrm{nuc}}
+\Bigr\},
+\tag{10.4}
+$$
+其中
+$$
+\|\Theta\|_{\mathrm{nuc}}
+=\sum_{j=1}^{d'}\sigma_j(\Theta),
+\qquad
+d'=\min\{d_1,d_2\}.
+\tag{10.5}
+$$
+:::
+
+## Example 10.1　多元回归作为矩阵回归
+
+> 教材定位：Example 10.1，印刷页 313，PDF 页 332。
+
+观测模型 $Y=Z\Theta^*+W$，$Z\in\mathbb R^{n\times p}$，$Y\in\mathbb R^{n\times T}$，$\Theta^*\in\mathbb R^{p\times T}$。第 $t$ 列 $\Theta^*_{\bullet,t}$ 是第 $t$ 个响应的回归向量；若这些向量靠近一个低维子空间，则 $\Theta^*$ 低秩。
+
+**降秩回归**（reduced rank regression）直接约束 $\mathrm{rank}(\Theta)\le r$ 并最小化 $\|Y-Z\Theta\|_{\mathrm{F}}^2$。这个非凸问题在「只有秩约束」时有显式 SVD 解（Exercise 10.1）；一旦再加别的约束，显式解立刻消失，核范数就变成可用的凸代理。
+
+改写成 (10.2)：共 $N=nT$ 条观测。令 $E_{j\ell}$ 为 $(j,\ell)$ 处为 1 的 $n\times T$ 掩码，$X_{j\ell}:=Z^T E_{j\ell}\in\mathbb R^{p\times T}$，则
+$y_{j\ell}=\langle\langle X_{j\ell},\Theta^*\rangle\rangle+W_{j\ell}$。
+
+## Example 10.2　低秩矩阵补全
+
+> 教材定位：Example 10.2，印刷页 313–315，PDF 页 332–334。
+
+只看到 $\Theta^*\in\mathbb R^{d_1\times d_2}$ 的一部分条目（可含噪），要填其余。Netflix 问题：行是用户、列是电影，条目是评分；任何人一生只能看有限部电影，所以矩阵绝大部分未观测。Figure 10.1(a) 用 $*$ 标未观测格；Figure 10.1(b) 给出 Jester 笑话评分矩阵的奇异值衰减——矩阵不是恰低秩，但可被低秩很好地逼近。
+
+含噪线性模型（印刷页 315）把噪声除以 $\sqrt{d_1 d_2}$，是为了后面 (10.36) 的标定：
+
+$$
+\widetilde y_i
+=\Theta^*_{a(i),b(i)}+\frac{w_i}{\sqrt{d_1 d_2}}.
+\tag{10.6}
+$$
+
+掩码 $X_i$ 只在 $(a(i),b(i))$ 处取 $\sqrt{d_1 d_2}$，其余为 0。令 $y_i:=\sqrt{d_1 d_2}\,\widetilde y_i$，得到迹回归
+
+$$
+y_i=\langle\langle X_i,\Theta^*\rangle\rangle+w_i.
+\tag{10.7}
+$$
+
+离散评分可用广义线性模型。二元 $y\in\{-1,1\}$ 时，逻辑斯蒂（印刷页 315）
+
+$$
+\mathbb P(y_i\mid X_i,\Theta^*)
+=\frac{e^{y_i\langle\langle X_i,\Theta^*\rangle\rangle}}{1+e^{y_i\langle\langle X_i,\Theta^*\rangle\rangle}},
+\tag{10.8}
+$$
+
+$\Theta^*_{a,b}$ 正比于用户 $a$ 喜欢物品 $b$ 的对数胜算。
+
+## Example 10.3　低秩矩阵的压缩感知
+
+> 教材定位：Example 10.3，印刷页 315，PDF 页 334。
+
+$X_i$ 的 $D=d_1 d_2$ 个元 i.i.d. $N(0,1)$。无噪时
+
+$$
+y_i=\langle\langle X_i,\Theta^*\rangle\rangle,
+\qquad i=1,\ldots,n.
+\tag{10.9}
+$$
+
+问：$n$ 要多大才能精确恢复 $\Theta^*$？Corollary 10.9 的答案是 $n\gtrsim r(d_1+d_2)$。
+
+## Example 10.4　相位恢复
+
+> 教材定位：Example 10.4，印刷页 315–316，PDF 页 334–335。
+
+观测 $\widetilde y_i=|\langle x_i,\theta^*\rangle|$，$x_i\sim N(0,I_d)$。这是图像处理里复相位恢复的实值理想化：「相位」只剩符号。两边平方并提升（lifting）：
+
+$$
+\widetilde y_i^2
+=\bigl\langle\langle x_i\otimes x_i,\;\theta^*\otimes\theta^*\rangle\bigr\rangle,
+$$
+
+令 $y_i=\widetilde y_i^2$、$X_i=x_i\otimes x_i$、$\Theta^*=\theta^*\otimes\theta^*$，得到秩一线性方程组 $y_i=\langle\langle X_i,\Theta^*\rangle\rangle$。罚核范数 / 限制 $\Theta\succeq 0$ 得到半定规划 (10.29)。设计矩阵不再是高斯矩阵，而是两个高斯向量的外积。Corollary 10.13：$n\gtrsim d$ 时松弛与秩约束问题以高概率重合。
+
+## Example 10.5　时间序列与向量自回归
+
+> 教材定位：Example 10.5，印刷页 316–317，PDF 页 335–336。
+
+$d$ 维 VAR：先抽 $z^1$，再
+
+$$
+z^{t+1}=\Theta^* z^t+w^t,
+\qquad t=1,\ldots,N-1.
+\tag{10.10}
+$$
+
+驱动噪声 $\{w^t\}$ i.i.d.、零均值、协方差 $\Gamma\succ 0$。若 $w^t$ 与 $z^t$ 独立，则 $\Sigma^{t+1}:=\Theta^*\Sigma^t(\Theta^*)^T+\Gamma$。当 $\|\Theta^*\|_2<1$ 时过程稳定，$\{\Sigma^t\}$ 收敛（Exercise 10.2）。$\Gamma$ 已知且正定时，可用二次损失
+
+$$
+\mathcal L_n(\Theta)
+=\frac1{2N}\sum_{t=1}^{N-1}\|z^{t+1}-\Theta z^t\|_{\Gamma^{-1}}^2,
+\tag{10.11}
+$$
+
+其中 $\|a\|_{\Gamma^{-1}}:=\sqrt{\langle a,\Gamma^{-1}a\rangle}$。高斯驱动噪声下这就是（略去与 $\Theta$ 无关项的）负对数似然。低秩 $\Theta^*$ 再加核范数，又是一个 SDP。
+
+改写成 (10.2)：共 $n=d(N-1)$ 条观测。第 $t$ 段的第 $j$ 条为
+$z^t_j=\langle\langle e_j\otimes z^{t-1},\Theta^*\rangle\rangle+w^{t-1}_j$，即 $X_i=e_j\otimes z^{t-1}$。
+
+# 10.2 Analysis of nuclear norm regularization　核范数正则的分析
+
+> 教材定位：§10.2，印刷页 317–321，PDF 页 336–340。
+
+把第 9 章的两件套接到核范数：可分解子空间，以及这些子空间上的 RSC。
+
+## 10.2.1 Decomposability and subspaces　可分解性与子空间
+
+> 教材定位：§10.2.1，印刷页 317–319，PDF 页 336–338。
+
+对 $\Theta\in\mathbb R^{d_1\times d_2}$，记 $\mathrm{rowspan}(\Theta)\subseteq\mathbb R^{d_2}$、$\mathrm{colspan}(\Theta)\subseteq\mathbb R^{d_1}$。给定 $r\le d'=\min\{d_1,d_2\}$ 与 $r$ 维子空间 $\mathbb U,\mathbb V$，定义
+
+::: {.callout-important title="(10.12a)–(10.12b) 模型空间与偏离空间"}
+$$
+\mathbb M(\mathbb U,\mathbb V)
+:=\bigl\{\Theta\in\mathbb R^{d_1\times d_2}:
+\mathrm{rowspan}(\Theta)\subseteq\mathbb V,\;
+\mathrm{colspan}(\Theta)\subseteq\mathbb U\bigr\},
+\tag{10.12a}
+$$
+$$
+\overline{\mathbb M}^\perp(\mathbb U,\mathbb V)
+:=\bigl\{\Theta\in\mathbb R^{d_1\times d_2}:
+\mathrm{rowspan}(\Theta)\subseteq\mathbb V^\perp,\;
+\mathrm{colspan}(\Theta)\subseteq\mathbb U^\perp\bigr\}.
+\tag{10.12b}
+$$
+:::
+
+$\mathbb M$ 中矩阵秩 $\le r$。与第 9 章多数正则不同，$\overline{\mathbb M}:=(\overline{\mathbb M}^\perp)^\perp$ 是 $\mathbb M$ 的**真超集**。
+
+取正交矩阵 $U\in\mathbb R^{d_1\times d'}$、$V\in\mathbb R^{d_2\times d'}$，令 $\mathbb U$、$\mathbb V$ 分别由它们的前 $r$ 列张成（实践中取 $\Theta^*$ 最大 $r$ 个左、右奇异向量）。则 $A\in\mathbb M$、$B\in\overline{\mathbb M}^\perp$ 可写成
+
+$$
+A
+=U
+\begin{bmatrix}
+\Gamma_{11}&0\\
+0&0
+\end{bmatrix}
+V^T,
+\qquad
+B
+=U
+\begin{bmatrix}
+0&0\\
+0&\Gamma_{22}
+\end{bmatrix}
+V^T,
+\tag{10.13}
+$$
+
+而 $\overline A\in\overline{\mathbb M}$ 是「十字」：
+
+$$
+\overline A
+=U
+\begin{bmatrix}
+\overline\Gamma_{11}&\overline\Gamma_{12}\\
+\overline\Gamma_{21}&0
+\end{bmatrix}
+V^T.
+\tag{10.14}
+$$
+
+因而 $\overline{\mathbb M}$ 中矩阵秩 $\le 2r$——比 $\mathbb M$ 大，但只大一倍。
+
+核范数对 $(\mathbb M,\overline{\mathbb M}^\perp)$ **可分解**：对 $A\in\mathbb M$、$B\in\overline{\mathbb M}^\perp$，正交不变性给出
+$\|A+B\|_{\mathrm{nuc}}=\|A\|_{\mathrm{nuc}}+\|B\|_{\mathrm{nuc}}$。
+
+Proposition 9.13 的推论：对 $\widehat\Theta\in\arg\min\{\mathcal L_n(\Theta)+\lambda_n\|\Theta\|_{\mathrm{nuc}}\}$，只要 $\lambda_n\ge 2\|\nabla\mathcal L_n(\Theta^*)\|_2$，误差 $\widehat\Delta=\widehat\Theta-\Theta^*$ 落在锥
+
+$$
+\|\widehat\Delta_{\overline{\mathbb M}^\perp}\|_{\mathrm{nuc}}
+\le
+3\|\widehat\Delta_{\overline{\mathbb M}}\|_{\mathrm{nuc}}
++4\|\Theta^*_{\mathbb M^\perp}\|_{\mathrm{nuc}}.
+\tag{10.15}
+$$
+
+恰低秩时最后一项为 0，核范数被 $\overline{\mathbb M}$ 上的部分控制，从而 $\|\widehat\Delta\|_{\mathrm{nuc}}\lesssim\sqrt{2r}\,\|\widehat\Delta\|_{\mathrm{F}}$。
+
+## 10.2.2 Restricted strong convexity and error bounds　限制强凸与误差界
+
+> 教材定位：§10.2.2，印刷页 319–320，PDF 页 338–339。
+
+最小二乘 (10.16) 与 (10.4) 相同。RSC 就是给二次型 $\frac1{2n}\|\mathfrak X_n(\Delta)\|_2^2$ 一个一致下界：
+
+$$
+\frac{\|\mathfrak X_n(\Delta)\|_2^2}{2n}
+\ge
+\frac\kappa2\|\Delta\|_{\mathrm{F}}^2
+-c_0\frac{d_1+d_2}{n}\|\Delta\|_{\mathrm{nuc}}^2,
+\qquad
+\Delta\in\mathbb R^{d_1\times d_2}.
+\tag{10.17}
+$$
+
+这是 Definition 9.15，曲率 $\kappa$、容忍 $\tau_n^2=c_0(d_1+d_2)/n$。Theorem 9.19 给出神谕不等式。
+
+::: {.callout-important title="Proposition 10.6　核范数最小二乘的神谕不等式"}
+设 $\mathfrak X_n$ 满足 (10.17)。在事件
+$\mathbb G(\lambda_n)=\bigl\{\bigl\|\frac1n\sum_{i=1}^n w_i X_i\bigr\|_2\le\lambda_n/2\bigr\}$
+上，(10.16) 的任一最优解满足：对一切使
+$r\le \kappa n/(128 c_0(d_1+d_2))$
+的 $r\in\{1,\ldots,d'\}$，
+$$
+\|\widehat\Theta-\Theta^*\|_{\mathrm{F}}^2
+\le
+\frac{9\lambda_n^2}{2\kappa^2}\,r
++\frac1\kappa
+\Biggl\{
+2\lambda_n\sum_{j=r+1}^{d'}\sigma_j(\Theta^*)
++\frac{32 c_0(d_1+d_2)}{n}
+\Biggl[\sum_{j=r+1}^{d'}\sigma_j(\Theta^*)\Biggr]^2
+\Biggr\}.
+\tag{10.18}
+$$
+:::
+
+这是神谕不等式（oracle inequality）：对任意 $\Theta^*$ 成立，估计项与逼近项按 $r$ 拆开，$r$ 可事后优化。若 $\mathrm{rank}(\Theta^*)<d'$ 且 $n>128(c_0/\kappa)\,\mathrm{rank}(\Theta^*)(d_1+d_2)$，取 $r=\mathrm{rank}(\Theta^*)$，尾奇异值消失，得到
+
+$$
+\|\widehat\Theta-\Theta^*\|_{\mathrm{F}}^2
+\le
+\frac9{2}\frac{\lambda_n^2}{\kappa^2}\,\mathrm{rank}(\Theta^*).
+\tag{10.19}
+$$
+
+### 关键核对
+
+证明只需核对 Theorem 9.19 的子空间 Lipschitz 常数。$\overline{\mathbb M}$ 中矩阵秩 $\le 2r$，故
+$$
+\Psi(\overline{\mathbb M})
+:=\sup_{\Theta\in\overline{\mathbb M}\setminus\{0\}}
+\frac{\|\Theta\|_{\mathrm{nuc}}}{\|\Theta\|_{\mathrm{F}}}
+\le\sqrt{2r}.
+$$
+条件 $\tau_n^2\Psi^2(\overline{\mathbb M})\le\kappa/64$ 正是 $r\le\kappa n/(128 c_0(d_1+d_2))$。最小二乘的梯度是 $\nabla\mathcal L_n(\Theta^*)=\frac1n\sum_i w_i X_i$，对偶范数是算子范数，所以 $\mathbb G(\lambda_n)$ 长成上面那样。
+
+## 10.2.3 Bounds under operator norm curvature　算子范数曲率下的界
+
+> 教材定位：§10.2.3，印刷页 320–321，PDF 页 339–340。
+
+Theorem 9.24 用对偶范数度量误差。核范数的对偶是谱范数。最小二乘梯度
+$$
+\nabla\mathcal L_n(\Theta)
+=\frac1n\sum_{i=1}^n X_i\bigl(y_i-\langle\langle X_i,\Theta\rangle\rangle\bigr)
+=\frac1n\mathfrak X_n^*\bigl(y-\mathfrak X_n(\Theta)\bigr).
+$$
+Definition 9.22 的 $\Phi^*$-曲率变成
+
+$$
+\Bigl\|\frac1n\mathfrak X_n^*\mathfrak X_n(\Delta)\Bigr\|_2
+\ge
+\kappa\|\Delta\|_2-\tau_n\|\Delta\|_{\mathrm{nuc}},
+\qquad
+\Delta\in\mathbb R^{d_1\times d_2}.
+\tag{10.20}
+$$
+
+::: {.callout-important title="Proposition 10.7　算子范数误差"}
+设 (10.20) 成立且 $\mathrm{rank}(\Theta^*)<\kappa/(64\tau_n)$。在
+$\mathbb G(\lambda_n)=\bigl\{\bigl\|\frac1n\mathfrak X_n^*(w)\bigr\|_2\le\lambda_n/2\bigr\}$
+上，
+$$
+\|\widehat\Theta-\Theta^*\|_2
+\le
+3\sqrt{2}\,\frac{\lambda_n}{\kappa}.
+\tag{10.21}
+$$
+:::
+
+(10.21) 比 (10.19) 小一个 $\sqrt{r}$ 因子——秩 $r$ 矩阵的 Frobenius 至多是算子范数的 $\sqrt{r}$ 倍。配上锥 (10.15)，(10.21) 可以回到 (10.19) 型的 Frobenius 界（Exercise 10.5）。证明只需 $\tau_n\Psi^2(\overline{\mathbb M})<\kappa/32$；已有 $\Psi^2\le 2r$，故 $r<\kappa/(64\tau_n)$ 足够。
+
+# 10.3 Matrix compressed sensing　矩阵压缩感知
+
+> 教材定位：§10.3，印刷页 321–326，PDF 页 340–345。
+
+标准高斯：每个 $X_i$ 的条目 i.i.d. $N(0,1)$。更一般，$\mathrm{vec}(X_i)\sim N(0,\Sigma)$，称为 **$\Sigma$-高斯系综**（$\Sigma$-Gaussian ensemble）。定义
+
+$$
+\rho^2(\Sigma)
+:=\sup_{\|u\|_2=\|v\|_2=1}\mathrm{var}\bigl(\langle\langle X,uv^T\rangle\rangle\bigr).
+$$
+
+恒等系综 $\rho^2(I)=1$。
+
+::: {.callout-important title="Theorem 10.8　$\Sigma$-高斯系综的 RSC"}
+设 $\{X_i\}_{i=1}^n$ 为 $\Sigma$-高斯系综的 i.i.d. 样本。存在常数 $c_1<1<c_2$ 使得
+$$
+\frac{\|\mathfrak X_n(\Delta)\|_2^2}{n}
+\ge
+c_1\bigl\|\sqrt{\Sigma}\,\mathrm{vec}(\Delta)\bigr\|_2^2
+-c_2\rho^2(\Sigma)\frac{d_1+d_2}{n}\|\Delta\|_{\mathrm{nuc}}^2
+\tag{10.22}
+$$
+对一切 $\Delta$ 成立，概率至少 $1-e^{-n/32}/(1-e^{-n/32})$。
+:::
+
+这是 Theorem 7.16（稀疏向量 + $\ell_1$）的矩阵版，可用 Gordon–Slepian 比较证明（Exercise 10.6 给出较弱形式）。
+
+无噪时，基追踪的矩阵类比是
+
+$$
+\min_{\Theta\in\mathbb R^{d_1\times d_2}}\|\Theta\|_{\mathrm{nuc}}
+\quad\text{s.t.}\quad
+\langle\langle X_i,\Theta\rangle\rangle=y_i,\quad i=1,\ldots,n.
+\tag{10.23}
+$$
+
+::: {.callout-important title="Corollary 10.9　无噪精确恢复"}
+若
+$n>16(c_2/c_1)\,(\rho^2(\Sigma)/\gamma_{\min}(\Sigma))\,r(d_1+d_2)$，
+则 (10.23) 以概率至少 $1-e^{-n/32}/(1-e^{-n/32})$ 唯一恢复秩 $r$ 矩阵 $\Theta^*$。
+:::
+
+自由度：约 $r$ 个奇异值、$rd_1$ 个左奇异向量、$rd_2$ 个右奇异向量，共 $r(d_1+d_2)$ 量级（正交约束只让这个上界更松）。
+
+证明提纲：最优性给出 $\|\widehat\Theta\|_{\mathrm{nuc}}\le\|\Theta^*\|_{\mathrm{nuc}}$。可分解性推出锥 $\|\widehat\Delta_{\overline{\mathbb M}^\perp}\|_{\mathrm{nuc}}\le\|\widehat\Delta_{\overline{\mathbb M}}\|_{\mathrm{nuc}}$，从而
+
+$$
+\|\widehat\Delta\|_{\mathrm{nuc}}
+\le 2\|\widehat\Delta_{\overline{\mathbb M}}\|_{\mathrm{nuc}}
+\le 2\sqrt{2r}\,\|\widehat\Delta\|_{\mathrm{F}}.
+\tag{10.24}
+$$
+
+代入 (10.22)，样本下界把核范数惩罚吸进 $c_1\gamma_{\min}/2$。但可行集上 $\mathfrak X_n(\widehat\Delta)=0$，故 $\widehat\Delta=0$。
+
+含噪时用 (10.16) 与 (10.19)。
+
+::: {.callout-important title="Corollary 10.10　含噪 Frobenius 界"}
+设 $n>64(c_2/c_1)\,(\rho^2(\Sigma)/\gamma_{\min}(\Sigma))\,r(d_1+d_2)$，$X_i$ 来自 $\Sigma$-高斯系综。取
+$\lambda_n=10\sigma\rho(\Sigma)\bigl(\sqrt{(d_1+d_2)/n}+\delta\bigr)$，
+则
+$$
+\|\widehat\Theta-\Theta^*\|_{\mathrm{F}}^2
+\le
+125\frac{\sigma^2\rho^2(\Sigma)}{c_1^2\gamma_{\min}^2(\Sigma)}
+\Bigl\{\frac{r(d_1+d_2)}{n}+r\delta^2\Bigr\}
+\tag{10.25}
+$$
+以概率至少 $1-2e^{-2n\delta^2}$ 成立。
+:::
+
+Figure 10.2：标准高斯设计，$d\times d$ 矩阵，$d^2\in\{400,1600,6400\}$，秩 $r=\lceil\sqrt d\rceil$。对 $n$ 作图，曲线随 $d$ 右移；对 $n/(rd)$ 作图，三条曲线对齐——与 (10.25) 的标度一致。
+
+::: {.callout-warning title="勘误待批：Figure 10.2 的 $d$"}
+印刷页 323 正文写 $d^2\in\{400,1600,6400\}$（即 $d\in\{20,40,80\}$），与图例一致。印刷页 324 图注写 $d\in\{40,80,160\}$。Notes 跟正文。保留原文，待教师批准。
+:::
+
+$\lambda_n$ 的来源是把 $\bigl\|\frac1n\sum w_i X_i\bigr\|_2$ 用球面 $1/4$-网（$M\le 9^{d_1}$、$N\le 9^{d_2}$）离散化，再对每个方向的次高斯尾做并。噪声平方和事件 $\{\|w\|_2^2/n\le 2\sigma^2\}$ 的概率 $\le e^{-n/8}$。
+
+近低秩：奇异值 $\ell_q$-球（$q\in[0,1]$）
+
+$$
+\mathbb B_q(R_q)
+:=\Bigl\{\Theta\in\mathbb R^{d_1\times d_2}:\sum_{j=1}^{d}(\sigma_j(\Theta))^q\le R_q\Bigr\}.
+\tag{10.26}
+$$
+
+Proposition 10.6 给出
+
+$$
+\|\widehat\Theta-\Theta^*\|_{\mathrm{F}}^2
+\lesssim
+R_q\Bigl(\frac{\sigma^2(d_1+d_2)}{n}\Bigr)^{1-q/2}
+\tag{10.27}
+$$
+
+以高概率成立。$q=0$ 时 $\mathbb B_0(r)$ 就是秩 $\le r$ 的矩阵，回到 Corollary 10.10。细节见 Exercise 10.7。
+
+Example 10.11 把最小二乘换成局部 $L$-利普希茨损失（逻辑斯蒂 $L=2$，铰链损失同样）。$\nu$-次高斯系综下，经验过程偏差（印刷页 326）
+
+$$
+\bigl|\mathcal E_n(\Delta)-\overline{\mathcal E}(\Delta)\bigr|
+\le
+16 L\nu\|\Delta\|_{\mathrm{nuc}}
+\Bigl\{12\sqrt{\frac{d_1+d_2}{n}}+\epsilon\Bigr\}
+\tag{10.28}
+$$
+
+对一切 $\Delta\in\mathbb B_{\mathrm{F}}(1/d,1)$ 成立，概率 $1-4(\log d)^2 e^{-n\epsilon^2/12}$。证明走 Theorem 9.34：对偶范数是算子范数，离散化控制 $\bigl\|\frac1n\sum\varepsilon_i X_i\bigr\|_2$。
+
+# 10.4 Bounds for phase retrieval　相位恢复的界
+
+> 教材定位：§10.4，印刷页 326–329，PDF 页 345–348。
+
+提升后的半定松弛：
+
+::: {.callout-important title="(10.29) 相位恢复 SDP"}
+$$
+\widehat\Theta
+\in
+\arg\min_{\Theta\in\mathbb S_+^{d\times d}}
+\mathrm{trace}(\Theta)
+\quad\text{s.t.}\quad
+\widetilde y_i^2=\langle\langle\Theta,\,x_i\otimes x_i\rangle\rangle,
+\quad i=1,\ldots,n.
+\tag{10.29}
+$$
+:::
+
+$\mathbb S_+^{d\times d}$ 是半正定锥。秩一矩阵 $\Theta^*=\theta^*\otimes\theta^*$ 可行；目标是证明它是唯一最优，即误差 $\widehat\Delta=\widehat\Theta-\Theta^*=0$。令 $y_i=\widetilde y_i^2$、$X_i=x_i\otimes x_i$，则 $\widehat\Delta$ 落在 $\mathfrak X_n$ 的零空间里。
+
+::: {.callout-important title="Theorem 10.12　相位恢复的限制零空间 / 特征值"}
+设 $X_i=x_i\otimes x_i$，$x_i\sim N(0,I_d)$ i.i.d.。存在万有常数 $(c_0,c_1,c_2)$，使得对任意 $\rho>0$，只要 $n>c_0\rho d$，
+$$
+\frac1n\sum_{i=1}^n\langle\langle X_i,\Theta\rangle\rangle^2
+\ge
+\frac12\|\Theta\|_{\mathrm{F}}^2
+\qquad\text{对一切满足 }\;
+\|\Theta\|_{\mathrm{F}}^2\le\rho\|\Theta\|_{\mathrm{nuc}}^2
+\text{ 的矩阵}.
+\tag{10.30}
+$$
+概率至少 $1-c_1 e^{-c_2 n}$。
+:::
+
+::: {.callout-warning title="勘误待批：(10.30) 的锥方向"}
+印刷 (10.30) 把锥写成 $\|\Theta\|_{\mathrm{F}}^2\le\rho\|\Theta\|_{\mathrm{nuc}}^2$。核范数始终 $\ge$ Frobenius，故 $\rho\ge 1$ 时该锥包含**全体**矩阵，与「$n\asymp\rho d$ 才有限制零空间」矛盾。同页证明与 (10.31b) 使用的集合是
+$$
+A_1(\sqrt{\rho})
+=\bigl\{\Delta\in\mathbb S^{d\times d}:\|\Delta\|_{\mathrm{nuc}}\le\sqrt{\rho}\,\|\Delta\|_{\mathrm{F}}\bigr\},
+$$
+方向相反。Corollary 10.13 对秩一可行解导出的也是 $\|\widehat\Delta\|_{\mathrm{nuc}}\le\sqrt{2}\,\|\widehat\Delta\|_{\mathrm{F}}$，即 $A_1(\sqrt 2)$。Notes 保留印刷式，证明按 $A_1(\sqrt{\rho})$ 读。待教师批准。
+:::
+
+::: {.callout-important title="Corollary 10.13　SDP 精确恢复"}
+$n>2c_0 d$ 时，(10.29) 以概率至少 $1-c_1 e^{-c_2 n}$ 有唯一最优解 $\widehat\Theta=\Theta^*$。
+:::
+
+证明：最优性给出 $\mathrm{trace}(\widehat\Theta)\le\mathrm{trace}(\Theta^*)$。半正定上迹等于核范数，再加 $\Theta^*$ 秩一与可分解性，得到锥 $\|\widehat\Delta\|_{\mathrm{nuc}}\le\sqrt{2}\,\|\widehat\Delta\|_{\mathrm{F}}$。用 Theorem 10.12 于 $\rho=2$（按证明集合），零空间交锥只有 $0$。
+
+证明 Theorem 10.12 走第 14 章单边一致律。令 $f_\Delta(X,v)=v\langle\langle X,\Delta\rangle\rangle$，$v$ 为独立拉德马赫。印刷的二阶矩为
+
+$$
+\|f_\Delta\|_2^2
+=\mathbb E\bigl[\langle\langle X,\Delta\rangle\rangle^2\bigr]
+=\|\Delta\|_{\mathrm{F}}^2+2\bigl(\mathrm{trace}\Delta\bigr)^2.
+\tag{10.31a}
+$$
+
+::: {.callout-warning title="勘误待批：(10.31a) 的系数"}
+对称矩阵上 Wick 公式给出
+$\mathbb E[(x^T\Delta x)^2]=2\|\Delta\|_{\mathrm{F}}^2+(\mathrm{trace}\Delta)^2$。
+印刷把 $2$ 写在了迹项上。Exercise 10.9(b) 重复同一印刷式。Notes 保留原文；正确恒等式见 Solutions。待教师批准。
+:::
+
+在 $A_1(\sqrt{\rho})$ 上要证单边定律 (10.31b)。函数类是锥、星形；四阶矩由 Rosenthal 不等式（Exercise 2.20）控制——对角化后 $\mathbb E[x_j^4]=3$（印刷写 $4$）、$\mathbb E[x_j^8]=105$，在 $\|\Delta\|_{\mathrm{F}}\le 1$ 上有万有上界。局部拉德马赫复杂度被对偶写成
+$\sqrt{\rho}\,\delta\cdot\mathbb E\bigl\|\frac1n\sum\varepsilon_i(x_i\otimes x_i)\bigr\|_2$。
+Theorem 6.5 在 $n>d$ 时给出该期望 $\lesssim\sqrt{d/n}$。临界半径 $\delta_n\asymp\sqrt{\rho}\sqrt{d/n}$；取 $n>c_0\rho d$ 可令 $\delta_n=1/2$，得到 (10.31b)。
+
+# 10.5 Multivariate regression with low-rank constraints　带低秩约束的多元回归
+
+> 教材定位：§10.5，印刷页 329–330，PDF 页 348–349。
+
+线性预测 $z\in\mathbb R^p\mapsto y\in\mathbb R^T$ 由 $\Theta^*\in\mathbb R^{p\times T}$ 参数化：
+
+$$
+Y=Z\Theta^*+W.
+\tag{10.32}
+$$
+
+::: {.callout-warning title="勘误待批：$Z$ 的维数"}
+印刷页 329 写 $(Y,Z)\in\mathbb R^{n\times T}\times\mathbb R^{p\times T}$。Example 10.1 与样本协方差 $\widehat\Sigma=Z^T Z/n$ 都要求 $Z\in\mathbb R^{n\times p}$。Notes 按 $Z\in\mathbb R^{n\times p}$、$Y,W\in\mathbb R^{n\times T}$ 读。待教师批准。
+:::
+
+最小二乘 $\mathcal L_n(\Theta)=\frac1{2n}\|Y-Z\Theta\|_{\mathrm{F}}^2$。固定设计，曲率由 $\widehat\Sigma=Z^T Z/n$ 的特征值决定。
+
+::: {.callout-important title="Corollary 10.14　固定设计的算子范数界"}
+设 $\mathrm{rank}(\Theta^*)\le r$，$W$ 的条目 i.i.d. 零均值 $\sigma$-次高斯。取
+$\lambda_n=10\sigma\sqrt{\gamma_{\max}(\widehat\Sigma)}\bigl(\sqrt{(p+T)/n}+\delta\bigr)$，
+则
+$$
+\|\widehat\Theta-\Theta^*\|_2
+\le
+30\sqrt{2}\,
+\frac{\sigma\sqrt{\gamma_{\max}(\widehat\Sigma)}}{\gamma_{\min}(\widehat\Sigma)}
+\Bigl(\sqrt{\frac{p+T}{n}}+\delta\Bigr)
+\tag{10.33}
+$$
+以概率至少 $1-2e^{-2n\delta^2}$ 成立，并且
+$$
+\|\widehat\Theta-\Theta^*\|_{\mathrm{F}}
+\le 4\sqrt{2r}\,\|\widehat\Theta-\Theta^*\|_2,
+\qquad
+\|\widehat\Theta-\Theta^*\|_{\mathrm{nuc}}
+\le 32 r\,\|\widehat\Theta-\Theta^*\|_2.
+\tag{10.34}
+$$
+:::
+
+(10.33) 只有 $n>p$ 时才有意义，否则 $\gamma_{\min}(\widehat\Sigma)=0$。即使秩一，$\Theta^*$ 也有至少 $p+T$ 个自由度，这个下界不可避免。
+
+证明：$\nabla\mathcal L_n(\Theta^*+\Delta)-\nabla\mathcal L_n(\Theta^*)=\widehat\Sigma\Delta$，故 (10.20) 以 $\kappa=\gamma_{\min}(\widehat\Sigma)$、$\tau_n=0$ 成立。噪声项
+$$
+\mathbb P\Bigl[
+\Bigl\|\tfrac1n Z^T W\Bigr\|_2
+\ge
+5\sigma\sqrt{\gamma_{\max}(\widehat\Sigma)}
+\Bigl(\sqrt{\tfrac{d+T}{n}}+\delta\Bigr)
+\Bigr]
+\le 2e^{-2n\delta^2}
+\tag{10.35}
+$$
+（Exercise 10.8；$d$ 这里是 $p$ 的替身）。代入 Proposition 10.7 即得 (10.33)。锥 (10.15) 给出 $\|\widehat\Delta\|_{\mathrm{nuc}}\le 4\sqrt{2r}\,\|\widehat\Delta\|_{\mathrm{F}}$；Hölder
+$\|\widehat\Delta\|_{\mathrm{F}}^2\le\|\widehat\Delta\|_{\mathrm{nuc}}\|\widehat\Delta\|_2$
+推出 Frobenius 放大，再代回核范数得到 $32r$ 因子。
+
+# 10.6 Matrix completion　矩阵补全
+
+> 教材定位：§10.6，印刷页 330–337，PDF 页 349–356。
+
+观测仍是 $y_i=\langle\langle X_i,\Theta^*\rangle\rangle+w_i$，但 $X_i$ 是稀疏掩码：只在均匀随机的 $(a(i),b(i))$ 处等于 $\sqrt{d_1 d_2}$。重标定的目的是
+
+$$
+\mathbb E\Bigl[\frac{\|\mathfrak X_n(\Theta^*)\|_2^2}{n}\Bigr]
+=\|\Theta^*\|_{\mathrm{F}}^2.
+\tag{10.36}
+$$
+
+每个条目被抽中的概率为 $(d_1 d_2)^{-1}$。期望整齐并不代表算子在 $n\ll d_1 d_2$ 时没有核。
+
+## Example 10.15　补全的坏矩阵
+
+> 教材定位：Example 10.15，印刷页 331，PDF 页 350。
+
+$$
+\Theta^{\mathrm{bad}}:=e_1\otimes e_1
+\tag{10.37}
+$$
+
+秩一，但质量全堆在 $(1,1)$。Exercise 10.3：$n=o(d^2)$ 时 $\mathfrak X_n(\Theta^{\mathrm{bad}})=0$ 的概率趋于 1。要在 $n\ll d_1 d_2$ 得到非平凡结果，必须排除这类矩阵。
+
+一条路是奇异向量**不相干**（incoherence）/ **杠杆分数**（leverage scores）。$\Theta^*=UDV^T$。若左奇异向量完全铺开，则 $U$ 的每行欧氏范数恰为 $\sqrt{r/d_1}$。$UU^T$ 的对角元就是平方左杠杆分数。印刷条件（印刷页 331）为
+
+$$
+\Bigl\|UU^T-\frac r{d_1}I_{d_1\times d_1}\Bigr\|_{\max}
+\le\mu\frac{\sqrt r}{d_1},
+\qquad
+\Bigl\|VV^T-\frac r{d_2}I_{d_2\times d_2}\Bigr\|_{\max}
+\le\mu\frac{\sqrt r}{d_2}.
+\tag{10.38}
+$$
+
+无噪精确恢复可以用这套条件；含噪时它**不稳健**。
+
+## Example 10.16　不相干对微小扰动不稳健
+
+> 教材定位：Example 10.16，印刷页 331–332，PDF 页 350–351。
+
+令 $z=(0,1,\ldots,1)$，$Z^*=(z\otimes z)/d$。$Z^*$ 秩一且不相干。投毒
+
+$$
+\Gamma^*=(1-\delta)Z^*+\delta\Theta^{\mathrm{bad}},
+\qquad\delta\in(0,1].
+\tag{10.39}
+$$
+
+只要 $\delta>0$，$e_1$ 就是特征向量，(10.38) 立刻破裂；但 $\delta\Theta^{\mathrm{bad}}$ 的 Frobenius 范数只有 $\delta$，统计上可以忽略。
+
+更稳健的尺度不变量是**尖刺比**（spikiness ratio）
+
+::: {.callout-important title="(10.40) 尖刺比"}
+$$
+\alpha_{\mathrm{sp}}(\Theta)
+=\frac{\sqrt{d_1 d_2}\,\|\Theta\|_{\max}}{\|\Theta\|_{\mathrm{F}}},
+\tag{10.40}
+$$
+其中 $\|\cdot\|_{\max}$ 是逐元最大绝对值。
+:::
+
+由 Frobenius 的定义，$\alpha_{\mathrm{sp}}\ge 1$；上界 $\sqrt{d_1 d_2}$，在 $\Theta^{\mathrm{bad}}$ 上取到。投毒矩阵的尖刺比随 $\delta$ 连续变坏：$\alpha_{\mathrm{sp}}(\Gamma^*)\le\bigl((1-\delta)+\delta d\bigr)/(1-2\delta)$（印刷页 332；分母在 $\delta$ 小时约为 1）。
+
+以下记 $d=d_1+d_2$。
+
+::: {.callout-important title="Theorem 10.17　补全算子的一致 RSC"}
+对重标定掩码的 i.i.d. 样本，存在万有常数 $(c_1,c_2)$ 使得对一切非零 $\Theta$，
+$$
+\Biggl|
+\frac{\frac1n\|\mathfrak X_n(\Theta)\|_2^2}{\|\Theta\|_{\mathrm{F}}^2}-1
+\Biggr|
+\le
+c_1\alpha_{\mathrm{sp}}(\Theta)\frac{\|\Theta\|_{\mathrm{nuc}}}{\|\Theta\|_{\mathrm{F}}}
+\sqrt{\frac{d\log d}{n}}
++c_2\alpha_{\mathrm{sp}}(\Theta)^2
+\Bigl(\sqrt{\frac{d\log d}{n}}+\delta\Bigr)^2
+\tag{10.41}
+$$
+以概率至少 $1-2e^{-\frac12 d\log d-n\delta}$ 一致成立。
+:::
+
+比值 $\beta(\Theta)=\|\Theta\|_{\mathrm{nuc}}/\|\Theta\|_{\mathrm{F}}$ 是「弱秩」：秩 $r$ 时 $\beta\le\sqrt r$，但许多更高秩矩阵也满足。$\Theta^{\mathrm{bad}}$ 虽秩一，尖刺比却是 $d$，要到 $n\gg d^2$ 才有非平凡保证——与 Exercise 10.3 一致。
+
+含噪补全给核范数程序加上 $\ell_\infty$ 约束（由 Theorem 10.17 驱动）：
+
+$$
+\widehat\Theta
+\in
+\arg\min_{\|\Theta\|_{\max}\le\alpha/\sqrt{d_1 d_2}}
+\Biggl\{
+\frac1{2n}\sum_{i=1}^n d_1 d_2\bigl[\widetilde y_i-\Theta_{a(i),b(i)}\bigr]^2
++\lambda_n\|\Theta\|_{\mathrm{nuc}}
+\Biggr\}.
+\tag{10.42}
+$$
+
+::: {.callout-important title="Corollary 10.18　含噪补全"}
+设 $\mathrm{rank}(\Theta^*)\le r$、$\|\Theta^*\|_{\max}\le\alpha/\sqrt{d_1 d_2}$，噪声 i.i.d. 满足参数 $(\sigma,b)$ 的 Bernstein 条件。若 $n>100(b^2/\sigma^2)\,d\log d$，取
+$\lambda_n^2=25\sigma^2(d\log d)/n+\delta^2$、$\delta\in(0,\sigma^2/(2b))$，则
+$$
+\|\widehat\Theta-\Theta^*\|_{\mathrm{F}}^2
+\le
+c_1\max\{\sigma^2,\alpha^2\}\,r
+\Bigl\{\frac{d\log d}{n}+\delta^2\Bigr\}
+\tag{10.43}
+$$
+以概率至少 $1-e^{-n\delta^2/(16d)}-2e^{-\frac12 d\log d-n\delta}$ 成立。
+:::
+
+除一个对数因子外，$n$ 只需超过秩 $r$ 矩阵的自由度 $r(d_1+d_2)$。
+
+证明提纲：$\nabla\mathcal L_n(\Theta^*)=\frac1n\sum w_i X_i$，矩阵 Bernstein（Example 6.18，指数里多放因子 8 以覆盖对称化）控制 $\mathbb G(\lambda_n)$。锥上 $\|\widehat\Delta\|_{\mathrm{nuc}}\le 4\sqrt{2r}\,\|\widehat\Delta\|_{\mathrm{F}}$ 且 $\|\widehat\Delta\|_{\max}\le 2\alpha/\sqrt{d_1 d_2}$。代入 Theorem 10.17 得到 (10.44)。分两种情形：要么误差已经小到 (10.43) 的右端，要么 RSC 以曲率 $1/4$ 成立，再套第 9 章。
+
+Theorem 10.17 的证明（简要）。不妨 $\|\Theta\|_{\mathrm{F}}=1$。对固定 $(\alpha,\rho)$ 定义集合 $\mathbb S(\alpha,\rho)$（Frobenius 单位球面、$\|\cdot\|_{\max}\le\alpha/\sqrt{d_1 d_2}$、核范数 $\le\rho$）及经验过程 $Z(\alpha,\rho)$。三条：
+
+1. **围绕均值的集中。** $F_\Theta(X)=\langle\langle\Theta,X\rangle\rangle^2$ 在掩码上 $|F_\Theta|\le\alpha^2$、$\mathrm{var}(F_\Theta)\le\alpha^2$，用 Bernstein 型经验过程界 (3.86)。
+2. **期望。** 对称化 + Ledoux–Talagrand 收缩（因 $|\langle\langle\Theta,X_i\rangle\rangle|\le\alpha$）+ Hölder，把期望推到 $\rho\,\mathbb E\|\frac1n\sum\varepsilon_i X_i\|_2$。Exercise 6.10 与 Exercise 2.8(a) 给出该期望 $\lesssim\sqrt{d\log d/n}$（需 $n>d\log d$）。
+3. **剥皮**（peeling）。把 $(\sqrt{d_1 d_2}\|\Theta\|_{\max},\|\Theta\|_{\mathrm{nuc}})$ 按二进壳 $\mathbb S_{k,\ell}$ 切开，$k,\ell\le\lceil\log d\rceil$。并界与 $M^2 e^{-d\log d}$ 把失败概率收到 $e^{-\frac12 d\log d}$。
+
+# 10.7 Additive matrix decompositions　可加矩阵分解
+
+> 教材定位：§10.7，印刷页 337–341，PDF 页 356–360。
+
+观测和，而不是单张低秩矩阵：
+
+$$
+y=\mathfrak X_n(\Lambda^*+\Gamma^*)+w.
+\tag{10.49}
+$$
+
+最简单的 $\mathfrak X_n$ 就是拉直，$\ n=d_1 d_2$，看到的是 $\Lambda^*+\Gamma^*$ 的含噪版本。没有结构则不可辨。典型结构：**低秩 $\Lambda^*$ + 稀疏 $\Gamma^*$**。
+
+## Example 10.19　带稀疏噪声的因子分析
+
+> 教材定位：Example 10.19，印刷页 338，PDF 页 357。简要说明。
+
+$z_i=L u_i+\varepsilon_i$，$u_i\sim N(0,I_r)$，$\varepsilon_i\sim N(0,\Gamma^*)$ 独立。协方差 $\Sigma=LL^T+\Gamma^*$。若 $\Gamma^*=\sigma^2 I$，PCA 即可；若 $\Gamma^*$ 稀疏，则估计 $LL^T$ 是 $n=d^2$ 的矩阵回归，稀疏用元素 $\ell_1$ 罚。$W$ 是中心化 Wishart 噪声 (10.51)。
+
+## Example 10.20　带腐蚀的矩阵补全
+
+> 教材定位：Example 10.20，印刷页 338，PDF 页 357。简要说明。
+
+2002 年亚马逊书评推荐被虚假账户攻击：伪造用户行，给「心灵导师」和「性爱手册」同时打高分。真评分矩阵低秩，攻击是相对**行稀疏**的 $\Gamma^*$。问题变成从 $\Lambda^*+\Gamma^*$ 的部分观测恢复低秩 $\Lambda^*$。
+
+## Example 10.21　稳健协方差
+
+> 教材定位：Example 10.21，印刷页 339，PDF 页 358。简要说明。
+
+未腐蚀时对样本协方差做 PCA。若指标集 $S$ 上的个体被任意腐蚀，$z_i=u_i+\gamma_i$，$\gamma_i$ 支撑在 $S$ 上。样本协方差分解为 $\widehat\Sigma=\Lambda^*+\Delta+W$，$\Delta$ 本身不是列稀疏，但 $\Delta=\Gamma^*+(\Gamma^*)^T$，其中 $\Gamma^*$ 只在 $S$ 指标的列上非零。用列稀疏正则。
+
+高斯图模型隐变量选择也是低秩加稀疏，见 §11.4.2。
+
+同时低秩又稀疏的矩阵（如 $\Theta^{\mathrm{bad}}$）不可辨：既可以全算低秩、稀疏部分为零，也可以反过来。印刷页 339 把 $\Theta^{\mathrm{bad}}$ 写成「Example 10.16」；它定义在 Example 10.15。不相干 (10.38) 仍然不稳健，含噪时改用低秩部分的 $\ell_\infty$ 约束。估计器印刷为
+
+$$
+(\widehat\Gamma,\widehat\Lambda)
+=
+\arg\min_{\substack{\Gamma\in\mathbb R^{d_1\times d_2}\\ \|\Lambda\|_{\max}\le\alpha/\sqrt{d_1 d_2}}}
+\Biggl\{
+\frac12\|Y-(\Gamma+\Lambda)\|_{\mathrm{F}}^2
++\lambda_n\bigl(\|\Gamma\|_1+\omega_n\|\Lambda\|_2\bigr)
+\Biggr\}.
+\tag{10.53}
+$$
+
+::: {.callout-warning title="勘误待批：(10.53) 的 $\|\Lambda\|_2$"}
+印刷正则项写 $\omega_n\|\Lambda\|_2$（算子范数）。同页证明与 (10.57) 使用
+$\Phi_{\omega_n}(\Gamma,\Lambda)=\|\Gamma\|_1+\omega_n\|\Lambda\|_{\mathrm{nuc}}$，
+对偶才是 $\max\{\|W\|_{\max},\|W\|_2/\omega_n\}$。Notes 按核范数讲解，保留印刷式。待教师批准。
+:::
+
+平方 Frobenius 误差
+
+$$
+e^2(\widehat\Lambda-\Lambda^*,\widehat\Gamma-\Gamma^*)
+:=
+\|\widehat\Lambda-\Lambda^*\|_{\mathrm{F}}^2+\|\widehat\Gamma-\Gamma^*\|_{\mathrm{F}}^2.
+\tag{10.54}
+$$
+
+::: {.callout-important title="Corollary 10.22　低秩加稀疏的神谕不等式"}
+取
+$$
+\lambda_n\ge 2\|W\|_{\max}+\frac{4\alpha}{\sqrt{d_1 d_2}},
+\qquad
+\omega_n\ge\frac{2\|W\|_2}{\lambda_n}.
+\tag{10.55}
+$$
+若 $\|\Lambda^*\|_{\max}\le\alpha/\sqrt{d_1 d_2}$，则对任意 $r$ 与基数 $\le s$ 的指标集 $S$，
+$$
+e^2
+\le
+c_1\omega_n^2\lambda_n^2
+\Biggl\{
+r+\frac1{\omega_n\lambda_n}\sum_{j=r+1}^{\min\{d_1,d_2\}}\sigma_j(\Lambda^*)
+\Biggr\}
++c_2\lambda_n^2
+\Biggl\{
+s+\frac1{\lambda_n}\sum_{(j,k)\notin S}|\Gamma^*_{jk}|
+\Biggr\}.
+\tag{10.56}
+$$
+:::
+
+恰低秩且 $\Gamma^*$ 恰稀疏时，取 $r=\mathrm{rank}(\Lambda^*)$、$S=\mathrm{supp}(\Gamma^*)$，
+$e^2\le\lambda_n^2\{c_1\omega_n^2\,\mathrm{rank}(\Lambda^*)+c_2|\mathrm{supp}(\Gamma^*)|\}$。
+
+证明走 Theorem 9.19 三步。
+
+1. **RSC。** $\mathcal E_n(\Delta_\Gamma,\Delta_\Lambda)=\frac12\|\Delta_\Gamma+\Delta_\Lambda\|_{\mathrm{F}}^2$。$\|\Delta_\Lambda\|_{\max}\le 2\alpha/\sqrt{d_1 d_2}$ 与 Hölder 给出
+   $\mathcal E_n\ge\frac12 e^2-(2\alpha/\sqrt{d_1 d_2})\|\Delta_\Gamma\|_1$，
+   曲率 $\kappa=1$，多余项只要 $\lambda_n\ge 4\alpha/\sqrt{d_1 d_2}$ 就可被正则吸收。
+2. **事件 $\mathbb G(\lambda_n)$。** $\nabla\mathcal L_n(\Gamma^*,\Lambda^*)=(W,W)$，加权对偶
+$$
+\Phi_{\omega_n}^*(W,W)
+=\max\bigl\{\|W\|_{\max},\,\|W\|_2/\omega_n\bigr\}.
+\tag{10.57}
+$$
+   (10.55) 保证 $\lambda_n\ge 2\Phi_{\omega_n}^*(\nabla\mathcal L_n)$。
+3. **子空间 Lipschitz。** 模型空间 $\mathbb M(S)\times\overline{\mathbb M}(\mathbb U_r,\mathbb V_r)$，
+   $\Psi(\overline{\mathbb M})\le\sqrt s+\omega_n\sqrt{2r}$。
+
+# 10.8 Bibliographic details and background　文献与背景
+
+> 教材定位：§10.8，印刷页 341–343，PDF 页 360–362。文献条目指回教材。
+
+核范数作为秩的凸代理：Fazel (2002)。无噪高斯矩阵 CS：Recht–Fazel–Parrilo (2010)；含噪：Candès–Plan (2010)，Negahban–Wainwright (2011a)（即 Theorem 10.8）。多元回归 / 多任务：Lounici et al.、Rohde–Tsybakov、Bunea et al.；降秩回归的经典形式见 Izenman、Reinsel–Velu。补全：Srebro 等把低秩补全写成推荐系统；Candès–Recht (2009) 用杠杆分数做无噪精确恢复；Gross、Recht 的对偶证人；Keshavan 等的 SVD 阈值；Negahban–Wainwright (2012) 的尖刺比与加权采样（即 Theorem 10.17）。相位恢复 SDP：Chai et al. (2011)，理论保证 Candès et al. (2013)。低秩加稀疏：Chandrasekaran et al. (2011, 2012b)，Candès et al. (2011)，Agarwal et al. (2012)。
+
+# 常见错误
+
+1. **错误做法：** 把核范数正则的 $\lambda_n$ 门槛写成 Frobenius 范数 $\|\nabla\mathcal L_n(\Theta^*)\|_{\mathrm{F}}$。  
+   **为什么错：** 核范数的对偶是算子范数。$\mathbb G(\lambda_n)$ 控制的是 $\bigl\|\frac1n\sum w_i X_i\bigr\|_2$。用 Frobenius 会让 $\lambda_n$ 多一个 $\sqrt{d_1 d_2}$，把所有标度写坏。  
+   **正确判断：** 对偶配对是 $(\|\cdot\|_{\mathrm{nuc}},\|\cdot\|_2)$。
+
+2. **错误做法：** 锥上用 $\|\Delta\|_{\mathrm{nuc}}\le\sqrt r\,\|\Delta\|_{\mathrm{F}}$。  
+   **为什么错：** 可分解用的是 $\overline{\mathbb M}$，秩 $\le 2r$，所以是 $\sqrt{2r}$。无正则约束（Exercise 10.4）因子是 $2\sqrt{2r}$；正则锥 (10.15) 再乘 3 或 4。  
+   **正确判断：** 先写清是 $\mathbb M$ 还是 $\overline{\mathbb M}$，再数秩。
+
+3. **错误做法：** 把矩阵补全的 $n\gtrsim r(d_1+d_2)$ 直接用到 $\Theta^{\mathrm{bad}}=e_1\otimes e_1$。  
+   **为什么错：** 尖刺比 $\alpha_{\mathrm{sp}}(\Theta^{\mathrm{bad}})=d$。Theorem 10.17 要到 $n\gg d^2$ 才给出非平凡 RSC；Exercise 10.3 证明 $n=o(d^2)$ 时该矩阵以高概率落在观测算子的核里。  
+   **正确判断：** 低秩必要但不充分；还要尖刺比（或不相干）把质量铺开。
+
+4. **错误做法：** 按印刷 (10.30) 的锥 $\|\Theta\|_{\mathrm{F}}^2\le\rho\|\Theta\|_{\mathrm{nuc}}^2$ 去验证限制零空间。  
+   **为什么错：** 该锥在 $\rho\ge 1$ 时几乎是全空间。证明用的是核范数被 Frobenius 控制的锥 $A_1(\sqrt{\rho})$。  
+   **正确判断：** 与 $\ell_1$ 的限制零空间一样，小锥是「核范数 $\lesssim$ 欧氏」，不是反过来。
+
+5. **错误做法：** 把 (10.53) 的 $\omega_n\|\Lambda\|_2$ 真的当成谱范数正则去对偶。  
+   **为什么错：** 谱范数的对偶是核范数，对偶配对会写反。证明明确用 $\Phi_{\omega_n}=\|\Gamma\|_1+\omega_n\|\Lambda\|_{\mathrm{nuc}}$，对偶才是 $\max\{\|W\|_{\max},\|W\|_2/\omega_n\}$。  
+   **正确判断：** 低秩部分罚核范数，稀疏部分罚 $\ell_1$；$\omega_n$ 平衡两种对偶范数。
+
+# 轻量自测
+
+1. 用一句话说明：为什么秩 $r$ 的 $d_1\times d_2$ 矩阵大约有 $r(d_1+d_2)$ 个自由度，而 Corollary 10.9 的样本下界正好是这个量级？
+2. 从锥 (10.15)（恰低秩）推出 $\|\widehat\Delta\|_{\mathrm{nuc}}\le 4\sqrt{2r}\,\|\widehat\Delta\|_{\mathrm{F}}$。指出 $\sqrt{2r}$ 来自哪个子空间。
+3. 设 $d_1=d_2=d$、$r=3$、$\sigma=\rho=\gamma_{\min}=1$。Corollary 10.10 要求 $n$ 至少随什么增长？Frobenius 平方误差的主项是什么？
+4. 为什么不相干 (10.38) 不适合含噪补全，而尖刺比 (10.40) 适合？用 Example 10.16 的 $\delta$ 回答。
+5. 相位恢复里，为什么 $n\gtrsim d$ 而不是 $n\gtrsim r(d+d)=2d$ 的「秩一自由度」？$\Theta^*=\theta^*\otimes\theta^*$ 还受什么约束？
+
+<details>
+<summary>查看参考答案</summary>
+
+1. 约 $r$ 个奇异值、$r d_1$ 个左奇异向量、$r d_2$ 个右奇异向量（正交约束只减少、不增加这个计数）。无噪核范数极小化在 $\Sigma$-高斯系综下只要 $n$ 超过该计数的常数倍就能精确恢复——观测次数与自由度同阶。
+2. 恰低秩时 (10.15) 变成 $\|\widehat\Delta_{\overline{\mathbb M}^\perp}\|_{\mathrm{nuc}}\le 3\|\widehat\Delta_{\overline{\mathbb M}}\|_{\mathrm{nuc}}$，故 $\|\widehat\Delta\|_{\mathrm{nuc}}\le 4\|\widehat\Delta_{\overline{\mathbb M}}\|_{\mathrm{nuc}}$。$\overline{\mathbb M}$ 中矩阵秩 $\le 2r$，所以 $\|\widehat\Delta_{\overline{\mathbb M}}\|_{\mathrm{nuc}}\le\sqrt{2r}\,\|\widehat\Delta_{\overline{\mathbb M}}\|_{\mathrm{F}}\le\sqrt{2r}\,\|\widehat\Delta\|_{\mathrm{F}}$。$\sqrt{2r}$ 来自十字空间 $\overline{\mathbb M}$，不是 $\mathbb M$。
+3. $n\gtrsim (c_2/c_1)\cdot 3\cdot(2d)\asymp d$。平方误差主项是 $125\cdot 3\cdot(2d)/n\asymp d/n$（忽略 $\delta$）。与向量稀疏的 $s\log d/n$ 不同，这里没有 $\log d$，因为高斯矩阵设计是「填满」的。
+4. (10.38) 只看奇异向量、不看奇异值。任意小的 $\delta>0$ 把 $e_1$ 推进 $\Gamma^*$ 的特征空间，不相干立刻失败，但 $\delta\Theta^{\mathrm{bad}}$ 的 Frobenius 贡献只有 $\delta$。尖刺比随 $\delta$ 连续变大，能量小的尖刺不会突然摧毁条件。
+5. 秩一矩阵的自由度确约 $2d$，但相位恢复还要求 $\Theta\succeq 0$ 且 $\mathrm{rank}=1$ 来自 $\theta\otimes\theta$。SDP 在半正定锥上罚迹（等于核范数），限制零空间必须在 $A_1(\sqrt 2)$ 上成立，Gordon / 一致律给出的临界半径是 $\sqrt{d/n}$，因而 $n\gtrsim d$。正定性把「两倍自由度」收成线性于 $d$ 的同一阶。
+
+</details>
+
+# 本章小结
+
+- 矩阵回归 $y=\mathfrak X_n(\Theta^*)+w$ 把向量问题换成迹内积；低秩的凸代理是核范数，对偶是算子范数，$\lambda_n$ 必须压过 $\|\nabla\mathcal L_n(\Theta^*)\|_2$；
+- 核范数对 $(\mathbb M,\overline{\mathbb M}^\perp)$ 可分解，$\overline{\mathbb M}$ 秩 $\le 2r$ 带来所有 $\sqrt{2r}$ 因子；RSC (10.17) 加 Theorem 9.19 得到神谕不等式 (10.18)–(10.19)，算子范数曲率给出更强的 (10.21)；
+- $\Sigma$-高斯系综在 $n\gtrsim r(d_1+d_2)$ 上既有无噪精确恢复也有含噪 $r(d_1+d_2)/n$ 速率；相位恢复是外积设计，SDP 在 $n\gtrsim d$ 时精确；多元回归是固定设计，曲率由 $\gamma_{\min}(Z^T Z/n)$ 决定；
+- 矩阵补全的掩码设计在 $n\ll d_1 d_2$ 时有非平凡核，必须控制尖刺比；含噪速率是 $r(d\log d)/n$。低秩加稀疏用核范数 $+\ell_1$，并用 $\ell_\infty$ 约束把两个成分分开。
+
+## 术语对照
+
+| 中文 | English | 备注 |
+|---|---|---|
+| 迹内积 | trace inner product | (10.1)；$\langle\langle\cdot,\cdot\rangle\rangle$ |
+| 弗罗贝尼乌斯范数 | Frobenius norm | (10.1) 诱导；教材三竖线 |
+| 观测算子 | observation operator | (10.3)；$\mathfrak X_n$ |
+| 核范数 | nuclear norm | (10.5)；奇异值之和 |
+| 矩阵回归 | matrix regression | (10.2) |
+| 多元回归 | multivariate regression | Example 10.1；亦称多任务回归 |
+| 降秩回归 | reduced rank regression | Exercise 10.1 |
+| 矩阵补全 | matrix completion | Example 10.2 |
+| 压缩感知 | compressed sensing | Example 10.3；名词委：压缩感知 |
+| 相位恢复 | phase retrieval | Example 10.4 |
+| 提升 | lifting | $\theta\mapsto\theta\otimes\theta$ |
+| 半定规划 | semidefinite program | (10.29)；SDP |
+| 向量自回归 | vector autoregression | Example 10.5；VAR |
+| 可分解性 | decomposability | §10.2.1；第 9 章 |
+| 限制强凸 | restricted strong convexity | (10.17)；RSC |
+| 神谕不等式 | oracle inequality | Proposition 10.6 |
+| 算子范数 | operator norm | 核范数的对偶；谱范数 |
+| $\Sigma$-高斯系综 | $\Sigma$-Gaussian ensemble | §10.3 |
+| 限制零空间 | restricted nullspace | Theorem 10.12 |
+| 不相干 | incoherence | (10.38) |
+| 杠杆分数 | leverage scores | (10.38) 的对角 |
+| 尖刺比 | spikiness ratio | (10.40) |
+| 弱秩 | weak rank | $\|\Theta\|_{\mathrm{nuc}}/\|\Theta\|_{\mathrm{F}}$ |
+| 剥皮 | peeling | Theorem 10.17 证明 |
+| 可加矩阵分解 | additive matrix decomposition | §10.7 |
+| 因子分析 | factor analysis | Example 10.19 |
+| 掩码矩阵 | mask matrix | (10.6)–(10.7) |
+
+: 本章术语（中文从名词委；英文从教材或国际通行用法）
+
+## 来源定位
+
+- 教材：第 10 章 §§10.1–10.8，印刷页 312–343，PDF 页 331–362。
+- 习题：§10.9 Exercises 10.1–10.11，印刷页 343–346，PDF 页 362–365；解答见 [Solutions](../solutions/ch10-solutions.qmd)。
+- 页码关系：**PDF 页 = 印刷页 + 19**（印刷页 312 = PDF 页 331）。

@@ -1,0 +1,485 @@
+---
+title: "Chapter 12 Exercises"
+subtitle: "Wainwright, High-Dimensional Statistics §12.8"
+description: "Exercise list locked from the textbook; solved independently"
+execute:
+  enabled: false
+---
+
+# How to use this file
+
+- **Textbook:** Martin J. Wainwright, *High-Dimensional Statistics: A Non-Asymptotic Viewpoint* (Cambridge Series in Statistical and Probabilistic Mathematics, No. 48; 2019).
+- **Range:** §12.8, Exercises 12.1–12.20.
+- **Pages:** printed pp. 412–415; PDF pp. 431–434 (offset **PDF = printed + 19**).
+- **Principle:** stems follow the textbook; solutions are independent. Identities printed in the book are recomputed.
+- **Companion notes:** [`ch12-notes.qmd`](../notes/ch12-notes.qmd).
+
+### Exercise 12.1
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $L$ be a bounded linear functional on a Hilbert space $\mathbb H$. Show that $\mathrm{null}(L)=\{f\in\mathbb H:L(f)=0\}$ is closed.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Let $(f_n)$ be a sequence in $\mathrm{null}(L)$ with $f_n\to f$ in $\mathbb H$. Boundedness gives $|L(g)|\le M\|g\|_{\mathbb H}$ for some $M<\infty$ and all $g$. Linearity then yields
+$$
+\bigl|L(f)\bigr|
+=\bigl|L(f-f_n)\bigr|
+\le M\|f-f_n\|_{\mathbb H}
+\to 0,
+$$
+so $L(f)=0$ and $f\in\mathrm{null}(L)$. Thus the nullspace contains all its limit points.
+:::
+
+### Exercise 12.2
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $\mathbb G$ be a closed convex subset of a Hilbert space $\mathbb H$. Show that for every $f\in\mathbb H$ there exists a unique $\widehat g\in\mathbb G$ such that
+$$
+\|\widehat g-f\|_{\mathbb H}
+=\inf_{g\in\mathbb G}\|g-f\|_{\mathbb H}
+=:p^\ast.
+$$
+(The printed display writes $\inf_g\|\widehat g-f\|_{\mathbb H}$; the infimum must run over the dummy variable $g$.)
+(a) A minimizing sequence is Cauchy (hint: first show $\bigl\|f-(g_n+g_m)/2\bigr\|\to p^\ast$).
+(b) Existence of $\widehat g$.
+(c) Uniqueness.
+(d) Does the claim survive for an arbitrary convex set?
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** Let $(g_n)\subset\mathbb G$ satisfy $\|g_n-f\|\to p^\ast$. The parallelogram identity in $\mathbb H$ reads
+$$
+\|g_n-g_m\|^2
+=2\|g_n-f\|^2+2\|g_m-f\|^2
+-4\Bigl\|f-\frac{g_n+g_m}{2}\Bigr\|^2.
+$$
+Convexity puts $(g_n+g_m)/2\in\mathbb G$, so the last term is at least $4(p^\ast)^2$. Hence
+$$
+\|g_n-g_m\|^2
+\le 2\|g_n-f\|^2+2\|g_m-f\|^2-4(p^\ast)^2
+\to 0,
+$$
+and $(g_n)$ is Cauchy. As a by-product, $\bigl\|f-(g_n+g_m)/2\bigr\|\to p^\ast$: the same display forces the midpoint distance down to $p^\ast$ once $\|g_n-g_m\|\to 0$.
+
+**(b).** Completeness of $\mathbb H$ produces a limit $\widehat g$. Closedness of $\mathbb G$ puts $\widehat g\in\mathbb G$, and continuity of the norm gives $\|\widehat g-f\|=p^\ast$.
+
+**(c).** If $\widehat g$ and $\widehat g'$ both attain $p^\ast$, the same parallelogram with $g_n\equiv\widehat g$ and $g_m\equiv\widehat g'$ yields $\|\widehat g-\widehat g'\|^2\le 0$.
+
+**(d).** No. Closedness is used in (b). If $\mathbb G$ is the open unit ball and $\|f\|=2$, then $\inf_{g\in\mathbb G}\|g-f\|=\|f\|-1=1$, but the infimum is attained only at $f/\|f\|$, which lies on the boundary and not in $\mathbb G$. Convexity is likewise essential: a two-point set is closed and the nearest-point map need not be unique.
+:::
+
+### Exercise 12.3
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $\mathbb G$ be a closed linear subspace of $\mathbb H$. Show that every $f\in\mathbb H$ decomposes uniquely as $g+g^\perp$ with $g\in\mathbb G$ and $g^\perp\in\mathbb G^\perp$. In brief, $\mathbb H=\mathbb G\oplus\mathbb G^\perp$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+A closed subspace is a closed convex set, so Exercise 12.2 supplies a unique projection $g:=\widehat g\in\mathbb G$ of $f$ onto $\mathbb G$. Set $g^\perp:=f-g$. For every $h\in\mathbb G$ and $t\in\mathbb R$, the vector $g+th$ lies in $\mathbb G$, so $t\mapsto\|g+th-f\|^2$ is minimized at $t=0$. Differentiating at $0$ gives $2\langle g-f,h\rangle_{\mathbb H}=0$, hence $g^\perp\perp\mathbb G$.
+
+For uniqueness, if $f=g_1+p_1=g_2+p_2$ with $g_j\in\mathbb G$ and $p_j\in\mathbb G^\perp$, then $g_1-g_2=p_2-p_1\in\mathbb G\cap\mathbb G^\perp=\{0\}$.
+:::
+
+### Exercise 12.4
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Show that the kernel associated with any RKHS is unique.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Suppose $\mathcal K$ and $\mathcal K'$ both reproduce on the same Hilbert space $\mathbb H$. Then for each $x\in\mathcal X$ the sections $\mathcal K(\cdot,x)$ and $\mathcal K'(\cdot,x)$ are both Riesz representers of the evaluation functional $L_x$. Theorem 12.5 supplies uniqueness of the representer, so $\mathcal K(\cdot,x)=\mathcal K'(\cdot,x)$ as elements of $\mathbb H$. Evaluating at $z$ gives $\mathcal K(z,x)=\mathcal K'(z,x)$.
+:::
+
+### Exercise 12.5
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+(a) For a PSD kernel, prove $\mathcal K(x,z)\le\sqrt{\mathcal K(x,x)\mathcal K(z,z)}$ for all $x,z\in\mathcal X$.
+(b) Recover the classical Cauchy–Schwarz inequality as a special case.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** The $2\times 2$ Gram matrix on $\{x,z\}$ is PSD, so its determinant is nonnegative:
+$$
+\mathcal K(x,x)\mathcal K(z,z)-\mathcal K(x,z)^2\ge 0.
+$$
+(If $x=z$ the claim is immediate.) Taking square roots preserves the inequality because both $\mathcal K(x,x)$ and $\mathcal K(z,z)$ are nonnegative (the $1\times 1$ Gram matrices are PSD).
+
+**(b).** The linear kernel $\mathcal K(u,v)=\langle u,v\rangle$ on a Hilbert space is PSD (Example 12.7). Part (a) becomes $\langle x,z\rangle\le\|x\|\,\|z\|$.
+:::
+
+### Exercise 12.6
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $\mathcal K(x,z)=\langle x,z\rangle$ on $\mathbb R^d$, equipped with a probability $\mathbb P$ under which $X\sim\mathbb P$ has finite second moments. Compute the eigenfunctions of $T_{\mathcal K}$ acting on $L^2(\mathcal X;\mathbb P)$ by linear algebra.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The integral operator is
+$$
+T_{\mathcal K}(f)(x)
+=\int\langle x,z\rangle f(z)\,d\mathbb P(z)
+=\bigl\langle x,\,\mathbb E[Z f(Z)]\bigr\rangle.
+$$
+Its range is contained in the at most $d$-dimensional space of linear functions $x\mapsto\langle x,v\rangle$. The eigen-equation $T_{\mathcal K}(\phi)=\mu\phi$ with $\mu\neq 0$ therefore forces $\phi(x)=\langle x,v\rangle$ for $v=\mu^{-1}\mathbb E[Z\phi(Z)]$, and substituting yields
+$$
+\mathbb E\bigl[Z\langle Z,v\rangle\bigr]
+=\Sigma v
+=\mu v,
+\qquad
+\Sigma:=\mathbb E[ZZ^T].
+$$
+Thus the nonzero eigenvalues of $T_{\mathcal K}$ are exactly the nonzero eigenvalues of the second-moment matrix $\Sigma$, and the eigenfunctions are the corresponding linear forms.
+
+To normalize in $L^2(\mathbb P)$: if $\Sigma u=\mu u$ with $\mu>0$ and $\|u\|_2=1$, set $\phi(x)=\langle x,u\rangle/\sqrt{\mu}$. Then
+$$
+\|\phi\|_{L^2(\mathbb P)}^2
+=\frac{\mathbb E[\langle X,u\rangle^2]}{\mu}
+=\frac{u^T\Sigma u}{\mu}
+=1,
+$$
+and $T_{\mathcal K}(\phi)=\mu\phi$. The multiplicity of eigenvalue $0$ consists of those $f\in L^2(\mathbb P)$ with $\mathbb E[X f(X)]=0$ (the orthogonal complement of the linear functions). If $\mathrm{rank}(\Sigma)=r\le d$, there are exactly $r$ positive eigenvalues, counted with multiplicity.
+:::
+
+### Exercise 12.7
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+For an integer $m\ge 1$, let $\mathcal K_1(x,z)=(1+xz)^m$ and $\mathcal K_2(x,z)=\sum_{\ell=0}^m x^\ell z^\ell/(\ell!)^2$.
+(a) Both are PSD and generate RKHS of polynomials of degree at most $m$.
+(b) Why does this not contradict Exercise 12.4?
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** On $\mathbb R$ (or any subset),
+$$
+\mathcal K_1(x,z)
+=\sum_{k=0}^m\binom{m}{k}(xz)^k
+=\bigl\langle\Phi_1(x),\Phi_1(z)\bigr\rangle,
+$$
+with $\Phi_1(x)=\bigl(\sqrt{\binom{m}{k}}x^k\bigr)_{k=0}^m$. Likewise
+$$
+\mathcal K_2(x,z)
+=\bigl\langle\Phi_2(x),\Phi_2(z)\bigr\rangle,
+\qquad
+\Phi_2(x)=\bigl(x^\ell/\ell!\bigr)_{\ell=0}^m.
+$$
+Both maps land in $\mathbb R^{m+1}$, so both kernels are PSD. Finite linear combinations of sections of $\mathcal K_1$ are polynomials of degree $\le m$, and every such polynomial arises (the monomials $1,x,\ldots,x^m$ are linearly independent). The same holds for $\mathcal K_2$. Completing the inner product does not add new functions in finite dimension, so both RKHS consist of $\{\text{polynomials of degree }\le m\}$ as vector spaces.
+
+**(b).** Exercise 12.4 asserts uniqueness of the kernel of a *given Hilbert space*, i.e.\ of a given inner product. Here the two kernels induce different inner products on the same vector space: $\mathcal K_1$ is the Mercer kernel with eigenvalues $\binom{m}{k}$ along the monomial features, while $\mathcal K_2$ is the Mercer kernel with eigenvalues $1$ along $\{x^\ell/\ell!\}$. Different Hilbert norms, different kernels; no contradiction.
+:::
+
+### Exercise 12.8
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+True or false? Prove or give an explicit counter-example.
+(a) The pointwise minimum of two PSD kernels is PSD.
+(b) If $f:\mathcal X\to\mathbb H$, then $\mathcal K(x,z)=\langle f(x),f(z)\rangle_{\mathbb H}/\bigl(\|f(x)\|_{\mathbb H}\|f(z)\|_{\mathbb H}\bigr)$ is a PSD kernel.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** False. Let $\mathcal K_1(x,z)=xz$ on $\mathbb R$ (linear kernel, Example 12.7) and $\mathcal K_2(x,z)=1$ (constant kernel, Gram of the feature $x\mapsto 1$). Both are PSD. Their pointwise minimum fails to be PSD on the two-point set $\{2,1/2\}$:
+$$
+\min\{xz,1\}
+\quad\text{gives the Gram}\quad
+\begin{pmatrix}
+1 & 1\\
+1 & 1/4
+\end{pmatrix},
+$$
+because $\min\{4,1\}=1$, $\min\{1,1\}=1$, and $\min\{1/4,1\}=1/4$. The determinant is $1/4-1<0$.
+
+**(b).** True, once the formula is interpreted at zeros of $f$. Define a feature map $\Phi:\mathcal X\to\mathbb H$ by $\Phi(x)=f(x)/\|f(x)\|_{\mathbb H}$ when $f(x)\neq 0$ and $\Phi(x)=0$ otherwise. Then $\mathcal K(x,z)=\langle\Phi(x),\Phi(z)\rangle_{\mathbb H}$ is a Gram kernel, hence PSD. When $f(x)$ and $f(z)$ are both nonzero this recovers the displayed formula; if either vanishes the inner product is $0$, which is the only value compatible with part (a) of Exercise 12.5.
+:::
+
+### Exercise 12.9
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+If $\mathcal K$ is PSD and $f:\mathcal X\to\mathbb R$ is arbitrary, show that $\widetilde{\mathcal K}(x,z)=f(x)\mathcal K(x,z)f(z)$ is PSD.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+For any finite set $\{x_i\}$ and any $\alpha\in\mathbb R^n$,
+$$
+\alpha^T\widetilde{\mathbf K}\alpha
+=\sum_{i,j}\alpha_i\alpha_j f(x_i)\mathcal K(x_i,x_j)f(x_j)
+=\beta^T\mathbf K\beta
+\ge 0,
+$$
+where $\beta_i:=\alpha_i f(x_i)$ and $\mathbf K$ is the Gram matrix of $\mathcal K$. Equivalently, if $\mathcal K(x,z)=\langle\Phi(x),\Phi(z)\rangle$, then $\widetilde{\mathcal K}$ is the Gram kernel of $x\mapsto f(x)\Phi(x)$.
+:::
+
+### Exercise 12.10
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $\mathcal P(S)$ be the power set of a finite set $S$. Show that $\mathcal K(A,B)=2^{|A\cap B|}$ is a PSD kernel on $\mathcal P(S)$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Index a feature map by subsets $T\subseteq S$: set $\Phi(A)_T:=1$ if $T\subseteq A$ and $0$ otherwise. Then
+$$
+\langle\Phi(A),\Phi(B)\rangle
+=\bigl|\{T\subseteq S:T\subseteq A\cap B\}\bigr|
+=2^{|A\cap B|}.
+$$
+Thus $\mathcal K$ is a Gram kernel. (Equivalently, $2^{|A\cap B|}=\prod_{s\in S}(1+1_{s\in A}1_{s\in B})$, a product of PSD kernels of the form $1+u(s)v(s)$.)
+:::
+
+### Exercise 12.11
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Show that $\mathcal K(x,z)=(1+\langle x,z\rangle)^m$ on $\mathbb R^d$ is realized by a feature map $\Phi:\mathbb R^d\to\mathbb R^D$ with $D=\binom{d+m}{m}$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Introduce a dummy coordinate $x_0=z_0=1$ and write $1+\langle x,z\rangle=\sum_{j=0}^d x_j z_j$. The multinomial theorem gives
+$$
+\bigl(1+\langle x,z\rangle\bigr)^m
+=\sum_{|\alpha|=m}\frac{m!}{\alpha!}\,x^\alpha z^\alpha,
+$$
+the sum running over multi-indices $\alpha\in\mathbb N^{d+1}$ of total degree $m$. The feature
+$$
+\Phi_\alpha(x)
+=\sqrt{\frac{m!}{\alpha!}}\,x_1^{\alpha_1}\cdots x_d^{\alpha_d}
+$$
+(with the dummy $x_0\equiv 1$ omitted from the display) therefore satisfies $\mathcal K(x,z)=\langle\Phi(x),\Phi(z)\rangle_{\mathbb R^D}$. The number of multi-indices of degree $m$ in $d+1$ variables is $\binom{m+d}{m}$.
+:::
+
+### Exercise 12.12
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+On a probability space with events $\mathcal E$ and law $\mathbb P$, show that $\mathcal K(A,B):=\mathbb P[A\cap B]-\mathbb P[A]\mathbb P[B]$ is a PSD kernel on $\mathcal E\times\mathcal E$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The displayed kernel is the covariance of indicators: $\mathcal K(A,B)=\mathrm{Cov}(1_A,1_B)$. For any finite collection of events and any $\alpha\in\mathbb R^n$,
+$$
+\alpha^T\mathbf K\alpha
+=\mathrm{Var}\Bigl(\sum_{i=1}^n\alpha_i 1_{A_i}\Bigr)
+\ge 0.
+$$
+Equivalently, $\mathcal K$ is the Gram kernel of the centered features $A\mapsto 1_A-\mathbb P[A]$ in $L^2(\mathbb P)$.
+:::
+
+### Exercise 12.13
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+If $\mathcal K:S\times S\to\mathbb R$ is a symmetric PSD kernel on a finite set $S$, show that $\mathcal K'(A,B)=\sum_{x\in A,\,z\in B}\mathcal K(x,z)$ is a symmetric PSD kernel on $\mathcal P(S)$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Symmetry of $\mathcal K'$ is immediate. Write $\mathcal K(x,z)=\langle\Phi(x),\Phi(z)\rangle$ (possible because $S$ is finite: $\mathcal K$ is a PSD matrix). Then
+$$
+\mathcal K'(A,B)
+=\Bigl\langle\sum_{x\in A}\Phi(x),\,\sum_{z\in B}\Phi(z)\Bigr\rangle,
+$$
+so $\mathcal K'$ is the Gram kernel of $A\mapsto\sum_{x\in A}\Phi(x)$ (with the empty-set feature equal to $0$).
+:::
+
+### Exercise 12.14
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+If a PSD kernel satisfies $\mathcal K(x,z)\le b^2$ for all $x,z\in\mathcal X$, show that $\|f\|_\infty\le b$ for every $f$ in the unit ball of the associated RKHS.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The hypothesis applied on the diagonal gives $\mathcal K(x,x)\le b^2$. For $\|f\|_{\mathbb H}\le 1$, the reproducing property and Cauchy–Schwarz yield
+$$
+\bigl|f(x)\bigr|
+=\bigl|\langle f,\mathcal K(\cdot,x)\rangle_{\mathbb H}\bigr|
+\le\|f\|_{\mathbb H}\,\|\mathcal K(\cdot,x)\|_{\mathbb H}
+=\|f\|_{\mathbb H}\sqrt{\mathcal K(x,x)}
+\le b.
+$$
+:::
+
+### Exercise 12.15
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Show that the Sobolev kernel (12.20) generates the norm (12.21).
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Write $\mathcal K=\mathcal K_1+\mathcal K_2$ as in Example 12.29. The kernel $\mathcal K_1(x,z)=\sum_{\ell=0}^{\alpha-1}(x^\ell/\ell!)(z^\ell/\ell!)$ is the Mercer kernel of the orthonormal set $\{\phi_\ell(x)=x^\ell/\ell!\}_{\ell=0}^{\alpha-1}$ in the polynomial RKHS $\mathbb H_1$. For a polynomial $p(x)=\sum_{\ell=0}^{\alpha-1}p^{(\ell)}(0)\,x^\ell/\ell!$, the Mercer inner product is therefore
+$$
+\|p\|_{\mathbb H_1}^2
+=\sum_{\ell=0}^{\alpha-1}\bigl(p^{(\ell)}(0)\bigr)^2.
+$$
+The kernel $\mathcal K_2$ generates $\mathbb H_2=\mathbb H^\alpha[0,1]$ with the vanishing boundary conditions $f^{(\ell)}(0)=0$ for $\ell<\alpha$ and with $\|f\|_{\mathbb H_2}^2=\int_0^1(f^{(\alpha)})^2$ (Example 12.17). These two spaces intersect only at $0$: a polynomial of degree $<\alpha$ with vanishing derivatives of order $0,\ldots,\alpha-1$ at $0$ is identically zero.
+
+Proposition 12.27 therefore equips $\mathbb H_1+\mathbb H_2$ with the squared norm $\|f_1\|_{\mathbb H_1}^2+\|f_2\|_{\mathbb H_2}^2$. Every $\alpha$-times weakly differentiable $f$ splits uniquely as $f=T_{\alpha-1}f+R$, where $T_{\alpha-1}f$ is the Taylor polynomial of degree $\alpha-1$ at $0$ and the remainder $R$ satisfies $R^{(\ell)}(0)=0$ together with $R^{(\alpha)}=f^{(\alpha)}$. This is the orthogonal decomposition, and (12.21) follows.
+:::
+
+### Exercise 12.16
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+(a) The Hadamard (entrywise) product of two symmetric PSD $n\times n$ matrices is PSD.
+(b) The pointwise product of two PSD kernels is a PSD kernel.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** Let $\Sigma$ and $\Gamma$ be symmetric PSD. Write $\Sigma=\sum_{k=1}^n\lambda_k u_k u_k^T$ with $\lambda_k\ge 0$. The Hadamard product satisfies
+$$
+(\Sigma\odot\Gamma)_{ij}
+=\sum_k\lambda_k (u_k)_i(u_k)_j\Gamma_{ij},
+$$
+so
+$$
+\Sigma\odot\Gamma
+=\sum_k\lambda_k\,\mathrm{Diag}(u_k)\,\Gamma\,\mathrm{Diag}(u_k).
+$$
+Each summand is congruent to a principal submatrix of a PSD matrix (or directly: $v^T\mathrm{Diag}(u_k)\Gamma\mathrm{Diag}(u_k)v=(u_k\odot v)^T\Gamma(u_k\odot v)\ge 0$). Hence $\Sigma\odot\Gamma$ is PSD.
+
+Alternatively: if $\Sigma_{ij}=\langle a_i,a_j\rangle$ and $\Gamma_{ij}=\langle b_i,b_j\rangle$, then $(\Sigma\odot\Gamma)_{ij}=\langle a_i\otimes b_i,\,a_j\otimes b_j\rangle$.
+
+**(b).** For any finite set $\{x_i\}$, the Gram matrix of $\mathcal K(x,z)=\mathcal K_1(x,z)\mathcal K_2(x,z)$ is the Hadamard product of the two Gram matrices, which is PSD by (a).
+:::
+
+### Exercise 12.17
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Show that
+$$
+\sup_{\|f\|_\infty\le 1}\Bigl|\int f\,d(\mathbb P-\mathbb Q)\Bigr|
+=2\sup_{A\subset\mathcal X}\bigl|\mathbb P(A)-\mathbb Q(A)\bigr|,
+$$
+the left supremum over measurable $f:\mathcal X\to\mathbb R$ and the right over measurable $A$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Let $\mu$ be a dominating measure (e.g.\ $(\mathbb P+\mathbb Q)/2$) and write $d\mathbb P=p\,d\mu$, $d\mathbb Q=q\,d\mu$. Then
+$$
+\int f\,d(\mathbb P-\mathbb Q)
+=\int f(p-q)\,d\mu.
+$$
+If $\|f\|_\infty\le 1$, the absolute value is at most $\int|p-q|\,d\mu$. The choice $f=\mathrm{sign}(p-q)$ is measurable and bounded by $1$, and attains $\int|p-q|$. Thus the left-hand side equals $\int|p-q|\,d\mu$.
+
+For the right-hand side, let $A=\{p\ge q\}$. Then
+$$
+\mathbb P(A)-\mathbb Q(A)
+=\int_A(p-q)\,d\mu
+=\frac12\int|p-q|\,d\mu,
+$$
+because $\int(p-q)=0$ so the positive and negative parts have equal mass. Hence $\sup_A|\mathbb P(A)-\mathbb Q(A)|=\tfrac12\int|p-q|$, and twice that quantity matches the left-hand side.
+
+(The same identification follows from $f=1_A-1_{A^c}$, which is bounded by $1$ and yields $2(\mathbb P(A)-\mathbb Q(A))$.)
+:::
+
+### Exercise 12.18
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+For an RKHS $\mathbb H$ on $\mathcal X$ and probability distributions $\mathbb P,\mathbb Q$ on $\mathcal X$, show
+$$
+\sup_{\|f\|_{\mathbb H}\le 1}\bigl|\mathbb E_{\mathbb P}[f(X)]-\mathbb E_{\mathbb Q}[f(Z)]\bigr|^2
+=\mathbb E\bigl[\mathcal K(X,X')+\mathcal K(Z,Z')-2\mathcal K(X,Z)\bigr],
+$$
+with $X,X'\sim\mathbb P$ and $Z,Z'\sim\mathbb Q$ jointly independent.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Assume the kernel mean embeddings $\mu_{\mathbb P}:=\int\mathcal K(\cdot,x)\,d\mathbb P(x)$ and $\mu_{\mathbb Q}:=\int\mathcal K(\cdot,z)\,d\mathbb Q(z)$ exist in $\mathbb H$ (guaranteed if $\mathbb E\sqrt{\mathcal K(X,X)}<\infty$, by Bochner together with $\|\mathcal K(\cdot,x)\|_{\mathbb H}=\sqrt{\mathcal K(x,x)}$). Reproduction gives $f(x)=\langle f,\mathcal K(\cdot,x)\rangle_{\mathbb H}$, so
+$$
+\mathbb E_{\mathbb P}[f(X)]-\mathbb E_{\mathbb Q}[f(Z)]
+=\langle f,\,\mu_{\mathbb P}-\mu_{\mathbb Q}\rangle_{\mathbb H}.
+$$
+The supremum over the unit ball is therefore $\|\mu_{\mathbb P}-\mu_{\mathbb Q}\|_{\mathbb H}$, and
+\begin{align*}
+\|\mu_{\mathbb P}-\mu_{\mathbb Q}\|_{\mathbb H}^2
+&=\langle\mu_{\mathbb P},\mu_{\mathbb P}\rangle
++\langle\mu_{\mathbb Q},\mu_{\mathbb Q}\rangle
+-2\langle\mu_{\mathbb P},\mu_{\mathbb Q}\rangle\\
+&=\mathbb E\bigl[\langle\mathcal K(\cdot,X),\mathcal K(\cdot,X')\rangle_{\mathbb H}\bigr]
++\mathbb E\bigl[\langle\mathcal K(\cdot,Z),\mathcal K(\cdot,Z')\rangle_{\mathbb H}\bigr]\\
+&\qquad-2\mathbb E\bigl[\langle\mathcal K(\cdot,X),\mathcal K(\cdot,Z)\rangle_{\mathbb H}\bigr]\\
+&=\mathbb E\bigl[\mathcal K(X,X')+\mathcal K(Z,Z')-2\mathcal K(X,Z)\bigr].
+\end{align*}
+:::
+
+### Exercise 12.19
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $\mathcal X\subset\mathbb R^d$ be compact. Show that the Gaussian kernel $\mathcal K(x,z)=\exp\bigl(-\|x-z\|_2^2/(2\sigma^2)\bigr)$ is PSD.
+(a) If $\widetilde{\mathcal K}$ is PSD and $p$ is a polynomial with nonnegative coefficients, then $p(\widetilde{\mathcal K}(x,z))$ is PSD.
+(b) $\mathcal K_1(x,z)=\exp(\langle x,z\rangle/\sigma^2)$ is PSD.
+(c) Deduce that the Gaussian kernel is PSD.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** Write $p(t)=\sum_{k=0}^m a_k t^k$ with $a_k\ge 0$. The constant kernel $a_0$ is PSD if $a_0>0$ (and the zero kernel is PSD). The product of PSD kernels is PSD (Exercise 12.16), so each power $\widetilde{\mathcal K}^k$ is PSD, and a nonnegative linear combination of PSD kernels is PSD.
+
+**(b).** The linear kernel $\langle x,z\rangle/\sigma^2$ is PSD. The partial sums $\sum_{k=0}^N(1/k!)\bigl(\langle x,z\rangle/\sigma^2\bigr)^k$ are PSD by (a). The pointwise limit of PSD kernels is PSD: for any finite Gram matrix, $\alpha^T\mathbf K^{(N)}\alpha\ge 0$ passes to the limit $N\to\infty$. The limit is $\exp(\langle x,z\rangle/\sigma^2)$.
+
+**(c).** Expand
+$$
+\exp\Bigl(-\frac{\|x-z\|_2^2}{2\sigma^2}\Bigr)
+=\exp\Bigl(-\frac{\|x\|_2^2}{2\sigma^2}\Bigr)
+\exp\Bigl(-\frac{\|z\|_2^2}{2\sigma^2}\Bigr)
+\exp\Bigl(\frac{\langle x,z\rangle}{\sigma^2}\Bigr).
+$$
+The last factor is the PSD kernel of (b). Exercise 12.9 with $f(x)=\exp\bigl(-\|x\|_2^2/(2\sigma^2)\bigr)$ multiplies on the left and right and preserves positive semidefiniteness.
+:::
+
+### Exercise 12.20
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Binary labels $y_i\in\{-1,+1\}$. Minimize
+$$
+\widehat f
+=\arg\min_{f\in\mathbb H}
+\Bigl\{
+\frac1n\sum_{i=1}^n\max\bigl\{0,1-y_i f(x_i)\bigr\}
++\frac12\lambda_n\|f\|_{\mathbb H}^2
+\Bigr\}
+\tag{12.34}
+$$
+and classify by $x\mapsto\mathrm{sign}(\widehat f(x))$.
+(a) $\widehat f(\cdot)=n^{-1/2}\sum_{i=1}^n\widehat\alpha_i\mathcal K(\cdot,x_i)$ for some $\widehat\alpha\in\mathbb R^n$.
+(b) An optimal coefficient vector can be obtained from
+$$
+\widehat\alpha
+\in
+\arg\max_{\alpha\in\mathbb R^n}
+\Bigl\{\frac1n\sum_{i=1}^n\alpha_i-\frac12\alpha^T\widetilde{\mathbf K}\alpha\Bigr\}
+\quad\text{s.t.}\quad
+\alpha_i\in\Bigl[0,\frac1{\lambda_n\sqrt n}\Bigr],
+$$
+where $\widetilde K_{ij}:=y_i y_j\mathcal K(x_i,x_j)/n$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** Let $\mathbb L$ be the span of $\{\mathcal K(\cdot,x_i)\}_{i=1}^n$, a finite-dimensional hence closed subspace. Exercise 12.3 decomposes $f=f_{\mathbb L}+f_\perp$. Reproduction gives $f(x_i)=f_{\mathbb L}(x_i)$, so the hinge terms are insensitive to $f_\perp$, while $\|f\|_{\mathbb H}^2=\|f_{\mathbb L}\|_{\mathbb H}^2+\|f_\perp\|_{\mathbb H}^2$. Any minimizer may therefore be taken in $\mathbb L$, i.e.\ in the form (12.29).
+
+**(b).** Write $f=n^{-1/2}\sum_j\omega_j\mathcal K(\cdot,x_j)$, so $\|f\|_{\mathbb H}^2=\omega^T\mathbf K\omega$ and $f(x_i)=\sqrt n\,(\mathbf K\omega)_i$, where $\mathbf K_{ij}=\mathcal K(x_i,x_j)/n$. Introduce slacks $\xi_i\ge\max\{0,1-y_i f(x_i)\}$ and the Lagrangian
+$$
+\mathcal L
+=\frac1n\sum_i\xi_i
++\frac{\lambda_n}2\omega^T\mathbf K\omega
++\sum_i\mu_i\bigl(1-y_i\sqrt n\,e_i^T\mathbf K\omega-\xi_i\bigr)
+-\sum_i\nu_i\xi_i,
+$$
+with $\mu,\nu\ge 0$. Stationarity in $\xi$ forces $\mu_i\in[0,1/n]$. Stationarity in $\omega$ forces $\mathbf K(\lambda_n\omega-\sqrt n\,Y\mu)=0$ with $Y=\mathrm{diag}(y)$, so one solution is
+$$
+\omega
+=\frac{\sqrt n}{\lambda_n}Y\mu.
+$$
+(The kernel of $\mathbf K$ does not change $f$.) Substituting back produces the dual
+$$
+\sup_{\mu\in[0,1/n]^n}
+\Bigl\{
+1^T\mu-\frac{n}{2\lambda_n}\mu^T(Y\mathbf K Y)\mu
+\Bigr\}.
+$$
+The change of variables $\alpha:=(\sqrt n/\lambda_n)\mu$ maps the box $[0,1/n]$ onto the printed box $\bigl[0,1/(\lambda_n\sqrt n)\bigr]$, and $Y\mathbf K Y$ is exactly the printed $\widetilde{\mathbf K}$. The dual objective becomes
+$$
+\frac{\lambda_n}{\sqrt n}\,1^T\alpha
+-\frac{\lambda_n}2\alpha^T\widetilde{\mathbf K}\alpha,
+$$
+or, after dividing by the positive constant $\lambda_n$ (which does not change the maximizer),
+$$
+\max\Bigl\{\frac1{\sqrt n}\sum_i\alpha_i-\frac12\alpha^T\widetilde{\mathbf K}\alpha\Bigr\}
+\quad\text{s.t.}\quad
+\alpha_i\in\Bigl[0,\frac1{\lambda_n\sqrt n}\Bigr].
+$$
+The representer coefficients are then $\omega=Y\alpha$, i.e.\ $\widehat f(\cdot)=n^{-1/2}\sum_i y_i\alpha_i\mathcal K(\cdot,x_i)$.
+
+The printed linear coefficient is $1/n$ rather than $1/\sqrt n$. The box, the quadratic term, and the matrix $\widetilde{\mathbf K}$ match the derivation; the factor on the linear term does not. The independently obtained dual is the display above. The printed $1/n$ is recorded as a suspected typesetting inconsistency with the $n^{-1/2}$ normalization of (12.29).
+:::

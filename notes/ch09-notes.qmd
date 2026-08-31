@@ -1,0 +1,993 @@
+---
+title: "第 9 章　可分解性与限制强凸"
+subtitle: "Wainwright, High-Dimensional Statistics 伴读 Notes"
+description: "面向已学陈希孺本科概率统计、并读过第 7 章 ℓ₁ 与限制特征值的读者：把套索升成一般正则化 M 估计，用可分解正则与限制强凸控制误差锥，再落到广义线性套索、组套索与重叠组"
+execute:
+  enabled: false
+lang: zh-CN
+---
+
+# 本章导览
+
+第 7 章把稀疏线性模型做成了基追踪与套索，核心几何是 $\ell_1$ 球和限制特征值（restricted eigenvalue）。本章把同一套逻辑写成**一般正则化 $M$ 估计**：代价 $\mathcal L_n$ 管拟合，正则 $\Phi$ 管结构。高维里要相合，教材钉住两件套：
+
+- **可分解性**（decomposability）：$\Phi$ 在模型子空间与扰动子空间上把三角不等式打成等式，于是误差 $\widehat\Delta=\widehat\theta-\theta^*$ 被锁进一个锥型集 $\mathbb C$；
+- **限制曲率**（restricted curvature）：$d>n$ 时代价沿 $d-n$ 个方向二阶平坦，不能要全局强凸；只要在 $\mathbb C$ 上有二次下界——限制强凸（restricted strong convexity, RSC），或对偶范数形式的 $\Phi^*$ 曲率。
+
+读的时候始终问两句：正则对哪一对子空间 $(\mathbb M,\overline{\mathbb M}^\perp)$ 可分解？代价在误差锥上还剩多少曲率？组套索、重叠组、核范数都是在换 $\Phi$ 和子空间，而不是另起一套证明。
+
+本章阅读主线：
+
+$$
+\text{正则化 }M\text{ 估计 (9.3)}
+\longrightarrow
+\text{可分解 }\Rightarrow\text{ 误差落入 }\mathbb C
+\longrightarrow
+\text{RSC / }\Phi^*\text{ 曲率}
+\longrightarrow
+\text{神谕不等式 (Theorem 9.19)}
+\longrightarrow
+\text{GLM 套索 / 组套索 / 重叠组}.
+$$
+
+> 教材定位：第 9 章 §§9.1–9.10，印刷页 259–307，PDF 页 278–326。习题 §9.11 印刷页 307–311，PDF 页 326–330，不进入 Notes。页码关系：**PDF 页 = 印刷页 + 19**。
+
+## 学习目标
+
+学完本章后，你应能：
+
+- **写出** 正则化 $M$ 估计 (9.3)，并指出套索、GLM 套索、组套索、图形套索如何套进同一模板；
+- **陈述** 可分解定义 (9.22)，检验 $\ell_1$ 与不重叠组范数，并说明重叠时为何要放大 $\widetilde S_{\mathcal G}$；
+- **由** 好事件 $\mathbb G(\lambda_n)$ **推出** 误差锥 (9.29)，并在 $\theta^*\in\mathbb M$ 时得到 $\Phi(\widehat\Delta)\le 4\Phi(\widehat\Delta_{\overline{\mathbb M}})$；
+- **对照** RSC (9.38) 与 $\Phi^*$ 曲率 (9.55)，应用 Theorem 9.19 / Corollary 9.20 与 Theorem 9.24；
+- **比较** 元素 $\ell_1$、组套索与自适应重叠范数在多元回归里的速率 (9.69a)–(9.69b)、(9.77)。
+
+# 必要先修
+
+第 7 章的 $\ell_1$ 锥与限制特征值，本章直接当特例用。陈希孺里的极大似然、Fisher 信息、凸函数一阶不等式，用来读总体代价与 Taylor 余项。下面只补三处接口。
+
+::: {.callout-note title="为什么现在需要对偶范数"}
+正则 $\Phi$ 量结构，$\nabla\mathcal L_n(\theta^*)$ 量噪声。两者要对在一起，必须用
+$$
+\Phi^*(v)=\sup_{\Phi(u)\le 1}\langle u,v\rangle.
+$$
+$\ell_1$ 的对偶是 $\ell_\infty$，所以套索的 $\lambda_n$ 由 $\|\nabla\mathcal L_n(\theta^*)\|_\infty$ 决定——这就是第 7 章“$\lambda_n$ 盖住噪声的最大坐标”。组套索、核范数只是把 $\Phi^*$ 换成 $\max_g\|v_g\|_q$ 或算子范数。
+:::
+
+::: {.callout-note title="作者解释：次梯度与凸最优性"}
+$\widehat\theta$ 最优当且仅当 $0\in\partial(\mathcal L_n+\lambda_n\Phi)(\widehat\theta)$，即 $-\nabla\mathcal L_n(\widehat\theta)=\lambda_n\widehat z$、$\widehat z\in\partial\Phi(\widehat\theta)$。后面 Theorem 9.24 只用这一条，再加上 Exercise 9.6：$\Phi^*(\widehat z)\le 1$。陈希孺里的“导数为零”是光滑无约束特例。
+:::
+
+::: {.callout-note title="作者解释：强凸的两种写法"}
+可微函数局部 $\kappa$-强凸，既可以写成 Taylor 余项 $\mathcal E_n(\Delta)\ge(\kappa/2)\|\Delta\|^2$，也可以写成梯度单调
+$$
+\langle\nabla\mathcal L_n(\theta^*+\Delta)-\nabla\mathcal L_n(\theta^*),\Delta\rangle\ge\kappa\|\Delta\|^2.
+$$
+Exercise 9.9 证明二者等价。高维里把二次型限制到锥上，就是 RSC；把左边的内积换成 $\Phi^*$，就是 $\Phi^*$ 曲率。
+:::
+
+# 9 Decomposability and restricted strong convexity　可分解性与限制强凸
+
+> 教材定位：章首，印刷页 259，PDF 页 278。
+
+基追踪与套索是“代价 + 正则”这一大家族的特例。最小化该目标得到 $M$ 估计（$M$-estimator；M 表示 minimization / maximization）。高维相合的两件套：正则可分解，代价有下限制曲率。
+
+# 9.1 A general regularized $M$-estimator　一般正则化 $M$ 估计
+
+> 教材定位：§9.1，印刷页 259–268，PDF 页 278–287。
+
+参数空间 $\Omega$ 可以是向量、矩阵，或后文第 13、14 章的函数。观测 $Z_1^n=(Z_1,\ldots,Z_n)$，各 $Z_i\in\mathcal Z$。设定正确时 $\mathbb P=\mathbb P_{\theta^*}$；设定错误时，目标参数定义为总体代价的最小点。
+
+总体代价（population cost）
+
+::: {.callout-important title="(9.1) 总体代价（印刷页 259，PDF 页 278）"}
+$$
+\overline{\mathcal L}(\theta)
+:=
+\mathbb E[\mathcal L_n(\theta;Z_1^n)].
+$$
+:::
+
+默认该期望不随 $n$ 变（适当标度之后）。可加情形 $\mathcal L_n(\theta;Z_1^n)=n^{-1}\sum_i\mathcal L(\theta;Z_i)$ 覆盖 i.i.d. 似然，也可用于相依数据。
+
+::: {.callout-important title="(9.2)–(9.3) 目标参数与正则化 $M$ 估计（印刷页 260，PDF 页 279）"}
+$$
+\theta^*
+=
+\arg\min_{\theta\in\Omega}\overline{\mathcal L}(\theta),
+\qquad
+\widehat\theta
+\in
+\arg\min_{\theta\in\Omega}
+\bigl\{\mathcal L_n(\theta;Z_1^n)+\lambda_n\Phi(\theta)\bigr\}.
+$$
+$\lambda_n>0$ 是用户选的正则权重。$\theta^*$ 不必满足 $\nabla\overline{\mathcal L}(\theta^*)=0$（不必在内部）。后文常把 $\mathcal L_n(\theta;Z_1^n)$ 简写成 $\mathcal L_n(\theta)$。
+:::
+
+## 例：线性回归与套索
+
+**问题。** $Z_i=(x_i,y_i)$，$y_i=\langle x_i,\theta^*\rangle+w_i$。二次代价
+$$
+\mathcal L_n(\theta)
+=
+\frac1n\sum_{i=1}^n\frac12\bigl(y_i-\langle x_i,\theta\rangle\bigr)^2
+=
+\frac1{2n}\|y-\mathbf X\theta\|_2^2.
+$$
+线性模型下总体代价是 $\tfrac12(\theta-\theta^*)^T\Sigma(\theta-\theta^*)+\tfrac12\sigma^2$。即使不是线性模型，$\theta^*$ 仍给出对 $\mathbb E[y\mid x]$ 的最佳线性逼近。
+
+**判断依据。** $\theta^*$ 稀疏时取 $\Phi(\theta)=\|\theta\|_1$。
+
+**计算或推理。** 套索是 (9.3) 的特例（印刷页 261，PDF 页 280）：
+
+$$
+\widehat\theta
+\in
+\arg\min_{\theta\in\mathbb R^d}
+\Biggl\{
+\frac1{2n}\sum_{i=1}^n\bigl(y_i-\langle x_i,\theta\rangle\bigr)^2
++\lambda_n\sum_{j=1}^d\lvert\theta_j\rvert
+\Biggr\}.
+\tag{9.4}
+$$
+
+**解释与核对。** 深入分析见第 7 章。Figure 9.1 在 $\mathbb R^3$ 里画出 $\ell_1$ 球、组套索球（$g_1=\{1,2\}$、$g_2=\{3\}$）和重叠组球（$g_1=\{1,2\}$、$g_2=\{1,3\}$）：尖点方向就是正则鼓励的支撑。
+
+## 例：广义线性模型与 $\ell_1$
+
+条件密度取指数族（印刷页 261，PDF 页 280）
+
+$$
+\mathbb P_{\theta^*}(y\mid x)
+=
+h_\sigma(y)
+\exp
+\Biggl\{
+\frac{y\langle x,\theta^*\rangle-\psi(\langle x,\theta^*\rangle)}{c(\sigma)}
+\Biggr\}.
+\tag{9.5}
+$$
+
+$c(\sigma)$ 是尺度，$\psi$ 是配分函数（partition function）。高斯：$c(\sigma)=\sigma^2$，$\psi(t)=t^2/2$。逻辑斯蒂：对数优势（印刷页 262，PDF 页 281）
+
+$$
+\log\frac{\mathbb P_{\theta^*}(y=1\mid x)}{\mathbb P_{\theta^*}(y=0\mid x)}
+=
+\langle x,\theta^*\rangle,
+\tag{9.6}
+$$
+
+此时 $c(\sigma)\equiv 1$，$\psi(t)=\log(1+e^t)$。Poisson：$c(\sigma)\equiv 1$，$\psi(t)=e^t$（Exercise 9.3）。负对数似然（丢掉与 $\theta$ 无关的 $c(\sigma)$，并除以 $n$）
+
+$$
+\mathcal L_n(\theta)
+=
+\frac1n\sum_{i=1}^n\psi(\langle x_i,\theta\rangle)
+-
+\Biggl\langle
+\frac1n\sum_{i=1}^n y_i x_i,\;\theta
+\Biggr\rangle.
+\tag{9.7}
+$$
+
+广义线性套索（generalized linear Lasso）为 (9.8)。$\psi(t)=t^2/2$ 时与普通套索只差不影响 $\widehat\theta$ 的常数 $(2n)^{-1}\sum y_i^2$。Poisson 的 $\psi''$ 无界，后面 (G2) 把它排除在 GLM 套索推论之外。
+
+## 例：组套索与重叠组
+
+不重叠划分 $\mathcal G=\{g_1,\ldots,g_T\}$。$\theta_g$ 表示只在 $g$ 上保留坐标、其余为零的向量。组套索范数（印刷页 262，PDF 页 281）
+
+$$
+\Phi(\theta)
+:=
+\sum_{g\in\mathcal G}\|\theta_g\|.
+\tag{9.9}
+$$
+
+标准选择基范数为 $\ell_2$，得到分块 $\ell_1/\ell_2$。也可对每组加正权重 $\omega_g$，或改用 $\ell_1/\ell_\infty$。
+
+::: {.callout-warning title="适用边界：普通组范数在重叠时选的是补集"}
+组惩罚的动机是“支撑落在少数组的并”。重叠时，把 (9.9) 直接当正则，最优解的支撑往往落在**某几个组的补**里。Figure 9.1(c)：组 $\{1,2\}$ 与 $\{1,3\}$，除空支撑和全支撑外，惩罚鼓励 $\{3\}$ 或 $\{2\}$。残差 $f(\theta_3)=\sqrt{1+\theta_3^2}-1$ 在 $0$ 处可微且 $f'(0)=0$，不鼓励 $\theta_3$ 稀疏。共享坐标一旦激活，整组往往一起变稠。
+:::
+
+印刷页 262 写 “See panel (a) in Figure 9.3 for an example of a collection of overlapping groups.” Figure 9.3(a) 图注是不重叠划分，重叠组在 (b)。按不重叠读 (a)；Example 9.4 正确指向 (b)。原文保留，未当作已批准勘误。
+
+重叠组改用变分范数（印刷页 264，PDF 页 283）
+
+$$
+\Phi_{\mathrm{over}}(\theta)
+:=
+\inf_{\theta=\sum_{g\in\mathcal G}w_g}
+\sum_{g\in\mathcal G}\|w_g\|.
+\tag{9.10}
+$$
+
+Exercise 9.1 验证这是范数。不重叠时退回 (9.9)。它倾向于让支撑落在组的**并**里：$\theta_1=\theta_2=1$ 时，对 $\theta_3$ 的残差在原点附近像 $\ell_1$。Figure 9.2 把两种残差和重叠组单位球画在一起。Figure 9.3(b) 是二叉树子树给出的多重尺度重叠组。
+
+## 例：矩阵模型（简要）
+
+**图形套索**（Example 9.5，印刷页 265）：零均值高斯密度 (9.11) 由精度矩阵 $\Theta^*=\Sigma^{-1}$ 决定；条件独立当且仅当 $\Theta^*_{jk}=0$（Hammersley–Clifford）。非对角 $\ell_1$ 加上高斯对数似然得到 (9.12)。第 11 章展开。
+
+**多元回归**（Example 9.6）：$Y=Z\Theta^*+W$（9.13），$\Theta^*\in\mathbb R^{p\times T}$。行稀疏用行 $\ell_{2,1}$ 范数，得到多元组套索（印刷页 266，PDF 页 285）
+
+$$
+\widehat\Theta
+\in
+\arg\min_{\Theta}
+\Biggl\{
+\frac1{2n}\|Y-Z\Theta\|_F^2
++\lambda_n\sum_{j=1}^p\|\Theta_{j,\cdot}\|_2
+\Biggr\}.
+\tag{9.14}
+$$
+
+这是二阶锥规划（SOCP）。Figure 9.4 标出 $Y,Z,\Theta^*,W$ 的尺寸。
+
+**行稀疏加元素稀疏**（Example 9.7）：$\Theta^*=\Omega^*+\Gamma^*$，组 $\ell_{1,2}$ 加元素 $\ell_1$，得到 (9.15)；消去分解后是重叠组范数 (9.16)，权重 $\omega_n=\mu_n/\lambda_n$。§9.7 再分析。
+
+**核范数**（Example 9.8）：SVD $\Theta=UDV^T$（9.17），奇异值 $\sigma_1\ge\cdots\ge\sigma_{d'}\ge 0$（9.18），$d'=\min\{d_1,d_2\}$。$\mathrm{rank}(\Theta)=\sum_j\mathbb I[\sigma_j>0]$，凸松弛是核范数（nuclear norm；印刷页 268，PDF 页 287）
+
+$$
+\|\Theta\|_{\mathrm{nuc}}
+=
+\sum_{j=1}^{d'}\sigma_j(\Theta).
+\tag{9.19}
+$$
+
+（奇异值非负，不必写绝对值。）Figure 9.5：核范数球相对秩约束、以及 $q\in[0,1)$ 的非凸 $\ell_q$ 球。第 10 章展开。
+
+# 9.2 Decomposable regularizers and their utility　可分解正则及其用处
+
+> 教材定位：§9.2，印刷页 269–275，PDF 页 288–294。
+
+$\Omega$ 带内积，$\|\cdot\|$ 是诱导范数：$\mathbb R^d$ 上欧氏（或加权欧氏），$\mathbb R^{d_1\times d_2}$ 上迹内积。子空间投影（印刷页 269，PDF 页 288）
+
+$$
+\theta_{\mathbb S}
+:=
+\arg\min_{\widetilde\theta\in\mathbb S}\|\widetilde\theta-\theta\|^2.
+\tag{9.20}
+$$
+
+## 9.2.1 Definition and some examples　定义与例子
+
+模型子空间 $\mathbb M\subseteq\overline{\mathbb M}$：$\mathbb M$ 编码结构（支撑、低秩）。$\overline{\mathbb M}$ 的正交补
+
+$$
+\overline{\mathbb M}^\perp
+:=
+\{v:\langle u,v\rangle=0\ \forall u\in\overline{\mathbb M}\}
+\tag{9.21}
+$$
+
+叫扰动子空间。理想情形 $\overline{\mathbb M}=\mathbb M$，从而 $\overline{\mathbb M}^\perp=\mathbb M^\perp$；允许 $\overline{\mathbb M}$ 严格更大（核范数、低秩需要，见第 10 章）。
+
+::: {.callout-important title="Definition 9.9 可分解正则（印刷页 269，PDF 页 288）"}
+范数正则 $\Phi$ 对 $(\mathbb M,\overline{\mathbb M}^\perp)$ **可分解**，若
+$$
+\Phi(\alpha+\beta)=\Phi(\alpha)+\Phi(\beta)
+\qquad
+\forall\alpha\in\mathbb M,\;\beta\in\overline{\mathbb M}^\perp.
+\tag{9.22}
+$$
+:::
+
+三角不等式永远有 $\Phi(\alpha+\beta)\le\Phi(\alpha)+\Phi(\beta)$；可分解当且仅当在这对子空间上三角不等式是紧的——正则对偏离 $\mathbb M$ 的惩罚达到最大。Figure 9.6 画的是理想正交分解。
+
+**$\ell_1$ 与支撑**（Example 9.10）。$S\subset\{1,\ldots,d\}$，
+
+$$
+\mathbb M(S)
+:=
+\{\theta:\theta_j=0\ \forall j\in S^c\},
+\qquad
+\mathbb M^\perp(S)
+=
+\{\theta:\theta_j=0\ \forall j\in S\}.
+\tag{9.23}
+$$
+
+支撑不交，故 $\|\alpha+\beta\|_1=\|\alpha\|_1+\|\beta\|_1$。
+
+**不重叠组**（Example 9.11）。$S_{\mathcal G}\subset\mathcal G$，
+
+$$
+\mathbb M(S_{\mathcal G})
+:=
+\{\theta:\theta_g=0\ \forall g\notin S_{\mathcal G}\},
+\tag{9.24}
+$$
+
+$\mathbb M^\perp(S_{\mathcal G})=\{\theta:\theta_g=0\ \forall g\in S_{\mathcal G}\}$。组不交则 $\Phi(\alpha+\beta)=\Phi(\alpha)+\Phi(\beta)$。
+
+**重叠时普通组范数不可分解。** $\mathbb R^4$ 上 $g_1=\{1,2\}$、$g_2=\{2,3\}$、$g_3=\{3,4\}$，$S_{\mathcal G}=\{g_1\}$。$\alpha=(0,1,0,0)$，$\beta=(0,0,1,0)$。$\ell_1/\ell_2$ 组范数给出（印刷页 271，PDF 页 290）
+
+$$
+\|\alpha+\beta\|_{\mathcal G,2}=1+\sqrt{2}+1,
+\qquad
+\|\alpha\|_{\mathcal G,2}+\|\beta\|_{\mathcal G,2}=4>2+\sqrt{2}.
+\tag{9.25}
+$$
+
+**放大组集恢复可分解**（Example 9.12）：
+
+$$
+\widetilde S_{\mathcal G}
+:=
+\bigl\{g\in\mathcal G:g\cap\bigcup_{h\in S_{\mathcal G}}h\neq\emptyset\bigr\}.
+\tag{9.26}
+$$
+
+不重叠时 $\widetilde S_{\mathcal G}=S_{\mathcal G}$；重叠时 $\widetilde S_{\mathcal G}\supseteq S_{\mathcal G}$。普通组范数对 $(\mathbb M(S_{\mathcal G}),\mathbb M^\perp(\widetilde S_{\mathcal G}))$ 可分解。上例 $\widetilde S_{\mathcal G}=\{g_1,g_2\}$，$\beta$ 不在更小的 $\mathbb M^\perp(\widetilde S_{\mathcal G})$ 里。统计代价：误差随放大后的 $\overline{\mathbb M}$ 变大。
+
+不交参数块上可分解正则的和仍可分解（第 10 章稀疏–低秩分解：核范数 $+$ 元素 $\ell_1$）。
+
+## 9.2.2 A key consequence of decomposability　可分解的关键推论
+
+对偶范数（印刷页 272，PDF 页 291）
+
+$$
+\Phi^*(v)
+:=
+\sup_{\Phi(u)\le 1}\langle u,v\rangle.
+\tag{9.27}
+$$
+
+Table 9.1（印刷页 273，PDF 页 292；Exercises 9.4–9.5）：
+
+| 正则 $\Phi$ | 对偶 $\Phi^*$ |
+|---|---|
+| $\ell_1$ | $\ell_\infty$ |
+| 不重叠组 $\ell_1/\ell_p$ | 组 $\ell_\infty/\ell_q$，$1/p+1/q=1$ |
+| 核范数 $\sum\sigma_j$ | $\ell_2$-算子范数 $\max\sigma_j$ |
+| 重叠组变分 $\ell_p$ | $\max_g\Vert v_g\Vert_q$ |
+| $\inf_{A+B=M}(\Vert A\Vert_1+\omega\Vert B\Vert_{\mathrm{nuc}})$ | $\max\{\Vert N\Vert_{\max},\omega^{-1}\Vert N\Vert_2\}$ |
+
+得分 $\nabla\mathcal L_n(\theta^*)$ 在内部最优点零均值。好事件（印刷页 273，PDF 页 292）
+
+$$
+\mathbb G(\lambda_n)
+:=
+\bigl\{\Phi^*(\nabla\mathcal L_n(\theta^*))\le\lambda_n/2\bigr\}.
+\tag{9.28}
+$$
+
+::: {.callout-important title="Proposition 9.13 误差落入约束集（印刷页 273，PDF 页 292）"}
+$\mathcal L_n$ 凸，$\Phi$ 为范数，且对 $(\mathbb M,\overline{\mathbb M}^\perp)$ 可分解。在 $\mathbb G(\lambda_n)$ 上，$\widehat\Delta=\widehat\theta-\theta^*$ 属于
+$$
+\mathbb C_{\theta^*}(\mathbb M,\overline{\mathbb M}^\perp)
+:=
+\bigl\{\Delta:\Phi(\Delta_{\overline{\mathbb M}^\perp})\le 3\Phi(\Delta_{\overline{\mathbb M}})+4\Phi(\theta^*_{\overline{\mathbb M}^\perp})\bigr\}.
+\tag{9.29}
+$$
+:::
+
+若 $\theta^*\in\mathbb M$，则 $\theta^*_{\overline{\mathbb M}^\perp}=0$，从而 $\Phi(\widehat\Delta_{\overline{\mathbb M}^\perp})\le 3\Phi(\widehat\Delta_{\overline{\mathbb M}})$，再三角不等式（印刷页 274，PDF 页 293）
+
+$$
+\Phi(\widehat\Delta)
+\le
+4\Phi(\widehat\Delta_{\overline{\mathbb M}}).
+\tag{9.30}
+$$
+
+$\overline{\mathbb M}$ 小时，正则范数下误差被投影控制。Figure 9.7：$\theta^*\in\mathbb M$ 时 $\mathbb C$ 是锥；否则在 $\mathbb M^\perp$ 方向被撑开，仍是星形集（star-shaped）。
+
+基本不等式函数（印刷页 274，PDF 页 293）
+
+$$
+\mathcal F(\Delta)
+:=
+\mathcal L_n(\theta^*+\Delta)-\mathcal L_n(\theta^*)
++\lambda_n\bigl\{\Phi(\theta^*+\Delta)-\Phi(\theta^*)\bigr\}.
+\tag{9.31}
+$$
+
+$\mathcal F(0)=0$，最优性给出 $\mathcal F(\widehat\Delta)\le 0$。
+
+::: {.callout-important title="Lemma 9.14 偏差不等式（印刷页 275，PDF 页 294）"}
+可分解正则：
+$$
+\Phi(\theta^*+\Delta)-\Phi(\theta^*)
+\ge
+\Phi(\Delta_{\overline{\mathbb M}^\perp})-\Phi(\Delta_{\overline{\mathbb M}})-2\Phi(\theta^*_{\overline{\mathbb M}^\perp}).
+\tag{9.32}
+$$
+凸代价，在 $\mathbb G(\lambda_n)$ 上：
+$$
+\mathcal L_n(\theta^*+\Delta)-\mathcal L_n(\theta^*)
+\ge
+-\frac{\lambda_n}{2}\bigl[\Phi(\Delta_{\overline{\mathbb M}})+\Phi(\Delta_{\overline{\mathbb M}^\perp})\bigr].
+\tag{9.33}
+$$
+:::
+
+两式相加即得 (9.29)。正则差：(9.34) 用三角不等式拆 $\theta^*=\theta^*_{\mathbb M}+\theta^*_{\overline{\mathbb M}^\perp}$，再对 $\theta^*_{\mathbb M}$ 与 $\Delta_{\overline{\mathbb M}^\perp}$ 用可分解。代价差：凸性给出 $\langle\nabla\mathcal L_n(\theta^*),\Delta\rangle$，Hölder（Exercise 9.7）把内积换成 $\Phi^*\Phi$，再用 $\lambda_n\ge 2\Phi^*(\nabla\mathcal L_n(\theta^*))$。
+
+# 9.3 Restricted curvature conditions　限制曲率条件
+
+> 教材定位：§9.3，印刷页 276–279，PDF 页 295–298。
+
+经典 MLE 的曲率是 Fisher 信息。负对数似然（印刷页 276，PDF 页 295）
+
+$$
+\mathcal L_n(\theta)
+:=
+-\frac1n\sum_{i=1}^n\log\mathbb P_\theta(z_i).
+\tag{9.35}
+$$
+
+Hessian 是样本 Fisher，固定 $d$、$n\to\infty$ 时点态回到总体 Fisher；Cramér–Rao 用 $\nabla^2\overline{\mathcal L}(\theta^*)$ 给精度下界。$n<d$ 时样本 Fisher 退化：Figure 9.8 沿 $\Delta_{\mathrm{good}}$ 上弯，沿 $d-n$ 个 $\Delta_{\mathrm{bad}}$ 二阶平坦。只能要限制曲率。
+
+## 9.3.1 Restricted strong convexity　限制强凸
+
+一阶 Taylor 余项（印刷页 277，PDF 页 296）
+
+$$
+\mathcal E_n(\Delta)
+:=
+\mathcal L_n(\theta^*+\Delta)-\mathcal L_n(\theta^*)-\langle\nabla\mathcal L_n(\theta^*),\Delta\rangle.
+\tag{9.36}
+$$
+
+凸 $\Rightarrow$ $\mathcal E_n\ge 0$。局部 $\kappa$-强凸要求 $\mathcal E_n(\Delta)\ge(\kappa/2)\|\Delta\|^2$（9.37）。高维不能对一切方向成立；可分解已经把误差关进 $\mathbb C$。
+
+::: {.callout-important title="Definition 9.15 限制强凸（印刷页 277，PDF 页 296）"}
+对范数 $\|\cdot\|$ 与正则 $\Phi$，代价满足半径 $R$、曲率 $\kappa$、容差 $\tau_n^2$ 的 RSC，若
+$$
+\mathcal E_n(\Delta)
+\ge
+\frac\kappa2\|\Delta\|^2-\tau_n^2\Phi^2(\Delta)
+\qquad
+\forall\Delta\in\mathbb B(R).
+\tag{9.38}
+$$
+:::
+
+$\mathbb B(R)$ 是 $\|\cdot\|$ 的球；应用里 $\|\cdot\|$ 来自内积（欧氏或 Frobenius）。$\tau_n^2=0$ 就是局部强凸。$\tau_n^2>0$ 但样本量够大时，仍能在锥上保住曲率。
+
+**最小二乘即限制特征值**（Example 9.16）。$\mathcal E_n(\Delta)=\|X\Delta\|_2^2/(2n)$，与 $\theta^*$ 无关且二次齐次，不必局部化。$\ell_1$-RSC 即（印刷页 278，PDF 页 297）
+
+$$
+\frac{\|X\Delta\|_2^2}{2n}
+\ge
+\frac\kappa2\|\Delta\|_2^2-\tau_n^2\|\Delta\|_1^2.
+\tag{9.39}
+$$
+
+次高斯设计上 $\tau_n^2\asymp(\log d)/n$（Theorem 7.16）。
+
+**GLM**（Example 9.17）。零均值次高斯协变量、非退化 $\Sigma$ 时，Theorem 9.36 给出（印刷页 278，PDF 页 297）
+
+$$
+\mathcal E_n(\Delta)
+\ge
+\frac\kappa2\|\Delta\|_2^2-c_1\frac{\log d}{n}\|\Delta\|_1^2
+\qquad
+\|\Delta\|_2\le 1,
+\tag{9.40}
+$$
+
+概率至少 $1-c_2\exp(-c_3 n)$。更一般地用复杂度
+
+$$
+\mu_n(\Phi^*)
+:=
+\mathbb E_{x,\varepsilon}
+\Biggl[
+\Phi^*
+\Biggl(
+\frac1n\sum_{i=1}^n\varepsilon_i x_i
+\Biggr)
+\Biggr],
+\tag{9.41}
+$$
+
+$\varepsilon_i$ 为 i.i.d. 拉德马赫，则（9.42）把 $(\log d)/n$ 换成 $\mu_n^2(\Phi^*)\Phi^2(\Delta)$。$\ell_1$ 时 $\mu_n(\Phi^*)\lesssim\sqrt{(\log d)/n}$。组套索最大组宽 $m$（印刷页 279，PDF 页 298）：
+
+$$
+\mu_n(\Phi^*)
+\lesssim
+\sqrt{\frac m n}+\sqrt{\frac{\log\lvert\mathcal G\rvert}{n}},
+\tag{9.43a}
+$$
+
+核范数：
+
+$$
+\mu_n(\Phi^*)
+\lesssim
+\sqrt{\frac{d_1}{n}}+\sqrt{\frac{d_2}{n}}.
+\tag{9.43b}
+$$
+
+::: {.callout-important title="Definition 9.18 子空间 Lipschitz 常数（印刷页 279，PDF 页 298）"}
+$$
+\Psi(\mathbb S)
+:=
+\sup_{u\in\mathbb S\setminus\{0}}\frac{\Phi(u)}{\|u\|}.
+\tag{9.44}
+$$
+:::
+
+$\theta^*\in\mathbb M$ 且 $\Delta\in\mathbb C$ 时（印刷页 279，PDF 页 298）
+
+$$
+\Phi(\Delta)
+\le
+\Phi(\Delta_{\overline{\mathbb M}})+\Phi(\Delta_{\overline{\mathbb M}^\perp})
+\le
+4\Phi(\Delta_{\overline{\mathbb M}})
+\le
+4\Psi(\overline{\mathbb M})\|\Delta\|.
+\tag{9.45}
+$$
+
+$s$-稀疏、$\Phi=\|\cdot\|_1$、误差欧氏：$\Psi(\mathbb M)=\sqrt s$，故 $\|\Delta\|_1\le 4\sqrt s\|\Delta\|_2$。同页随后称“familiar inequality $\|\Delta\|_2\le 4\sqrt s\|\Delta\|_1$”，与 (9.45) 及第 7 章锥不等式左右对调。按 $\|\Delta\|_1\le 4\sqrt s\|\Delta\|_2$ 读；原文保留。
+
+# 9.4 Some general theorems　几条一般定理
+
+> 教材定位：§9.4，印刷页 279–286，PDF 页 298–305。
+
+## 9.4.1 Guarantees under restricted strong convexity　RSC 下的保证
+
+(A1) 代价凸，且满足局部 RSC (9.38)（曲率 $\kappa$、半径 $R$、容差 $\tau_n^2$）。
+(A2) $\Phi$ 对某对 $\mathbb M\subseteq\overline{\mathbb M}$ 可分解。
+
+好事件仍是 (9.46)=(9.28)。估计–逼近分解（印刷页 280，PDF 页 299）
+
+$$
+\varepsilon_n^2(\overline{\mathbb M},\mathbb M^\perp)
+:=
+9\frac{\lambda_n^2}{\kappa^2}\Psi^2(\overline{\mathbb M})
++
+\frac8\kappa
+\bigl\{\lambda_n\Phi(\theta^*_{\overline{\mathbb M}^\perp})+16\tau_n^2\Phi^2(\theta^*_{\overline{\mathbb M}^\perp})\bigr\}.
+\tag{9.47}
+$$
+
+前一项是估计误差（随 $\overline{\mathbb M}$ 变大），后一项是逼近误差（随 $\mathbb M$ 变大）。神谕不等式给出一族上界，最优子空间在两项之间折中。
+
+::: {.callout-important title="Theorem 9.19 一般模型误差界（印刷页 280，PDF 页 299）"}
+在 (A1)(A2) 与 $\mathbb G(\lambda_n)$ 下：
+
+(a)
+$$
+\Phi(\widehat\theta-\theta^*)
+\le
+4\bigl\{\Psi(\overline{\mathbb M})\|\widehat\theta-\theta^*\|+\Phi(\theta^*_{\overline{\mathbb M}^\perp})\bigr\}.
+\tag{9.48a}
+$$
+
+(b) 若 $\tau_n^2\Psi^2(\overline{\mathbb M})\le\kappa/64$ 且 $\varepsilon_n\le R$，则
+$$
+\|\widehat\theta-\theta^*\|^2
+\le
+\varepsilon_n^2(\overline{\mathbb M},\mathbb M^\perp).
+\tag{9.48b}
+$$
+:::
+
+这是**确定性**神谕不等式。概率只进入：RSC 是否以高概率成立（§9.8），以及所选 $\lambda_n$ 是否盖住 $\Phi^*(\nabla\mathcal L_n(\theta^*))$。
+
+::: {.callout-important title="Corollary 9.20 $\theta^*\in\mathbb M$（印刷页 281，PDF 页 300）"}
+$$
+\Phi(\widehat\theta-\theta^*)
+\le
+6\frac{\lambda_n}{\kappa}\Psi^2(\overline{\mathbb M}),
+\qquad
+\|\widehat\theta-\theta^*\|^2
+\le
+9\frac{\lambda_n^2}{\kappa^2}\Psi^2(\overline{\mathbb M}).
+\tag{9.49a,b}
+$$
+:::
+
+(9.49b) 的 $9$ 与后文 Corollary 9.26 的 $9/4$ 不衔接：9.26 声称应用 9.20，证明里却写 $9\Psi^2\lambda_n^2/(4\kappa^2)<1$。两式均按原页抄入。
+
+(a) 的证明：三角不等式 + Proposition 9.13 + $\Psi$ 的定义。
+(b) 的骨架：星形集 $\mathbb C$ 上，Lemma 9.21 说只要 $\mathcal F>0$ 于球面切片 $\mathbb K(\delta)=\mathbb C\cap\{\|\Delta\|=\delta\}$，就有 $\|\widehat\Delta\|\le\delta$。凸性 + Jensen：若 $\|\widehat\Delta\|>\delta$，则某 $t^*\widehat\Delta$ 落在切片上且 $\mathcal F(t^*\widehat\Delta)\le 0$。Figure 9.9。然后在切片上：RSC 得 (9.50)，Hölder 控线性项，锥约束把 $\Phi^2(\Delta)$ 换成 $32\Psi^2\|\Delta\|^2+32\Phi^2(\theta^*_{\overline{\mathbb M}^\perp})$（9.52），配平方得到 (9.53)=(9.47)。细节指回教材印刷页 283–284。
+
+## 9.4.2 Bounds under $\Phi^*$-curvature　$\Phi^*$ 曲率下的界
+
+强凸的梯度形式（印刷页 284，PDF 页 303；Exercise 9.9）
+
+$$
+\langle\nabla\mathcal L_n(\theta^*+\Delta)-\nabla\mathcal L_n(\theta^*),\Delta\rangle
+\ge
+\kappa\|\Delta\|^2.
+\tag{9.54}
+$$
+
+::: {.callout-important title="Definition 9.22 $\Phi^*$ 范数曲率（印刷页 284，PDF 页 303）"}
+$$
+\Phi^*\bigl(\nabla\mathcal L_n(\theta^*+\Delta)-\nabla\mathcal L_n(\theta^*)\bigr)
+\ge
+\kappa\Phi^*(\Delta)-\tau_n\Phi(\Delta),
+\qquad
+\Delta\in\mathbb B_{\Phi^*}(R).
+\tag{9.55}
+$$
+:::
+
+最小二乘 + $\ell_1$：$\nabla\mathcal L_n(\theta)=\widehat\Sigma(\theta-\theta^*)$，$\Phi^*=\|\cdot\|_\infty$，即（9.56）
+$$
+\|\widehat\Sigma\Delta\|_\infty
+\ge
+\kappa\|\Delta\|_\infty-\tau_n\|\Delta\|_1.
+$$
+这推出锥 $\mathbb C(S;\alpha)$ 上的 $\ell_\infty$-RE（9.57），只要 $n\gtrsim |S|^2\log d$（Exercise 9.11）。次高斯设计上 $\tau_n\asymp\sqrt{(\log d)/n}$（Exercise 7.14）。
+
+(A1$'$) $\Phi^*$ 曲率参数 $(\kappa,\tau_n;R)$；(A2) 同前。
+
+::: {.callout-important title="Theorem 9.24（印刷页 285，PDF 页 304）"}
+$\theta^*\in\mathbb M$，$\tau_n\Psi^2(\overline{\mathbb M})<\kappa/32$。在 $\mathbb G(\lambda_n)\cap\{\Phi^*(\widehat\theta-\theta^*)\le R\}$ 上，
+$$
+\Phi^*(\widehat\theta-\theta^*)
+\le
+3\frac{\lambda_n}{\kappa}.
+\tag{9.58}
+$$
+:::
+
+除最小二乘外，需先用 Theorem 9.19 把误差局部化进 $\mathbb B_{\Phi^*}(R)$。证明：最优性 $\nabla\mathcal L_n(\widehat\theta)+\lambda_n\widehat z=0$，$\widehat z\in\partial\Phi(\widehat\theta)$；三角不等式 + $\Phi^*(\widehat z)\le 1$（Exercise 9.6）得 (9.59)；再用锥上的范数比较。
+
+::: {.callout-important title="Lemma 9.25（印刷页 286，PDF 页 305）"}
+$\theta^*\in\mathbb M$ 且 $\Delta\in\mathbb C$ 时
+$$
+\Phi(\Delta)
+\le
+16\Psi^2(\overline{\mathbb M})\Phi^*(\Delta).
+\tag{9.60}
+$$
+:::
+
+由 (9.45) 与 Hölder $\|\Delta\|^2\le\Phi(\Delta)\Phi^*(\Delta)$ 推出。代入 (9.59) 即得 (9.58)。
+
+# 9.5 Bounds for sparse vector regression　稀疏向量回归的界
+
+> 教材定位：§9.5，印刷页 286–289，PDF 页 305–308。
+
+## 9.5.1 Generalized linear models with sparsity　带稀疏的 GLM
+
+(G1) 列标准化：$\max_j\sqrt{n^{-1}\sum_i x_{ij}^2}\le C$。
+(G2) 配分二阶导数有界：$\|\psi''\|_\infty\le B^2$。
+
+GLM 套索（印刷页 287，PDF 页 306）
+
+$$
+\widehat\theta
+\in
+\arg\min_{\theta}
+\Biggl\{
+\frac1n\sum_{i=1}^n
+\bigl(\psi(\langle x_i,\theta\rangle)-y_i\langle x_i,\theta\rangle\bigr)
++\lambda_n\|\theta\|_1
+\Biggr\}.
+\tag{9.61}
+$$
+
+线性模型 $B=1$ 时回到普通套索；含逻辑斯蒂与多项，**不含** Poisson（(G2) 失败）。
+
+## 9.5.2 Bounds under RSC　RSC 下的界
+
+$\ell_1$-RSC（9.62）即 (9.40)。取 $\lambda_n=4BC\{\sqrt{(\log d)/n}+\delta\}$。
+
+::: {.callout-important title="Corollary 9.26（印刷页 287，PDF 页 306）"}
+$\theta^*$ 支撑在 $|S|=s$ 上，且
+$s\{\lambda_n^2+(\log d)/n\}<\min\{4\kappa^2/9,\kappa/(64c_1)\}$。则
+$$
+\|\widehat\theta-\theta^*\|_2^2
+\le
+\frac94\frac{s\lambda_n^2}{\kappa^2},
+\qquad
+\|\widehat\theta-\theta^*\|_1
+\le
+\frac6\kappa s\lambda_n,
+\tag{9.63}
+$$
+概率至少 $1-2e^{-2n\delta^2}$。
+:::
+
+应用 Corollary 9.20，$\Psi^2=s$，$\tau_n^2=c_1(\log d)/n$。得分坐标 $V_{ij}=(\psi'(\langle x_i,\theta^*\rangle)-y_i)x_{ij}$ 的矩母函数由 Taylor 与 (G2) 控制，列标准化给出次高斯参数 $BC/\sqrt n$；并界后取 $t=2BC\{\sqrt{(\log d)/n}+\delta\}$ 即 $\mathbb G(\lambda_n)$。证明中为留在 $R=1$ 内写的是 $9\Psi^2\lambda_n^2/(4\kappa^2)<1$，与 (9.49b) 的 $9$ 不一致。
+
+## 9.5.3 Bounds under $\ell_\infty$-curvature　$\ell_\infty$ 曲率下的界
+
+GLM 的 $\ell_\infty$ 曲率（印刷页 289，PDF 页 308；Exercise 9.14）
+
+$$
+\|\nabla\mathcal L_n(\theta^*+\Delta)-\nabla\mathcal L_n(\theta^*)\|_\infty
+\ge
+\kappa\|\Delta\|_\infty
+-\frac{c_0}{32}\sqrt{\frac{\log d}{n}}\|\Delta\|_1,
+\tag{9.64}
+$$
+
+在 $\mathbb B_\infty(1)$ 上一致。$c_0$ 只依赖 $(B,C)$。注意此处正文写 $\|\psi''\|_\infty\le B$，与 (G2) 的 $B^2$ 记法不完全相同。
+
+::: {.callout-important title="Corollary 9.27（印刷页 289，PDF 页 308）"}
+再设 (9.64) 且 $n>c_0^2 s^2\log d$。$\lambda_n=2BC\{\sqrt{(\log d)/n}+\delta\}$ 时
+$$
+\|\widehat\theta-\theta^*\|_\infty
+\le
+3\frac{\lambda_n}{\kappa},
+\tag{9.65}
+$$
+概率至少 $1-2e^{-2n\delta^2}$。
+:::
+
+$\lambda_n$ 比 9.26 的 $4BC\{\cdots\}$ 少一个 $2$：9.26 用 $t=2BC\{\cdots\}$ 盖住得分再乘 $2$ 得 $\lambda_n$；9.27 框内写 $2BC$，证明末行又说该选择使 $\mathbb G(\lambda_n)$ 成立。按各框原文抄入。$\ell_\infty$ 界更强：小信号阈值下可做变量选择；配合锥约束可回到 $\ell_1$、$\ell_2$（Exercise 9.13）。样本量 $n\gtrsim s^2\log d$ 来自 $\tau_n\Psi^2<\kappa/32$。先用 9.26 保证 $\|\widehat\Delta\|_\infty\le\|\widehat\Delta\|_2\le 1$，才能用局部 (9.64)。
+
+# 9.6 Bounds for group-structured sparsity　组结构稀疏的界
+
+> 教材定位：§9.6，印刷页 290–292，PDF 页 309–311。
+
+组 GLM 套索（印刷页 290，PDF 页 309）
+
+$$
+\widehat\theta
+\in
+\arg\min_{\theta}
+\Biggl\{
+\frac1n\sum_{i=1}^n
+\bigl(\psi(\langle\theta,x_i\rangle)-y_i\langle\theta,x_i\rangle\bigr)
++\lambda_n\sum_{g\in\mathcal G}\|\theta_g\|_2
+\Biggr\}.
+\tag{9.66}
+$$
+
+(G1$'$) 组标准化：$\max_g\|X_g\|_2/\sqrt n\le C$。组 RSC（注意此处 $\kappa$ 前没有 $1/2$，与 (9.62) 记法不同，相当于把 $1/2$ 吸进 $\kappa$）
+
+$$
+\mathcal E_n(\Delta)
+\ge
+\kappa\|\Delta\|_2^2
+-c_1\Biggl\{\frac m n+\frac{\log\lvert\mathcal G\rvert}{n}\Biggr\}\|\Delta\|_{\mathcal G,2}^2,
+\qquad
+\|\Delta\|_2\le 1.
+\tag{9.67}
+$$
+
+$\lambda_n=4BC\{\sqrt{m/n}+\sqrt{(\log\lvert\mathcal G\rvert)/n}+\delta\}$。
+
+::: {.callout-important title="Corollary 9.28（印刷页 290，PDF 页 309）"}
+组支撑 $S_{\mathcal G}$，且 $|S_{\mathcal G}|\{\lambda_n^2+m/n+(\log\lvert\mathcal G\rvert)/n\}<\min\{4\kappa^2/9,\kappa/(64c_1)\}$。则
+$$
+\|\widehat\theta-\theta^*\|_2^2
+\le
+\frac94\frac{\lvert S_{\mathcal G}\rvert\lambda_n^2}{\kappa^2},
+\tag{9.68}
+$$
+概率至少 $1-2e^{-2n\delta^2}$。
+:::
+
+$m=1$、$|\mathcal G|=d$ 回到普通套索。$\Psi(\mathbb M(S_{\mathcal G}))=\sqrt{\lvert S_{\mathcal G}\rvert}$。好事件：$\Phi^*=\max_g\|(\nabla\mathcal L_n)_g\|_2$；球面 $1/2$-覆盖基数 $\le 5^{|g|}$，再并上 $|\mathcal G|$ 组，指数里出现 $m\log 5+\log\lvert\mathcal G\rvert$。
+
+**多元回归更快的速率**（Example 9.29）。行组：$p$ 个组，每组宽 $T$。元素 $\ell_1$ 把问题看成 $d=pT$、稀疏度 $T|S_{\mathcal G}|$，得（印刷页 291，PDF 页 310）
+
+$$
+\|\widehat\Theta-\Theta^*\|_F
+\lesssim
+\sqrt{\frac{\lvert S_{\mathcal G}\rvert T\log(pT)}{n}}.
+\tag{9.69a}
+$$
+
+组套索：
+
+$$
+\|\widehat\Theta-\Theta^*\|_F
+\lesssim
+\sqrt{\frac{\lvert S_{\mathcal G}\rvert T}{n}}
++
+\sqrt{\frac{\lvert S_{\mathcal G}\rvert\log p}{n}}.
+\tag{9.69b}
+$$
+
+$T>1$ 时 (9.69b) 更好：第一项是已知组结构时估 $|S_{\mathcal G}|T$ 个参数；第二项是从 $p$ 行里找出 $|S_{\mathcal G}|$ 行的搜索复杂度 $\log\binom{p}{|S_{\mathcal G}|}$。第 15 章表明 (9.69b) 不可改进。
+
+# 9.7 Bounds for overlapping decomposition-based norms　重叠分解范数的界
+
+> 教材定位：§9.7，印刷页 293–296，PDF 页 312–315。
+
+若 $\Theta^*$ **不是**行稀疏，而是 $s$ 个非零落在 $s$ 个不同行上，组套索给出（9.70）阶 $\sqrt{sT/n}+\sqrt{s\log p/n}$，普通套索是（9.71）阶 $\sqrt{s\log(pT)/n}$，大 $T$ 时普通套索明显更好。组套索计算更贵、统计上却可能更差。
+
+补救：自适应分解 $\Theta^*=\Omega^*+\Gamma^*$（Figure 9.10）。加权重叠范数（印刷页 294，PDF 页 313）
+
+$$
+\Phi_\omega(\Theta)
+=
+\inf_{\Omega+\Gamma=\Theta}
+\Biggl\{\|\Gamma\|_1+\omega\sum_{j=1}^p\|\Omega_{j,\cdot}\|_2\Biggr\},
+\tag{9.72}
+$$
+
+向量写法 $\Phi_\omega(\theta)=\inf_{\alpha+\beta=\theta}(\|\alpha\|_1+\omega\|\beta\|_{\mathcal G,2})$（9.73）。权重选成
+
+$$
+\omega
+:=
+\frac{\sqrt{m}+\sqrt{\log\lvert\mathcal G\rvert}}{\sqrt{\log d}}
+\tag{9.74}
+$$
+
+才能让对偶范数的两组噪声标度对齐。自适应组 GLM 套索为 (9.75)；RSC 为 (9.76)，容差 $(\log d)/n$ 乘 $\Phi_\omega^2$。$\lambda_n=4BC\{\sqrt{(\log d)/n}+\delta\}$。设 $\theta^*=\alpha^*+\beta^*$，$\alpha^*$ 为 $S_{\mathrm{elt}}$-稀疏，$\beta^*$ 为 $S_{\mathcal G}$-组稀疏，且两支撑不交。
+
+::: {.callout-important title="Corollary 9.31 自适应界（印刷页 295，PDF 页 314）"}
+若
+$\bigl(\sqrt{\lvert S_{\mathrm{elt}}\rvert}+\omega\sqrt{\lvert S_{\mathcal G}\rvert}\bigr)^2\{\lambda_n^2+(\log d)/n\}<\min\{\kappa^2/36,\kappa/(64c_1)\}$，则
+$$
+\|\widehat\theta-\theta^*\|_2^2
+\le
+\frac{36\lambda_n^2}{\kappa^2}
+\bigl(\sqrt{\lvert S_{\mathrm{elt}}\rvert}+\omega\sqrt{\lvert S_{\mathcal G}\rvert}\bigr)^2,
+\tag{9.77}
+$$
+概率至少 $1-3e^{-8n\delta^2}$。
+:::
+
+$S_{\mathcal G}=\emptyset$ 回到套索阶 $s\log d/n$；$S_{\mathrm{elt}}=\emptyset$ 回到组套索阶 $m|S_{\mathcal G}|/n+|S_{\mathcal G}|\log d/n$。对偶范数是 $\max\bigl(\|v\|_\infty,\omega^{-1}\max_g\|v_g\|_2\bigr)$，好事件拆成 (9.79) 两条。锥 (9.78a) 把 $\Phi_\omega(\Delta)$ 换成 $4(\sqrt{|S_{\mathrm{elt}}|}+\omega\sqrt{|S_{\mathcal G}|})\|\Delta\|_2$。策略：分别对 $\ell_1$ 块与组块用可分解，再因 $S_{\mathrm{elt}}$ 与 $S_{\mathcal G}$ 不交而把欧氏范数加回 $\|\Delta\|_2$。代数指回印刷页 295–296。
+
+# 9.8 Techniques for proving restricted strong convexity　证明 RSC 的技术
+
+> 教材定位：§9.8，印刷页 297–305，PDF 页 316–324。
+
+单样本余项 $\mathcal E(\Delta;Z_i)$，经验平均即 $\mathcal E_n$。总体余项（印刷页 298，PDF 页 317）
+
+$$
+\overline{\mathcal E}(\Delta)
+:=
+\overline{\mathcal L}(\theta^*+\Delta)-\overline{\mathcal L}(\theta^*)-\langle\nabla\overline{\mathcal L}(\theta^*),\Delta\rangle.
+\tag{9.81}
+$$
+
+总体局部强凸：$\overline{\mathcal E}(\Delta)\ge\kappa\|\Delta\|_2^2$ 对 $\Delta\in\mathbb B_2(R)$。印刷原文把球写成 $\{\Delta\in\Omega:\|\theta\|_2\le R\}$，dummy 应为 $\Delta$。按 $\|\Delta\|_2\le R$ 读。目标是对零均值过程 $\{\mathcal E_n(\Delta)-\overline{\mathcal E}(\Delta):\Delta\in\mathbb S\}$ 写一致大数定律 (9.83)。最小二乘：$\mathcal E_n(\Delta)=\|X\Delta\|_2^2/(2n)$，$\overline{\mathcal E}(\Delta)=\tfrac12\Delta^T\Sigma\Delta$，一致律即算子范数（全欧氏球）或限制特征值（再加 $\ell_1$ 约束）（Example 9.32）。
+
+## 9.8.1 Lipschitz cost functions and Rademacher complexity　利普希茨代价与拉德马赫复杂度
+
+对线性预测局部 $L$-利普希茨（印刷页 299，PDF 页 318）：
+
+$$
+\bigl\lvert\mathcal L(\theta;Z)-\mathcal L(\overline\theta;Z)\bigr\rvert
+\le
+L\bigl\lvert\langle\theta,x\rangle-\langle\overline\theta,x\rangle\bigr\rvert,
+\qquad
+\theta,\overline\theta\in\mathbb B_2(R).
+\tag{9.85}
+$$
+
+逻辑斯蒂 (9.86) 可取 $L=2$；铰链 (9.87) 可取 $L=1$。最小二乘与指数损失一般不是利普希茨，除非再加有界。对称化向量 $\bar x_n=n^{-1}\sum\varepsilon_i x_i$，$\Phi^*(\bar x_n)$ 即 (9.88)。圆环（9.89）$\mathbb B_2(R_\ell,R_u)=\{\Delta:R_\ell\le\|\Delta\|_2\le R_u\}$。技术因子 $M_n(\Phi;R)=4\log(R_u/R_\ell)\log\sup_{\theta\neq 0}(\Phi(\theta)/\|\theta\|_2)$。
+
+::: {.callout-important title="Theorem 9.34（印刷页 300，PDF 页 319）"}
+$\mathcal L$ 满足 (9.85)，总体代价在 $\mathbb B_2(R_u)$ 上局部 $\kappa$-强凸。则对任意 $\delta>0$，
+$$
+\bigl\lvert\mathcal E_n(\Delta)-\overline{\mathcal E}(\Delta)\bigr\rvert
+\le
+16L\,\Phi(\Delta)\,\delta
+\qquad
+\forall\Delta\in\mathbb B_2(R_\ell,R_u),
+\tag{9.90}
+$$
+概率至少 $1-M_n(\Phi;R)\inf_{\lambda>0}\mathbb E[e^{\lambda(\Phi^*(\bar x_n)-\delta)}]$。
+:::
+
+证明策略（细节指回印刷页 301–302）：Taylor 余项对 $\langle\Delta,x\rangle$ 是 $2L$-利普希茨；固定半径用对称化 + Ledoux–Talagrand 收缩；随机半径用剥皮（peeling）。Example 9.35：等宽组、高斯设计，圆环 $\mathbb B_2(1/d,1)$ 上偏差 $16L\sigma\{\sqrt{m/n}+\sqrt{2\log\lvert\mathcal G\rvert/n}+\delta\}\sum_g\|\Delta_g\|_2$。
+
+## 9.8.2 A one-sided bound via truncation　截断给出的单侧界
+
+估计误差只需要 RSC 下界，不必两侧光滑。协变量矩（印刷页 303，PDF 页 322）
+
+$$
+\mathbb E\langle\Delta,x\rangle^2\ge\alpha,
+\qquad
+\mathbb E\langle\Delta,x\rangle^4\le\beta
+\qquad
+(\|\Delta\|_2=1).
+\tag{9.94}
+$$
+
+::: {.callout-important title="Theorem 9.36 GLM 截断 RSC（印刷页 303，PDF 页 322）"}
+$$
+\mathcal E_n(\Delta)
+\ge
+\frac\kappa2\|\Delta\|_2^2-c_0\mu_n^2(\Phi^*)\Phi^2(\Delta)
+\qquad
+\|\Delta\|_2\le 1,
+\tag{9.95}
+$$
+概率至少 $1-c_1 e^{-c_2 n}$。常数可依赖 GLM、$\theta^*$、$(\alpha,\beta)$，不依赖维数、样本量和正则。
+:::
+
+策略：Taylor 余项含 $\psi''$；用 $\varphi_\tau(u)=u^2\mathbb I[\lvert u\rvert\le 2\tau]$ 截断，再截 $|\langle\theta^*,x\rangle|\le T$；期望用四阶矩 + Cauchy–Schwarz；尾用泛函霍夫丁 + 对称化 + 收缩。$\psi''$ 只需在紧集上有正下界，因此允许 Poisson 那种无界 $\psi''$（§9.10 指出 Negahban et al. 2010 的 $\ell_1$ 版本）。代数指回印刷页 303–305。
+
+# 9.9 Appendix: Star-shaped property　附录：星形性质
+
+> 教材定位：§9.9，印刷页 306，PDF 页 325。
+
+$\theta^*\in\mathbb M$ 时 $\mathbb C$ 是锥，星形显然。一般情形：投影齐性 $\Pi_{\overline{\mathbb M}}(t\Delta)=t\Pi_{\overline{\mathbb M}}(\Delta)$。$\Phi(\Pi_{\overline{\mathbb M}^\perp}(t\Delta))=t\Phi(\Pi_{\overline{\mathbb M}^\perp}(\Delta))\le t(3\Phi(\Pi_{\overline{\mathbb M}}(\Delta))+4\Phi(\theta^*_{\overline{\mathbb M}^\perp}))$，再用 $t\le 1$ 把 $4t\Phi(\theta^*_{\overline{\mathbb M}^\perp})$ 放大成 $4\Phi(\theta^*_{\overline{\mathbb M}^\perp})$。
+
+# 9.10 Bibliographic details and background　文献与背景
+
+> 教材定位：§9.10，印刷页 306–307，PDF 页 325–326。文献条目指回教材。
+
+锚点：可分解与 RSC 来自 Negahban et al. (2012)；组套索 Yuan–Lin (2006)；重叠组 Jacob et al. (2009)；分解自适应 Jalali et al. (2010)；对偶范数界多数情形锐、但非一律（Exercise 7.15、第 13 章）。
+
+# 常见错误
+
+1. **错误做法：** 把重叠组直接代入普通组范数 (9.9)，以为支撑会落在组的并上。  
+   **为什么错：** 共享坐标激活后残差在 $0$ 处可微，惩罚鼓励的是组的**补**。要用变分式 (9.10)，或放大 $\widetilde S_{\mathcal G}$ 才能谈可分解。  
+   **正确判断：** 先看组是否不交；重叠时问的是并还是补。
+
+2. **错误做法：** $d>n$ 时要求 $\nabla^2\mathcal L_n(\theta^*)\succeq\kappa I$，再套经典 MLE。  
+   **为什么错：** 样本 Fisher 秩最多 $n$，Figure 9.8 有 $d-n$ 个平坦方向。需要的是锥上的 RSC，不是全局强凸。  
+   **正确判断：** 先用可分解把误差关进 $\mathbb C$，再在 $\mathbb C$ 上要曲率。
+
+3. **错误做法：** 把 $\lambda_n$ 调得很小，以为正则越弱越好。  
+   **为什么错：** Proposition 9.13 要求 $\lambda_n\ge 2\Phi^*(\nabla\mathcal L_n(\theta^*))$。$\lambda_n$ 太小则好事件失败，误差不必落在锥上。  
+   **正确判断：** $\lambda_n$ 由对偶范数噪声决定；再大才会把偏差项写进界里。
+
+4. **错误做法：** 行稀疏不成立时仍用组套索，并引用 (9.69b) 说它优于套索。  
+   **为什么错：** Example 9.30：非零散落在不同行时，组套索多付 $\sqrt T$，普通套索更好。  
+   **正确判断：** 结构不确定就用重叠分解 (9.72)，让 $S_{\mathrm{elt}}$ 与 $S_{\mathcal G}$ 自适应。
+
+5. **错误做法：** 把 Corollary 9.20 的 $9$ 与 Corollary 9.26 的 $9/4$ 当成同一条定理的两种写法。  
+   **为什么错：** 原页两框常数不衔接；9.26 证明写应用 9.20，却用 $9/4$ 来保证局部球条件。  
+   **正确判断：** 抄公式时跟所在框；阶 $\lambda_n^2 s/\kappa^2$ 一致，前置常数以原页为准，不要混用。
+
+# 轻量自测
+
+1. 用一句话说明：为何 $\ell_1$ 对 $(\mathbb M(S),\mathbb M^\perp(S))$ 可分解，而重叠组的普通 $\ell_1/\ell_2$ 对同一对子空间一般不可分解？
+2. 从 Lemma 9.14 推出：在 $\mathbb G(\lambda_n)$ 上，$\mathcal F(\widehat\Delta)\le 0$ 如何变成锥约束 (9.29)。
+3. 最小二乘的 $\mathcal E_n(\Delta)$ 是什么？它为什么自动给出不依赖 $\theta^*$、也不必局部化的 RSC？
+4. 多元回归行稀疏：比较 (9.69a) 与 (9.69b)。$T=1$ 时二者如何？
+5. 为何 GLM 套索的 Corollary 9.26 要把 Poisson 排除在外，而 Theorem 9.36 的截断论证又允许 $\psi''$ 无界？
+
+<details>
+<summary>查看参考答案</summary>
+
+1. 支撑不交时 $\lvert\alpha_j+\beta_j\rvert=\lvert\alpha_j\rvert+\lvert\beta_j\rvert$，求和即 $\ell_1$ 可分解。重叠时同一个坐标进入多组，(9.25) 中 $\alpha+\beta$ 只激活 $g_2$ 一次，分开放进两组则 $g_2$ 被算两次，$4>2+\sqrt{2}$。要可分解须把与 $S_{\mathcal G}$ 相交的组并进 $\widetilde S_{\mathcal G}$，缩小扰动子空间。
+2. $\mathcal F(\widehat\Delta)\le 0$。把 (9.32) 与 (9.33) 相加：$\lambda_n(\Phi(\Delta_{\overline{\mathbb M}^\perp})-\Phi(\Delta_{\overline{\mathbb M}})-2\Phi(\theta^*_{\overline{\mathbb M}^\perp}))-(\lambda_n/2)(\Phi(\Delta_{\overline{\mathbb M}})+\Phi(\Delta_{\overline{\mathbb M}^\perp}))\le 0$，整理即 $(\lambda_n/2)(\Phi(\Delta_{\overline{\mathbb M}^\perp})-3\Phi(\Delta_{\overline{\mathbb M}})-4\Phi(\theta^*_{\overline{\mathbb M}^\perp}))\le 0$。
+3. $\mathcal E_n(\Delta)=\|X\Delta\|_2^2/(2n)$。二次型与 $\theta^*$ 无关，且 $\mathcal E_n(t\Delta)=t^2\mathcal E_n(\Delta)$，因此 RSC 对所有 $\Delta\in\mathbb R^d$ 是同一条不等式，就是限制特征值 (9.39)。
+4. 元素 $\ell_1$ 多一个 $\log(pT)$ 且稀疏度带 $T$；组套索把估计项写成 $\sqrt{|S_{\mathcal G}|T/n}$、搜索项写成 $\sqrt{|S_{\mathcal G}|\log p/n}$。$T=1$ 时 $pT=p$，$|S_{\mathcal G}|T=|S_{\mathcal G}|$，两界同阶。
+5. Corollary 9.26 的得分尾界用 $\|\psi''\|_\infty\le B^2$ 控制矩母函数，Poisson 的 $\psi(t)=e^t$ 不满足 (G2)。Theorem 9.36 把 $\psi''$ 限制在 $\lvert\langle\theta^*,x\rangle\rvert\le T$ 与截断窗 $\lvert\langle\Delta,x\rangle\rvert\le 2\tau$ 上，只用紧集上的正下界 $\gamma$，不需要全局有界。
+
+</details>
+
+# 本章小结
+
+- 正则化 $M$ 估计 (9.3) 统一套索、GLM、组、图形套索与核范数；设定错误时 $\theta^*$ 仍是总体代价最小点；
+- 可分解把三角不等式打紧，好事件 $\Phi^*(\nabla\mathcal L_n(\theta^*))\le\lambda_n/2$ 把误差关进锥 $\mathbb C$；$\theta^*\in\mathbb M$ 时 $\Phi(\widehat\Delta)\le 4\Phi(\widehat\Delta_{\overline{\mathbb M}})$；
+- 高维没有全局强凸；RSC 在 $\mathbb C$ 上给二次下界，容差由 $\mu_n(\Phi^*)$ 决定；$\Phi^*$ 曲率给出对偶范数误差（$\ell_\infty$ 界）；
+- Theorem 9.19 是确定性神谕不等式：估计误差 $9(\lambda_n/\kappa)^2\Psi^2$ 对逼近误差 $\Phi(\theta^*_{\overline{\mathbb M}^\perp})$。组套索在行稀疏时优于元素 $\ell_1$；结构不确定时用重叠分解自适应。
+
+## 术语对照
+
+| 中文 | English | 备注 |
+|---|---|---|
+| $M$ 估计 | $M$-estimator | (9.3)；M 表示最小化或最大化 |
+| 总体代价 | population cost | (9.1) 的 $\overline{\mathcal L}$ |
+| 正则化 | regularization | $\lambda_n\Phi(\theta)$ |
+| 套索 | Lasso | (9.4)；名词委亦作套索 |
+| 广义线性模型 | generalized linear model | GLM；(9.5) |
+| 配分函数 | partition function | (9.5) 的 $\psi$ |
+| 组套索 | group Lasso | (9.9)；Yuan–Lin |
+| 重叠组套索 | overlapping group Lasso | (9.10)；Jacob et al. |
+| 精度矩阵 | precision matrix | $\Theta=\Sigma^{-1}$ |
+| 图形套索 | graphical Lasso | (9.12) |
+| 核范数 | nuclear norm | (9.19)；奇异值之和 |
+| 可分解正则 | decomposable regularizer | Definition 9.9 |
+| 模型子空间 | model subspace | $\mathbb M$ |
+| 扰动子空间 | perturbation subspace | $\overline{\mathbb M}^\perp$ |
+| 对偶范数 | dual norm | (9.27) |
+| 得分函数 | score function | $\nabla\mathcal L_n(\theta^*)$ |
+| 限制强凸 | restricted strong convexity | Definition 9.15；RSC |
+| 限制特征值 | restricted eigenvalue | RSC 的最小二乘特例 |
+| 子空间 Lipschitz 常数 | subspace Lipschitz constant | Definition 9.18；$\Psi$ |
+| 神谕不等式 | oracle inequality | Theorem 9.19(b) |
+| 星形集 | star-shaped set | §9.9；$\theta^*\notin\mathbb M$ 时的 $\mathbb C$ |
+
+: 本章术语（中文从名词委；英文从教材或国际通行用法）
+
+## 来源定位
+
+- 教材：第 9 章 §§9.1–9.10，印刷页 259–307，PDF 页 278–326。
+- 习题：§9.11 Exercises 9.1–9.14，印刷页 307–311，PDF 页 326–330；解答见 [Solutions](../solutions/ch09-solutions.qmd)。
+- 页码关系：**PDF 页 = 印刷页 + 19**（印刷页 259 = PDF 页 278）。

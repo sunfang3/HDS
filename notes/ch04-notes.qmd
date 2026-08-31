@@ -1,0 +1,693 @@
+---
+title: "第 4 章　一致大数定律"
+subtitle: "Wainwright, High-Dimensional Statistics 伴读 Notes"
+description: "面向已学陈希孺本科概率统计、并读过本书第 2 章的读者：把固定函数的大数定律升级成函数类上的一致定律，主工具是对称化、拉德马赫复杂度与 VC 维"
+execute:
+  enabled: false
+lang: zh-CN
+---
+
+# 本章导览
+
+第 2 章已经能控制**一个**样本均值偏离期望的尾。统计里真正用到的量往往是 $\sup_{f\in\mathscr F}\lvert n^{-1}\sum f(X_i)-\mathbb E[f]\rvert$：经验分布函数对所有阈值同时靠近总体 CDF，经验风险对所有参数同时靠近总体风险。这不是再证一遍普通大数定律，而是问：**函数类有多“大”，一致偏差才会以 $o(1)$ 的速率消失。**
+
+本章给出一条非渐近路线：先用有界差分把 $\lVert\mathbb P_n-\mathbb P\rVert_{\mathscr F}$ 钉在其均值附近，再用**对称化**（symmetrization）把均值换成拉德马赫复杂度 $\mathcal R_n(\mathscr F)$；$\mathcal R_n(\mathscr F)\to 0$ 对一致有界类既充分也（几乎）必要。要算出 $\mathcal R_n$，先看多项式判别，再把有限 VC 维（Vapnik–Chervonenkis dimension）变成多项式判别。度量熵与链式留给第 5 章。
+
+本章阅读主线：
+
+$$
+\text{经验 CDF / 插入法}
+\longrightarrow
+\text{一致偏差 }\lVert\mathbb P_n-\mathbb P\rVert_{\mathscr F}
+\longrightarrow
+\text{对称化 / 拉德马赫复杂度}
+\longrightarrow
+\text{多项式判别 / VC 维}.
+$$
+
+> 教材定位：第 4 章 §§4.1–4.4，印刷页 98–117，PDF 页 117–136。习题 §4.5 印刷页 117–120，PDF 页 136–139，不进入 Notes。页码关系：**PDF 页 = 印刷页 + 19**。
+
+## 学习目标
+
+学完本章后，你应能：
+
+- **陈述** 经验 CDF (4.1) 与 Glivenko–Cantelli 定理 (4.6)，并说明插入估计的相合如何化成 $\lVert\widehat F_n-F\rVert_\infty\to 0$；
+- **写出** 一般函数类的一致偏差 (4.7) 与 Glivenko–Cantelli 类的定义，并指出有限子集指示类为何失败；
+- **把** 经验风险最小化的超额风险拆成 $T_1+T_2+T_3$，并给出界 $2\lVert\mathbb P_n-\mathbb P\rVert_{\mathfrak L(\Omega_0)}$；
+- **陈述** Theorem 4.10：一致有界类上 $\lVert\mathbb P_n-\mathbb P\rVert_{\mathscr F}\le 2\mathcal R_n(\mathscr F)+\delta$ 的尾，并指出对称化与有界差分各管哪一步；
+- **用** 多项式判别或 VC 维 **给出** $\mathcal R_n$ 的 $O(\sqrt{\nu\log n/n})$ 上界，并写出定量 Glivenko–Cantelli (4.25)。
+
+# 必要先修
+
+普通大数定律（一个固定的可积 $f$，$\widehat{\mathbb E}_n[f]\to\mathbb E[f]$）陈希孺已经证明，本章直接当事实用，不再重证。下面只钉三处接口。
+
+::: {.callout-note title="为什么现在需要有界差分"}
+Theorem 4.10 的尾不是切尔诺夫直接打在 $\sup_f$ 上，而是把
+$$
+G(x_1,\ldots,x_n):=\sup_{f\in\mathscr F}\Bigl\lvert n^{-1}\sum_{i=1}^n \bar f(x_i)\Bigr\rvert
+$$
+看成 $n$ 个坐标的函数。改一个 $x_i$，因为 $\lVert f\rVert_\infty\le b$，振幅不超过 $2b/n$。第 2 章 Corollary 2.21（McDiarmid）立刻给出次高斯尾 $\exp(-nt^2/(2b^2))$。
+:::
+
+::: {.callout-note title="作者解释：拉德马赫变量只是 $\pm 1$ 噪声"}
+Example 2.3：$\varepsilon$ 以 $1/2$ 取 $\pm 1$，是参数 $1$ 的次高斯。Example 2.25 已经对集合 $\mathcal A\subset\mathbb R^n$ 写过 $Z=\sup_{a\in\mathcal A}\langle a,\varepsilon\rangle$。本章 (4.12) 就是把 $\mathcal A$ 换成函数类在样本上的限制 $\mathscr F(x_1^n)/n$。直觉得是：若总能找到 $f$ 与一团随机符号高度相关，这个类对统计来说太大。
+:::
+
+::: {.callout-note title="作者解释：指示函数把集合问题写成函数问题"}
+$S\subset\mathcal X$ 的经验测度 $\mathbb P_n[S]=n^{-1}\sum\mathbb I_S(X_i)$。函数类 $\mathscr F=\{\mathbb I_S:S\in\mathcal S\}$ 的 $\lVert\mathbb P_n-\mathbb P\rVert_{\mathscr F}$ 就是集合类上的一致偏差。经验 CDF 是左半区间这一个具体的 $\mathcal S$。
+:::
+
+# 4 Uniform laws of large numbers　一致大数定律
+
+> 教材定位：章首，印刷页 98，PDF 页 117。
+
+**一致大数定律**（uniform law of large numbers）把“一个固定序列的平均值靠近期望”加强成“对一类随机变量同时成立”。它是经验过程理论的入口，也是分析插入估计与经验风险最小化的定量工具。经典叙述是渐近的；本书只写对一切有限 $n$ 成立的尾界，工具来自第 2 章的尾界与拉德马赫复杂度。
+
+# 4.1 Motivation　动机
+
+> 教材定位：§4.1，印刷页 98，PDF 页 117。
+
+先看分布函数这一类（不可数多个阈值），再看一般函数类，最后看到经验风险最小化为什么必须控制一致偏差。
+
+## 4.1.1 Uniform convergence of cumulative distribution functions　分布函数的一致收敛
+
+> 教材定位：§4.1.1，印刷页 98–100，PDF 页 117–119。
+
+实值随机变量 $X$ 的定律由 CDF $F(t):=\mathbb P[X\le t]$ 完全决定。i.i.d. 样本 $\{X_i\}_{i=1}^n$ 的**经验分布函数**（empirical CDF）是
+
+::: {.callout-important title="(4.1) 经验分布函数"}
+$$
+\widehat F_n(t)
+:=
+\frac1n\sum_{i=1}^n
+\mathbb I_{(-\infty,t]}[X_i],
+\qquad t\in\mathbb R.
+$$
+:::
+
+$\mathbb I_{(-\infty,t]}[x]$ 是事件 $\{x\le t\}$ 的 $\{0,1\}$ 指示。总体 $F(t)=\mathbb E[\mathbb I_{(-\infty,t]}[X]]$，所以 $\widehat F_n(t)$ 对每个固定 $t$ 无偏。Figure 4.1（印刷页 99）画的是 $[0,1]$ 上均匀分布：$n=10$ 时阶梯还粗，$n=100$ 时已经贴着对角线。
+
+对固定的 $t$，强定律给出 $\widehat F_n(t)\xrightarrow{\mathrm{a.s.}}F(t)$。统计里要用的是**对所有 $t$ 同时**靠近。
+
+许多估计可以写成 CDF 上的泛函 $\gamma:F\mapsto\gamma(F)$。**插入原则**（plug-in principle）用 $\gamma(\widehat F_n)$ 去估 $\gamma(F)$。
+
+**Example 4.1（期望泛函）。** 可积的 $g$ 给出
+$$
+\gamma_g(F):=\int g(x)\,dF(x).
+\tag{4.2}
+$$
+$g(x)=x$ 时就是均值。插入估计 $\gamma_g(\widehat F_n)=n^{-1}\sum g(X_i)$。
+
+**Example 4.2（分位数泛函）。** $\alpha\in[0,1]$，
+$$
+Q_\alpha(F):=\inf\{t\in\mathbb R:F(t)\ge\alpha\}.
+\tag{4.3}
+$$
+$\alpha=0.5$ 是中位数。插入估计是样本分位数
+$$
+Q_\alpha(\widehat F_n)
+:=
+\inf\Bigl\{t\in\mathbb R:\frac1n\sum_{i=1}^n\mathbb I_{(-\infty,t]}[X_i]\ge\alpha\Bigr\}.
+\tag{4.4}
+$$
+$Q_\alpha(\widehat F_n)$ 是全部样本的非线性函数，不能从“一个固定 $t$ 的大数定律”直接读出相合。
+
+**Example 4.3（拟合优度）。** 检验数据是否来自已知 $F_0$，可用 $\lVert F-F_0\rVert_\infty$，或 Cramér–von Mises 泛函 $\gamma(F):=\int_{-\infty}^\infty[F(x)-F_0(x)]^2\,dF_0(x)$。
+
+要把这些插入估计的相合写成一件事，用一致范数
+
+$$
+\lVert G-F\rVert_\infty
+:=
+\sup_{t\in\mathbb R}\lvert G(t)-F(t)\rvert.
+\tag{4.5}
+$$
+
+称 $\gamma$ 在 $F$ 处对一致范数连续：对每个 $\varepsilon>0$ 存在 $\delta>0$，使得 $\lVert G-F\rVert_\infty\le\delta$ 推出 $\lvert\gamma(G)-\gamma(F)\rvert\le\varepsilon$。Exercise 4.1：连续泛函的插入相合，化成 $\lVert\widehat F_n-F\rVert_\infty\to 0$。
+
+::: {.callout-important title="Theorem 4.4（Glivenko–Cantelli）"}
+对任意分布，经验 CDF 在一致范数下是总体 CDF 的强相合估计：
+$$
+\lVert\widehat F_n-F\rVert_\infty
+\xrightarrow{\mathrm{a.s.}}
+0.
+\tag{4.6}
+$$
+:::
+
+证明作为 Theorem 4.10 的推论（Corollary 4.15）。因而：凡对 $\lVert\cdot\rVert_\infty$ 连续的 $\gamma$，插入估计几乎必然相合。
+
+## 4.1.2 Uniform laws for more general function classes　一般函数类上的一致定律
+
+> 教材定位：§4.1.2，印刷页 101–104，PDF 页 120–123。
+
+设 $\mathscr F$ 是定义在 $\mathcal X$ 上的可积实函数类，$\{X_i\}_{i=1}^n$ 为 $\mathbb P$ 的 i.i.d. 样本。一致偏差是
+
+::: {.callout-important title="(4.7) 函数类上的一致偏差"}
+$$
+\lVert\mathbb P_n-\mathbb P\rVert_{\mathscr F}
+:=
+\sup_{f\in\mathscr F}
+\Bigl\lvert
+\frac1n\sum_{i=1}^n f(X_i)-\mathbb E[f(X)]
+\Bigr\rvert.
+$$
+:::
+
+不可数类会有可测性问题；§4.4 用“对一切有限子类取上确界”来定义期望。Notes 里默认这个约定。
+
+::: {.callout-important title="Definition 4.5（Glivenko–Cantelli 类）"}
+称 $\mathscr F$ 是 $\mathbb P$ 的 Glivenko–Cantelli 类，若 $\lVert\mathbb P_n-\mathbb P\rVert_{\mathscr F}$ 依概率趋于 $0$。若几乎必然趋于 $0$，称它满足强 Glivenko–Cantelli 定律。
+:::
+
+**Example 4.6。** 左半区间指示
+$$
+\mathscr F=\{\mathbb I_{(-\infty,t]}(\cdot):t\in\mathbb R\}
+\tag{4.8}
+$$
+的强一致定律就是 Theorem 4.4。
+
+**Example 4.7（一致定律失败）。** 令 $\mathcal S$ 为 $[0,1]$ 的全体有限子集，$\mathscr F_{\mathcal S}=\{\mathbb I_S:S\in\mathcal S\}$。若 $\mathbb P$ 无原子（含一切关于勒贝格绝对连续的分布），则 $\mathbb P[S]=0$ 对一切有限 $S$。但离散集 $\{X_1,\ldots,X_n\}$ 属于 $\mathcal S$，且 $\mathbb P_n[X_1^n]=1$，故
+$$
+\sup_{S\in\mathcal S}\lvert\mathbb P_n[S]-\mathbb P[S]\rvert=1-0=1.
+\tag{4.9}
+$$
+这个类不是 Glivenko–Cantelli 类。太“大”的类可以记住整份样本。
+
+经验风险最小化把同一对象放到估计量分析里。指标族 $\{\mathbb P_\theta:\theta\in\Omega\}$，样本 i.i.d. $\sim\mathbb P_{\theta^*}$。代价 $\theta\mapsto\mathcal L_\theta(x)$ 衡量参数与样本的拟合。**经验风险**
+$$
+\widehat R_n(\theta,\theta^*)
+:=
+\frac1n\sum_{i=1}^n\mathcal L_\theta(X_i),
+$$
+**总体风险** $R(\theta,\theta^*):=\mathbb E_{\theta^*}[\mathcal L_\theta(X)]$。在子集 $\Omega_0$ 上最小化经验风险得到 $\widehat\theta$。**超额风险**（excess risk）
+$$
+E(\widehat\theta,\theta^*)
+:=
+R(\widehat\theta,\theta^*)-\inf_{\theta\in\Omega_0}R(\theta,\theta^*).
+$$
+
+**Example 4.8（极大似然）。** 密度族 $\{p_\theta\}$ 关于同一控制测度严格为正。取
+$$
+\mathcal L_\theta(x):=\log\frac{p_{\theta^*}(x)}{p_\theta(x)}.
+$$
+$p_{\theta^*}$ 不随 $\theta$ 变，最小化经验风险就是 MLE。总体风险是 $p_{\theta^*}$ 与 $p_\theta$ 的库尔贝克–莱布勒散度。若 $\theta^*\in\Omega_0$，超额风险就是真实密度与拟合密度之间的 KL。
+
+**Example 4.9（二元分类）。** 样本 $(X_i,Y_i)\in\mathbb R^d\times\{-1,+1\}$。似然比 $\psi(x)=\mathbb P[Y=+1\mid X=x]/\mathbb P[Y=-1\mid X=x]$。目标是最小化错分概率 $\mathbb P[f(X)\ne Y]$，对应 0–1 代价
+$$
+\mathcal L_f(X,Y)
+:=
+\begin{cases}
+1 & \text{若 }f(X)\ne Y,\\
+0 & \text{否则.}
+\end{cases}
+\tag{4.10}
+$$
+等先验时 Bayes 分类器是 $f^*(x)=+1$ 当 $\psi(x)\ge 1$，否则 $-1$。经验风险是训练错分率。进一步分析见第 14 章。
+
+回到超额风险。假设存在 $\theta_0\in\Omega_0$ 达到 $\inf_{\Omega_0}R$（否则加任意小的公差）。分解
+
+$$
+E(\widehat\theta,\theta^*)
+=
+\underbrace{R(\widehat\theta,\theta^*)-\widehat R_n(\widehat\theta,\theta^*)}_{T_1}
++
+\underbrace{\widehat R_n(\widehat\theta,\theta^*)-\widehat R_n(\theta_0,\theta^*)}_{T_2\le 0}
++
+\underbrace{\widehat R_n(\theta_0,\theta^*)-R(\theta_0,\theta^*)}_{T_3}.
+$$
+
+$T_2\le 0$，因为 $\widehat\theta$ 最小化经验风险。$T_3$ 是**固定**函数 $\mathcal L_{\theta_0}$ 的样本均值偏差，第 2 章的霍夫丁够用。$T_1$ 里的 $\widehat\theta$ 依赖于样本，必须对整个代价类 $\mathfrak L(\Omega_0):=\{x\mapsto\mathcal L_\theta(x):\theta\in\Omega_0\}$ 做一致控制：
+
+$$
+T_1
+\le
+\sup_{\theta\in\Omega_0}
+\Bigl\lvert
+\frac1n\sum_{i=1}^n\mathcal L_\theta(X_i)-\mathbb E_X[\mathcal L_\theta(X)]
+\Bigr\rvert
+=
+\lVert\mathbb P_n-\mathbb P\rVert_{\mathfrak L(\Omega_0)}.
+$$
+
+$T_3$ 同样被这个量控制，故超额风险 $\le 2\lVert\mathbb P_n-\mathbb P\rVert_{\mathfrak L(\Omega_0)}$。经验风险最小化的核心就是代价类上的一致大数定律。
+
+# 4.2 A uniform law via Rademacher complexity　经由拉德马赫复杂度的一致定律
+
+> 教材定位：§4.2，印刷页 104–109，PDF 页 123–128。
+
+固定点列 $x_1^n:=(x_1,\ldots,x_n)$，函数类在样本上的限制是 $\mathbb R^n$ 的子集
+$$
+\mathscr F(x_1^n)
+:=
+\bigl\{(f(x_1),\ldots,f(x_n)):f\in\mathscr F\bigr\}.
+\tag{4.11}
+$$
+
+::: {.callout-important title="(4.12)–(4.13) 经验与总体拉德马赫复杂度"}
+$$
+\mathcal R\bigl(\mathscr F(x_1^n)/n\bigr)
+:=
+\mathbb E_\varepsilon
+\Bigl[
+\sup_{f\in\mathscr F}
+\Bigl\lvert
+\frac1n\sum_{i=1}^n\varepsilon_i f(x_i)
+\Bigr\rvert
+\Bigr],
+\tag{4.12}
+$$
+$$
+\mathcal R_n(\mathscr F)
+:=
+\mathbb E_X\bigl[\mathcal R(\mathscr F(X_1^n)/n)\bigr]
+=
+\mathbb E_{X,\varepsilon}
+\Bigl[
+\sup_{f\in\mathscr F}
+\Bigl\lvert
+\frac1n\sum_{i=1}^n\varepsilon_i f(X_i)
+\Bigr\rvert
+\Bigr].
+\tag{4.13}
+$$
+:::
+
+(4.12) 与 Example 2.25 的集合拉德马赫复杂度是同一对象。直观：$\mathcal R_n$ 是向量 $(f(X_1),\ldots,f(X_n))$ 与噪声 $(\varepsilon_1,\ldots,\varepsilon_n)$ 的最大相关（再取期望）。类太大，总能拟合一团随机符号；若 $\mathcal R_n(\mathscr F)$ 随 $n$ 消失，就不能在期望意义下高度拟合噪声。
+
+称 $\mathscr F$ 是 $b$-**一致有界**（$b$-uniformly bounded），若 $\lVert f\rVert_\infty\le b$ 对一切 $f\in\mathscr F$。
+
+::: {.callout-important title="Theorem 4.10（拉德马赫给出的一致定律）"}
+对 $b$-一致有界的函数类 $\mathscr F$，任意整数 $n\ge 1$ 与 $\delta\ge 0$，
+$$
+\lVert\mathbb P_n-\mathbb P\rVert_{\mathscr F}
+\le
+2\mathcal R_n(\mathscr F)+\delta
+\tag{4.14}
+$$
+以至少 $1-\exp(-n\delta^2/(2b^2))$ 的 $\mathbb P$-概率成立。因而只要 $\mathcal R_n(\mathscr F)=o(1)$，就有 $\lVert\mathbb P_n-\mathbb P\rVert_{\mathscr F}\xrightarrow{\mathrm{a.s.}}0$。
+:::
+
+几乎必然收敛由 (4.14) 加 Borel–Cantelli：取 $\delta_n=n^{-1/4}$，级数 $\sum\exp(-n\delta_n^2/(2b^2))$ 收敛。上界 $\mathcal R_n$ 的办法见 §4.3（多项式判别、VC）与第 5 章（度量熵、链式）。
+
+## 关键推导
+
+**第一步：绕均值集中。** 记 $\bar f(x):=f(x)-\mathbb E[f(X)]$，则 $\lVert\mathbb P_n-\mathbb P\rVert_{\mathscr F}=\sup_f\lvert n^{-1}\sum\bar f(X_i)\rvert$。令
+$$
+G(x_1,\ldots,x_n)
+:=
+\sup_{f\in\mathscr F}
+\Bigl\lvert\frac1n\sum_{i=1}^n\bar f(x_i)\Bigr\rvert.
+$$
+$G$ 对坐标置换不变。把 $x_1$ 改成 $y_1$ 得 $y$，其余坐标不动。对任意一个 $\bar f$，
+$$
+\begin{aligned}
+\Bigl\lvert\frac1n\sum\bar f(x_i)\Bigr\rvert
+-\sup_h\Bigl\lvert\frac1n\sum\bar h(y_i)\Bigr\rvert
+&\le
+\Bigl\lvert\frac1n\sum\bar f(x_i)\Bigr\rvert
+-\Bigl\lvert\frac1n\sum\bar f(y_i)\Bigr\rvert \\
+&\le
+\frac1n\lvert\bar f(x_1)-\bar f(y_1)\rvert
+\le
+\frac{2b}{n},
+\end{aligned}
+\tag{4.15}
+$$
+因为 $\lvert\bar f(x_1)-\bar f(y_1)\rvert=\lvert f(x_1)-f(y_1)\rvert\le 2b$。对 $f$ 取上确界，再把 $x,y$ 对调，得到 $\lvert G(x)-G(y)\rvert\le 2b/n$。McDiarmid：$\sum_k L_k^2=n\cdot(2b/n)^2=4b^2/n$，于是
+$$
+\lVert\mathbb P_n-\mathbb P\rVert_{\mathscr F}
+-\mathbb E\bigl[\lVert\mathbb P_n-\mathbb P\rVert_{\mathscr F}\bigr]
+\le t
+$$
+以至少 $1-\exp(-nt^2/(2b^2))$ 的概率成立，$t\ge 0$。这是 (4.16)。
+
+**第二步：均值的对称化。** 引入与 $X$ 独立同分布的副本 $(Y_1,\ldots,Y_n)$。把 $\mathbb E[f(X)]$ 写成 $\mathbb E_Y[f(Y_i)]$，把期望推进绝对值里（Exercise 4.4），得到
+$$
+\mathbb E\bigl[\lVert\mathbb P_n-\mathbb P\rVert_{\mathscr F}\bigr]
+\le
+\mathbb E_{X,Y}
+\Bigl[
+\sup_f
+\Bigl\lvert\frac1n\sum_{i=1}^n\bigl\{f(X_i)-f(Y_i)\bigr\}\Bigr\rvert
+\Bigr].
+\tag{4.17}
+$$
+再乘独立拉德马赫：$(\varepsilon_i(f(X_i)-f(Y_i)))_{i=1}^n$ 与 $(f(X_i)-f(Y_i))_{i=1}^n$ 同分布，三角不等式拆成两项，得到
+$$
+\mathbb E_{X,Y}
+\Bigl[\sup_f\Bigl\lvert\frac1n\sum\{f(X_i)-f(Y_i)\}\Bigr\rvert\Bigr]
+\le
+2\mathcal R_n(\mathscr F).
+\tag{4.18}
+$$
+(4.16) 与 (4.18) 合起来就是 (4.14)。
+
+::: {.callout-note title="直觉"}
+有界差分管**涨落**（绕均值的次高斯尾，尺度 $b/\sqrt n$）；对称化管**均值的大小**（用一份独立噪声代替“期望减样本”）。两步分开，常数 $2$ 来自三角不等式把 $X$ 与 $Y$ 拆开。
+:::
+
+::: {.callout-warning title="适用边界"}
+Theorem 4.10 要一致有界。无界代价（例如高斯对数似然）不能直接套 (4.14) 的指数；形式上仍可写超额风险 $\le 2\lVert\mathbb P_n-\mathbb P\rVert_{\mathfrak L}$，但尾要另找截断或矩条件。$\mathcal R_n\not\to 0$ 时定理不给出一致定律——这正是 Example 4.7 的情形。
+:::
+
+## 4.2.1 Necessary conditions with Rademacher complexity　拉德马赫复杂度的必要条件
+
+> 教材定位：§4.2.1，印刷页 107–109，PDF 页 126–128。
+
+对称化过程
+$$
+\lVert\mathbb S_n\rVert_{\mathscr F}
+:=
+\sup_{f\in\mathscr F}
+\Bigl\lvert\frac1n\sum_{i=1}^n\varepsilon_i f(X_i)\Bigr\rvert
+\tag{4.19}
+$$
+的期望就是 $\mathcal R_n(\mathscr F)$。它和 $\lVert\mathbb P_n-\mathbb P\rVert_{\mathscr F}$ 差多少，由夹心回答。记中心化类 $\overline{\mathscr F}:=\{f-\mathbb E[f]:f\in\mathscr F\}$。
+
+::: {.callout-important title="Proposition 4.11（凸非降函数的夹心）"}
+对凸且非降的 $\Phi:\mathbb R\to\mathbb R$，
+$$
+\mathbb E_{X,\varepsilon}\bigl[\Phi(\tfrac12\lVert\mathbb S_n\rVert_{\overline{\mathscr F}})\bigr]
+\le
+\mathbb E_X\bigl[\Phi(\lVert\mathbb P_n-\mathbb P\rVert_{\mathscr F})\bigr]
+\le
+\mathbb E_{X,\varepsilon}\bigl[\Phi(2\lVert\mathbb S_n\rVert_{\mathscr F})\bigr].
+\tag{4.20}
+$$
+:::
+
+$\Phi(t)=t$ 给出
+$$
+\tfrac12\mathbb E\lVert\mathbb S_n\rVert_{\overline{\mathscr F}}
+\le
+\mathbb E\bigl[\lVert\mathbb P_n-\mathbb P\rVert_{\mathscr F}\bigr]
+\le
+2\mathbb E\lVert\mathbb S_n\rVert_{\mathscr F}.
+\tag{4.21}
+$$
+上界用原来的 $\mathscr F$，下界用中心化类；只差常数。$\Phi(t)=e^{\lambda t}$ 可用来控矩母函数。证明的上界与 Theorem 4.10 相同；下界对中心化变量再拆 $\mathbb E[f]$（印刷页 108–109）。细节见 Exercise 4.4。
+
+::: {.callout-important title="Proposition 4.12（拉德马赫不消失则一致定律失败）"}
+对 $b$-一致有界类，任意 $n\ge 1$、$\delta\ge 0$，
+$$
+\lVert\mathbb P_n-\mathbb P\rVert_{\mathscr F}
+\ge
+\frac12\mathcal R_n(\mathscr F)
+-
+\frac{\sup_{f\in\mathscr F}\lvert\mathbb E[f]\rvert}{2\sqrt n}
+-
+\delta
+\tag{4.22}
+$$
+以至少 $1-e^{-n\delta^2/(2b^2)}$ 的概率成立。
+:::
+
+证明留给 Exercise 4.5。因而：若 $\mathcal R_n(\mathscr F)$ 有不趋于 $0$ 的下界，则 $\lVert\mathbb P_n-\mathbb P\rVert_{\mathscr F}$ 不能依概率趋于 $0$。对一致有界类，拉德马赫复杂度是 Glivenko–Cantelli 的充分必要条件（差一个 $n^{-1/2}$ 的中心化项）。
+
+# 4.3 Upper bounds on the Rademacher complexity　拉德马赫复杂度的上界
+
+> 教材定位：§4.3，印刷页 109，PDF 页 128。
+
+有了 Theorem 4.10，剩下就是上界 $\mathcal R_n$。有限类用并，无穷类用第 5 章的度量熵与链式。本节用更初等的**多项式判别**，以及给它证书的 **VC 维**。
+
+## 4.3.1 Classes with polynomial discrimination　多项式判别类
+
+> 教材定位：§4.3.1，印刷页 109–111，PDF 页 128–130。
+
+$\mathscr F(x_1^n)$ 的“大小”是样本相关的复杂度。若函数只取二元值，基数至多 $2^n$。真正有用的是基数只随 $n$ 多项式增长。
+
+::: {.callout-important title="Definition 4.13（多项式判别）"}
+函数类 $\mathscr F$ 具有阶 $\nu\ge 1$ 的多项式判别（polynomial discrimination），若对每个 $n$ 与任意 $x_1^n\subset\mathcal X$，
+$$
+\mathrm{card}\bigl(\mathscr F(x_1^n)\bigr)
+\le
+(n+1)^\nu.
+\tag{4.23}
+$$
+:::
+
+对 $S\subset\mathbb R^n$，记 $D(S):=\sup_{x\in S}\lVert x\rVert_2$ 为 $\ell_2$ 宽度。
+
+::: {.callout-important title="Lemma 4.14（多项式判别控制经验拉德马赫）"}
+若 $\mathscr F$ 有阶 $\nu$ 的多项式判别，则对一切 $n$ 与 $x_1^n$，
+$$
+\mathbb E_\varepsilon
+\Bigl[
+\sup_f
+\Bigl\lvert\frac1n\sum_{i=1}^n\varepsilon_i f(x_i)\Bigr\rvert
+\Bigr]
+\le
+4D(x_1^n)\sqrt{\frac{\nu\log(n+1)}{n}},
+$$
+其中
+$$
+D(x_1^n)
+:=
+\sup_{f\in\mathscr F}
+\sqrt{\frac1n\sum_{i=1}^n f^2(x_i)}
+$$
+是集合 $\mathscr F(x_1^n)/\sqrt n$ 的 $\ell_2$ 半径。
+:::
+
+证明见 Exercise 4.9（有限个次高斯的最大值）。对 $b$-一致有界类，$D(x_1^n)\le b$。Lemma 4.14 因而给出 $\mathcal R_n(\mathscr F)\le 4b\sqrt{\nu\log(n+1)/n}$。印刷页 110 把同一推论写成
+
+$$
+\mathcal R_n(\mathscr F)
+\le
+2b\sqrt{\frac{\nu\log(n+1)}{n}}
+\qquad n\ge 1.
+\tag{4.24}
+$$
+
+::: {.callout-note title="作者解释：(4.24) 的前因子"}
+印刷 (4.24) 写的是 $2b$。Lemma 4.14 在 $D\le b$ 时给出 $4b$；Corollary 4.15 对 $b=1$、$\nu=1$ 用的是 $4\sqrt{\log(n+1)/n}$，再乘 Theorem 4.10 的因子 $2$ 得到 $8$，与 $4b$ 一致。Notes 保留印刷 (4.24)，定量推论一律跟 Lemma 4.14 与 Corollary 4.15。此项为待批勘误。
+:::
+
+有界且多项式判别的类一定是 Glivenko–Cantelli 类：$\mathcal R_n=O(\sqrt{\log n/n})\to 0$。
+
+左半区间指示有界 $b=1$，且如下所证 $\nu=1$。Theorem 4.10 加 Lemma 4.14 给出 Theorem 4.4 的定量形式。
+
+::: {.callout-important title="Corollary 4.15（定量 Glivenko–Cantelli）"}
+设 $F(t)=\mathbb P[X\le t]$，$\widehat F_n$ 为 $n$ 个 i.i.d. 样本的经验 CDF。则对一切 $\delta\ge 0$，
+$$
+\mathbb P
+\Bigl[
+\lVert\widehat F_n-F\rVert_\infty
+\ge
+8\sqrt{\frac{\log(n+1)}{n}}+\delta
+\Bigr]
+\le
+e^{-n\delta^2/2},
+\tag{4.25}
+$$
+因而 $\lVert\widehat F_n-F\rVert_\infty\xrightarrow{\mathrm{a.s.}}0$。
+:::
+
+**证明要点。** 把样本排序 $x_{(1)}\le\cdots\le x_{(n)}$，它们把直线分成至多 $n+1$ 段（含 $(-\infty,x_{(1)})$ 与 $[x_{(n)},\infty)$）。$t$ 落在同一段时，$\mathbb I_{(-\infty,t]}$ 在样本上的取值向量相同，故 $\mathrm{card}(\mathscr F(x_1^n))\le n+1$。Lemma 4.14 加 $D\le 1$ 给出经验拉德马赫 $\le 4\sqrt{\log(n+1)/n}$，再对数据取期望得 $\mathcal R_n(\mathscr F)\le 4\sqrt{\log(n+1)/n}$。代入 Theorem 4.10（$b=1$）即 (4.25)。
+
+(4.25) 的 $\sqrt{\log(n+1)}$ 不是最优。第 5 章会去掉对数；§4.4 引用 Dvoretzky–Kiefer–Wolfowitz：存在与 $F,n$ 无关的 $C$，使得
+$$
+\mathbb P\bigl[\lVert\widehat F_n-F\rVert_\infty\ge\delta\bigr]
+\le
+C e^{-2n\delta^2},
+\tag{4.31}
+$$
+Massart (1990) 把前因子锐化到 $C=2$。
+
+## 4.3.2 Vapnik–Chervonenkis dimension　VC 维
+
+> 教材定位：§4.3.2，印刷页 111–114，PDF 页 130–133。
+
+多项式判别可以个案验算（左半区间），更省力的证书是 VC 维。以下 $\mathscr F$ 由取值 $\{0,1\}$ 的函数组成，故 $\mathrm{card}(\mathscr F(x_1^n))\le 2^n$。
+
+::: {.callout-important title="Definition 4.16（打散与 VC 维）"}
+称点集 $x_1^n$ 被 $\mathscr F$ **打散**（shattered），若 $\mathrm{card}(\mathscr F(x_1^n))=2^n$。**VC 维** $\nu(\mathscr F)$ 是存在某个 $n$ 点集被打散的最大整数 $n$。
+:::
+
+$\nu(\mathscr F)<\infty$ 时称 $\mathscr F$ 是 VC 类。对集合类 $\mathcal S$，用指示函数把 $\mathcal S(x_1^n)$、$\nu(\mathcal S)$ 当作 $\mathscr F(x_1^n)$、$\nu(\mathscr F)$ 的简写。阶 $n$ 的**破碎系数**（shatter coefficient）是 $\max_{x_1^n}\mathrm{card}(\mathcal S(x_1^n))$。
+
+**Example 4.17（直线上的区间）。** 左半区间 $\mathcal S_{\mathrm{left}}:=\{(-\infty,a]:a\in\mathbb R\}$：单点可打散，两点 $x_1<x_2$ 无法挑出 $\{x_2\}$（不含 $x_1$），故 $\nu(\mathcal S_{\mathrm{left}})=1$，且 $\mathrm{card}(\mathcal S_{\mathrm{left}}(x_1^n))\le n+1$。双侧区间 $\mathcal S_{\mathrm{two}}:=\{(b,a]:b<a\}$ 可打散两点，三点 $x_1<x_2<x_3$ 无法挑出 $\{x_1,x_3\}$，故 $\nu=2$。$n$ 个有序点把直线分成 $n+1$ 段，选 $b$ 的段与 $a$ 的段，得 $\mathrm{card}\le(n+1)^2$。
+
+::: {.callout-note title="作者解释：$(-b,a]$ 的写法"}
+印刷在计数破碎系数时写成 “any set of the form $(-b,a]$”，与定义里的 $(b,a]$ 左端点符号不一致。论证只需要两个端点各自落入 $n+1$ 个间隔之一。待批勘误。
+:::
+
+有限 VC 是否蕴含多项式判别？定义只说 $n>\nu$ 时 $\mathrm{card}<2^n$，原则上可以是 $2^n-1$。Sauer–Shelah 排除了这种可能。
+
+::: {.callout-important title="Proposition 4.18（Vapnik–Chervonenkis, Sauer, Shelah）"}
+设 $\nu(\mathcal S)<\infty$。对任意 $n\ge\nu(\mathcal S)$ 的点列 $P=(x_1,\ldots,x_n)$，
+$$
+\mathrm{card}(\mathcal S(P))
+\le
+\sum_{i=0}^{\nu(\mathcal S)}\binom{n}{i}
+\le
+(n+1)^{\nu(\mathcal S)}.
+\tag{4.26}
+$$
+:::
+
+不等式 (ii) 是初等组合（Exercise 4.11(a)）；更锐的 $(en/\nu)^\nu$ 见 4.11(b)。因此：**有限 VC 类具有阶 $\le\nu$ 的多项式判别**，从而有界 VC 类是 Glivenko–Cantelli 类，且 $\mathcal R_n=O(\sqrt{\nu\log n/n})$。
+
+**证明结构。** 令 $\nu(\mathcal T;Q)$ 为只看 $Q$ 的子集时的 VC 维。定义
+$$
+\Phi_k(n)
+:=
+\sup_{\mathrm{card}(Q)\le n}\sup_{\nu(\mathcal T;Q)\le k}\mathrm{card}(\mathcal T(Q)),
+\qquad
+\Psi_k(n)
+:=
+\sum_{i=0}^k\binom{n}{i},
+$$
+并约定 $i>n$ 时 $\binom{n}{i}=0$。只需证 $\Phi_k(n)\le\Psi_k(n)$。对 $n+k$ 归纳。
+
+- 基底：$n+k=2$。$n=0$ 或 $k=0$ 显然；$(n,k)=(1,1)$ 两边都是 $2$。
+- 归纳：固定 $\nu(\mathcal S;P)=k$，$P'=P\setminus\{x_1\}$。令 $\mathcal S_0\subset\mathcal S$ 为给 $P'$ 打上尽可能多种标签的最小子类，$\mathcal S_1\subset\mathcal S\setminus\mathcal S_0$ 为给 $P'$ 打上 $\mathcal S_0$ 未曾打过的标签的最小子类。则 $\mathrm{card}(\mathcal S(P))=\mathrm{card}(\mathcal S_0(P'))+\mathrm{card}(\mathcal S_1(P'))$。$\nu(\mathcal S_0;P')\le k$，故左边 $\le\Psi_k(n-1)$。若 $\mathcal S_1$ 打散 $Q'\subset P'$，则 $\mathcal S$ 打散 $Q'\cup\{x_1\}$（每个 $\mathcal S_1$ 标签在 $x_1$ 处都有翻转副本），因而 $\nu(\mathcal S_1;P')\le k-1$，右边 $\le\Psi_{k-1}(n-1)$。Pascal 恒等式（Exercise 4.10）给出 $\Psi_k(n-1)+\Psi_{k-1}(n-1)=\Psi_k(n)$。
+
+## 4.3.3 Controlling the VC dimension　控制 VC 维
+
+> 教材定位：§4.3.3，印刷页 115–116，PDF 页 134–135。
+
+有限 VC 在布尔运算下封闭。
+
+::: {.callout-important title="Proposition 4.19（VC 的基本运算）"}
+设 $\mathcal S,\mathcal T$ 有有限 VC 维。下列集合类仍有有限 VC 维：
+(a) 补类 $\mathcal S^c:=\{S^c:S\in\mathcal S\}$；
+(b) 并类 $\mathcal S\sqcup\mathcal T:=\{S\cup T:S\in\mathcal S,\,T\in\mathcal T\}$；
+(c) 交类 $\mathcal S\sqcap\mathcal T:=\{S\cap T:S\in\mathcal S,\,T\in\mathcal T\}$。
+:::
+
+证明见 Exercise 4.8。补不改变 VC 维（标签整体翻转是双射）；交的标签是点态 AND，破碎系数以乘积为界，仍是 $n$ 的多项式；并 $=(\text{补的交})$ 的补。
+
+实函数类通过**零水平子图**变成集合类：对 $g:\mathcal X\to\mathbb R$，令 $S_g:=\{x:g(x)\le 0\}$，$\mathcal S(\mathcal G):=\{S_g:g\in\mathcal G\}$。半空间、椭球都是这样来的。
+
+::: {.callout-important title="Proposition 4.20（有限维向量空间）"}
+设 $\mathcal G$ 是函数 $g:\mathbb R^d\to\mathbb R$ 的向量空间，$\dim(\mathcal G)<\infty$。则子图类 $\mathcal S(\mathcal G)$ 的 VC 维至多为 $\dim(\mathcal G)$。
+:::
+
+**证明要点。** 只需证明 $n=\dim(\mathcal G)+1$ 个点不能被打散。线性映射 $L(g)=(g(x_1),\ldots,g(x_n))$ 的值域维数 $\le n-1$，故存在 $\gamma\ne 0$ 使 $\langle\gamma,L(g)\rangle=0$ 对一切 $g$ 成立。不妨设至少一个坐标为正，则
+$$
+\sum_{\{i:\gamma_i\le 0\}}(-\gamma_i)g(x_i)
+=
+\sum_{\{i:\gamma_i>0\}}\gamma_i g(x_i)
+\qquad\text{对一切 }g\in\mathcal G.
+\tag{4.30}
+$$
+若某 $g$ 的子图恰好等于 $\{\,x_i:\gamma_i\le 0\,\}$，则左边 $\le 0$、右边 $>0$，矛盾。
+
+**Example 4.21（仿射半空间）。** $f_{a,b}(x)=\langle a,x\rangle+b$，$(a,b)\in\mathbb R^d\times\mathbb R$。对应半空间 $H_{a,b}=\{x:\langle a,x\rangle+b\le 0\}$。函数空间维数 $d+1$，故 VC 维 $\le d+1$。$d=1$ 时是全体左、右闭射线，可打散两点、不能打散三点，VC 维恰为 $2$。一般维数也锐。
+
+**Example 4.22（欧氏球）。** 教材把
+$$
+S_{a,b}
+:=
+\{x\in\mathbb R^d:\lVert x-a\rVert_2\le b\}
+$$
+叫做 sphere；集合是**闭球**。写成 $f_{a,b}(x)=\lVert x\rVert_2^2-2\sum_j a_j x_j+\lVert a\rVert_2^2-b^2$ 的子图。特征映射 $\phi(x)=(1,x_1,\ldots,x_d,\lVert x\rVert_2^2)\in\mathbb R^{d+2}$，线性函数 $g_c(x)=\langle c,\phi(x)\rangle$、$c\in\mathbb R^{d+2}$ 张成 $d+2$ 维空间，包含全体 $f_{a,b}$，故 $\nu\le d+2$。锐界是 $d+1$（平面情形见 Exercise 4.13）。
+
+::: {.callout-note title="作者解释：印刷的 $\mathbb R^{d+1}$"}
+同段先写 $c\in\mathbb R^{d+2}$，随即写 “$\{g_c,c\in\mathbb R^{d+1}\}$ is a vector space of dimension $d+2$”。按 $c\in\mathbb R^{d+2}$ 读。待批勘误。
+:::
+
+# 4.4 Bibliographic details and background　文献与背景
+
+> 教材定位：§4.4，印刷页 117，PDF 页 136。
+
+文献清单不抄。两件分析上用得到的事实：
+
+::: {.callout-note title="作者解释：可测性约定"}
+$\lVert\mathbb P_n-\mathbb P\rVert_{\mathscr F}$ 对不可数类未必可测。可分时对可数稠密子类取上确界。一般情形，教材把 $\mathbb E[\phi(\lVert\mathbb P_n-\mathbb P\rVert_{\mathscr F})]$ 定义为一切有限子类 $\mathcal G\subset\mathscr F$ 上同一期望的上确界。定理里的期望都按这个定义读。
+:::
+
+Glivenko (1933) 证了连续情形，Cantelli (1933) 放到一般分布。定量形式的锐化是 DKW (4.31) 与 Massart 的 $C=2$。拉德马赫 / 高斯复杂度来自 Banach 空间的概率方法，再进入一致定律与经验风险最小化；与度量熵的联系是第 5 章。
+
+# 常见错误
+
+1. **错误做法：** 对每个固定 $f$ 用大数定律，然后说“所以对 $\mathscr F$ 一致成立”。  
+   **为什么错：** 不可数个零测集的并可以是全空间。Example 4.7 里每个固定有限集都有 $\mathbb P_n[S]\to 0$，上确界却恒为 $1$。  
+   **正确判断：** 一致定律要控制 $\sup_f$，需要复杂度（$\mathcal R_n$ 或 VC）趋于 $0$。
+
+2. **错误做法：** 把超额风险当成普通样本均值偏差，只用霍夫丁打在 $\widehat\theta$ 上。  
+   **为什么错：** $\widehat\theta$ 是数据的函数，$T_1$ 不是固定随机变量的偏差。  
+   **正确判断：** $T_2\le 0$，$T_3$ 可用第 2 章；$T_1$ 必须上界成 $\lVert\mathbb P_n-\mathbb P\rVert_{\mathfrak L(\Omega_0)}$。
+
+3. **错误做法：** 把 Theorem 4.10 的尾写成 $\exp(-2n\delta^2)$（DKW 的指数）或忘掉 $2b^2$。  
+   **为什么错：** 有界差分的 $L_k=2b/n$，McDiarmid 给出 $\exp(-nt^2/(2b^2))$。DKW 的 $2n\delta^2$ 是经验 CDF 的更锐结果，不是 (4.14)。  
+   **正确判断：** 先写 $L_k$，再代公式。
+
+4. **错误做法：** 认为“有 $k$ 个参数 $\Rightarrow$ VC 维是 $k$”。  
+   **为什么错：** Exercise 4.17：$\mathrm{sign}(\sin(tx))$ 只有一个参数 $t$，VC 维无穷。Proposition 4.20 管的是**线性**函数空间的维数，不是任意参数个数。  
+   **正确判断：** VC 维由能打散的点数定义；参数个数既不是上界也不是下界。
+
+5. **错误做法：** 把 $\mathcal R_n(\mathscr F)\to 0$ 说成对无界类也充分必要。  
+   **为什么错：** Theorem 4.10 / Proposition 4.12 都用了 $b$-一致有界（有界差分的振幅、中心化项的尺度）。  
+   **正确判断：** 无界类需要截断、 Lipschitz 代价或第 14 章的局部化。
+
+# 轻量自测
+
+1. 用一句话说明：点态大数定律与 Glivenko–Cantelli 差在哪里？为何分位数的相合不能从“固定 $t$ 的 LLN”读出？
+2. 从 $L_k=2b/n$ 推出 Theorem 4.10 的指数 $-n\delta^2/(2b^2)$。
+3. 左半区间指示为何有 $\nu=1$？由此写出 $\mathcal R_n$ 的 Lemma 4.14 上界，再写出 (4.25) 里的 $8$。
+4. 有限子集指示类（Example 4.7）的 $\mathcal R_n$ 能否趋于 $0$？与 Proposition 4.12 如何衔接？
+5. 平面上过原点的半空间，Proposition 4.20 给出的 VC 上界是多少？它锐不锐？
+
+<details>
+<summary>查看参考答案</summary>
+
+1. 点态定律对每个固定 $t$（或固定 $f$）单独成立；Glivenko–Cantelli 要求偏差的上确界消失。$Q_\alpha(\widehat F_n)$ 依赖于整条经验 CDF，阈值本身是随机的，所以必须要 $\lVert\widehat F_n-F\rVert_\infty\to 0$，再加分位数在该 $F$ 处对 $\lVert\cdot\rVert_\infty$ 连续（Exercise 4.1）。
+2. McDiarmid：$\mathbb P[G-\mathbb E G\ge t]\le\exp(-2t^2/\sum L_k^2)$。$\sum L_k^2=n\cdot(2b/n)^2=4b^2/n$，故 $-2t^2\cdot n/(4b^2)=-nt^2/(2b^2)$。令 $t=\delta$。
+3. 两点 $x_1<x_2$ 无法被左半区间挑出 $\{x_2\}$，故 $\nu=1$；有序样本给出至多 $n+1$ 个取值向量。$D\le 1$，Lemma 4.14 给出 $\mathcal R_n\le 4\sqrt{\log(n+1)/n}$。Theorem 4.10 乘 $2$ 得 $8\sqrt{\log(n+1)/n}$，即 (4.25)。
+4. 不能。取 $S=\{X_i:\varepsilon_i=+1\}$，则 $n^{-1}\sum\varepsilon_i\mathbb I_S(X_i)=(\#\{+1\})/n$，期望为 $1/2$，故 $\mathcal R_n\ge 1/2$（Exercise 4.2）。Proposition 4.12 于是禁止 $\lVert\mathbb P_n-\mathbb P\rVert\to 0$，与 (4.9) 一致。
+5. 过原点的线性函数 $\{x\mapsto\langle a,x\rangle\}$ 是 $d$ 维向量空间，子图（过原点的半空间）VC 维 $\le d$。Example 4.21 的仿射半空间多一个平移，维数 $d+1$ 且锐。过原点、维数 $d$ 的界在一般位置下也锐（原点不在有限点集的凸组合里时可打散 $d$ 个线性无关点）。
+
+</details>
+
+# 本章小结
+
+- 插入估计的相合，对 $\lVert\cdot\rVert_\infty$ 连续的泛函，化成经验 CDF 的一致收敛；Glivenko–Cantelli 给出几乎必然收敛，定量形式是 (4.25)，更锐的是 DKW；
+- 一般函数类的对象是 $\lVert\mathbb P_n-\mathbb P\rVert_{\mathscr F}$；经验风险最小化的超额风险被其两倍控制。类太大（有限子集指示、过参数化线性分类器）时一致定律失败；
+- 一致有界类上，有界差分管涨落、对称化管均值：$\lVert\mathbb P_n-\mathbb P\rVert_{\mathscr F}\le 2\mathcal R_n(\mathscr F)+\delta$ 以次高斯尾成立，$\mathcal R_n\to 0$ 充分必要；
+- 多项式判别把 $\mathcal R_n$ 变成 $O(\sqrt{\nu\log n/n})$；有限 VC 维通过 Sauer–Shelah 给出多项式判别。VC 维不是参数个数。
+
+## 术语对照
+
+| 中文 | English | 备注 |
+|---|---|---|
+| 一致大数定律 | uniform law of large numbers | 本章标题 |
+| 经验过程 | empirical process | 章首 |
+| 经验分布函数 | empirical CDF | (4.1)；名词委：经验分布函数 |
+| 插入原则 | plug-in principle | §4.1.1 |
+| 期望泛函 | expectation functional | Example 4.1；(4.2) |
+| 分位数 | quantile | Example 4.2；(4.3)；名词委：分位数 |
+| 中位数 | median | $\alpha=0.5$ |
+| 拟合优度 | goodness-of-fit | Example 4.3 |
+| Cramér–von Mises 泛函 | Cramér–von Mises functional | Example 4.3 |
+| 一致范数 | sup-norm / uniform norm | (4.5) |
+| 格利文科–坎泰利定理 | Glivenko–Cantelli theorem | Theorem 4.4 |
+| Glivenko–Cantelli 类 | Glivenko–Cantelli class | Definition 4.5 |
+| 经验风险 | empirical risk | $\widehat R_n$ |
+| 总体风险 | population risk | $R(\theta,\theta^*)$ |
+| 经验风险最小化 | empirical risk minimization | ERM |
+| 超额风险 | excess risk | $E(\widehat\theta,\theta^*)$ |
+| 库尔贝克–莱布勒散度 | Kullback–Leibler divergence | Example 4.8 |
+| Bayes 分类器 | Bayes classifier | Example 4.9 |
+| 拉德马赫复杂度 | Rademacher complexity | (4.12)–(4.13)；第 2 章已出现 |
+| 经验拉德马赫复杂度 | empirical Rademacher complexity | (4.12) |
+| 一致有界 | uniformly bounded | $\lVert f\rVert_\infty\le b$ |
+| 对称化 | symmetrization | Theorem 4.10 证明；(4.19) |
+| 中心化函数类 | recentered function class | $\overline{\mathscr F}$ |
+| 多项式判别 | polynomial discrimination | Definition 4.13 |
+| 打散 | shattering | Definition 4.16 |
+| VC 维 | Vapnik–Chervonenkis dimension | Definition 4.16 |
+| 破碎系数 | shatter coefficient | §4.3.2 |
+| Sauer–Shelah 引理 | Sauer–Shelah lemma | Proposition 4.18 |
+| 子图类 | subgraph class | §4.3.3；$\{g\le 0\}$ |
+| Dvoretzky–Kiefer–Wolfowitz 不等式 | Dvoretzky–Kiefer–Wolfowitz inequality | (4.31) |
+
+: 本章术语（中文从名词委；英文从教材或国际通行用法）
+
+## 来源定位
+
+- 教材：第 4 章 §§4.1–4.4，印刷页 98–117，PDF 页 117–136。
+- 习题：§4.5 Exercises 4.1–4.17，印刷页 117–120，PDF 页 136–139；[Solutions](../solutions/ch04-solutions.qmd)。
+- 页码关系：**PDF 页 = 印刷页 + 19**（印刷页 98 = PDF 页 117）。

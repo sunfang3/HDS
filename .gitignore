@@ -1,0 +1,26 @@
+# Copyrighted textbook PDF (local only)
+*.pdf
+
+# Quarto / build
+/.quarto/
+/_site/
+/_book/
+site_libs/
+
+# Scratch & OS
+/scratch/
+/tmp/
+*.tmp
+*.log
+.DS_Store
+Thumbs.db
+
+# Editor / env
+.Rproj.user/
+.Rhistory
+.RData
+.env
+.venv/
+__pycache__/
+
+**/*.quarto_ipynb

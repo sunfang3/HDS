@@ -1,0 +1,92 @@
+---
+title: "Chapter 1 Exercises"
+subtitle: "Wainwright, High-Dimensional Statistics §1.2.3"
+description: "Exercise list locked from the textbook; solved independently"
+execute:
+  enabled: false
+---
+
+# How to use this file
+
+- **Textbook:** Martin J. Wainwright, *High-Dimensional Statistics: A Non-Asymptotic Viewpoint* (Cambridge Series in Statistical and Probabilistic Mathematics, No. 48; 2019).
+- **Range:** Chapter 1 has no numbered *Exercises* section. The only item locked from the text is the in-line request on printed p. 8 to prove (1.14).
+- **Pages:** printed p. 8; PDF p. 27 (offset **PDF = printed + 19**).
+- **Principle:** stems follow the textbook; solutions are independent. Identities printed in the book are recomputed.
+- **Companion notes:** [`ch01-notes.qmd`](../notes/ch01-notes.qmd).
+
+### Exercise (in-text, printed p. 8): prove (1.14)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $X,X_1,\ldots,X_n$ be i.i.d. uniform on the unit hypercube $[0,1]^d$, and let $X'$ be an independent copy of $X$. Define
+$$
+\rho_\infty(n,d)
+:=
+\mathbb E_{X',X}
+\Bigl[
+\min_{i=1,\ldots,n}
+\|X'-X_i\|_\infty
+\Bigr].
+$$
+Prove
+$$
+\log\rho_\infty(n,d)
+\ge
+\log\frac{d}{2(d+1)}
+-\frac{\log n}{d},
+$$
+and deduce that $n>(1/\delta)^d$ is required to guarantee $\rho_\infty(n,d)\le\delta$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Write $Z:=\min_{i\le n}\|X'-X_i\|_\infty$, so that $\rho_\infty(n,d)=\mathbb E[Z]$. For every $t>0$,
+$$
+\mathbb E[Z]
+=\int_0^\infty \mathbb P(Z>t)\,dt
+\ge
+\int_0^{1/2}\mathbb P(Z>t)\,dt.
+$$
+Conditionally on $X'=x$, the event $\{Z>t\}$ is the event that none of the $n$ samples falls in the $\ell_\infty$ ball of radius $t$ about $x$, intersected with the cube. The Euclidean volume of that intersection is at most the volume of the unconstrained ball, which is $(2t)^d$. Hence, for all $t\in(0,1/2]$,
+$$
+\mathbb P(Z>t\mid X'=x)
+=
+\bigl(1-\mathrm{vol}(B_\infty(x,t)\cap[0,1]^d)\bigr)^n
+\ge
+\bigl(1-(2t)^d\bigr)^n,
+$$
+and therefore $\mathbb P(Z>t)\ge(1-(2t)^d)^n$. (For $t\le 1/2$ one has $(2t)^d\le 1$, so the argument of the power stays in $[0,1]$.)
+
+Bernoulli's inequality gives $(1-u)^n\ge 1-nu$ for every $u\in[0,1]$ and every integer $n\ge 1$. Restricting the integral to
+$$
+t_\ast:=\frac12 n^{-1/d}\in(0,1/2]
+$$
+(the upper bound holds as soon as $n\ge 1$) yields
+$$
+\mathbb E[Z]
+\ge
+\int_0^{t_\ast}\bigl(1-n(2t)^d\bigr)\,dt
+=
+t_\ast
+-\frac{n\,2^d}{d+1}\,t_\ast^{d+1}.
+$$
+Substitute $t_\ast=\frac12 n^{-1/d}$, so that $n\,2^d t_\ast^d=1$:
+$$
+\mathbb E[Z]
+\ge
+t_\ast\Bigl(1-\frac{1}{d+1}\Bigr)
+=
+t_\ast\cdot\frac{d}{d+1}
+=
+\frac{d}{2(d+1)}\,n^{-1/d}.
+$$
+Taking logarithms produces (1.14). If $\rho_\infty(n,d)\le\delta$, the same display forces
+$$
+n
+\ge
+\Bigl(\frac{d}{2(d+1)\delta}\Bigr)^d.
+$$
+The textbook's wording "$n>(1/\delta)^d$ is required" records the exponential order: the prefactor $d/(2(d+1))$ is strictly less than $1$, so $(1/\delta)^d$ is a convenient (slightly larger) comparison of the same $d$-exponential type. For large $d$ the sharp constant from (1.14) is of order $(1/(2\delta))^d$.
+:::
+
+::: {.callout-note icon="false" title="Remark on the constant"}
+The volume bound $\mathrm{vol}\le(2t)^d$ ignores the shrinking of balls near the boundary of the cube, so the inequality is slightly conservative. The exponential rate $n^{-1/d}$ is nevertheless sharp up to the prefactor $d/(2(d+1))$, which tends to $1/2$ as $d\to\infty$; that prefactor is exactly the one printed in (1.14).
+:::

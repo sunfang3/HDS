@@ -1,0 +1,307 @@
+---
+title: "Chapter 6 Exercises"
+subtitle: "Wainwright, High-Dimensional Statistics §6"
+description: "Exercise list locked from the textbook; solved independently"
+execute:
+  enabled: false
+---
+
+# How to use this file
+
+- Textbook: *High-Dimensional Statistics*, Chapter 6.
+- Coverage: Exercises 6.1--6.16, printed pp. 189--193.
+- The exercise wording is abridged; notation and numbering follow the textbook.
+- Companion notes: [`ch06-notes.qmd`](../notes/ch06-notes.qmd).
+
+### Exercise 6.1
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+For symmetric $A,B$, prove the eigenvalue perturbation bound.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The Rayleigh--Ritz formula gives
+$$
+ \gamma_{\max}(A)=\sup_{\|u\|_2=1}u^\top Au
+ \le\gamma_{\max}(B)+\|A-B\|_{\mathrm{op}}.
+$$
+Interchanging $A,B$ yields $|\gamma_{\max}(A)-\gamma_{\max}(B)|\le\|A-B\|_{\mathrm{op}}$. Apply this to $-A,-B$ for the corresponding minimum-eigenvalue statement.
+:::
+
+### Exercise 6.2
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Establish basic facts about $\|A\|_2$, $\|A\|_1$, and $\|A\|_\infty$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The induced norms are
+$$
+ \|A\|_1=\max_j\sum_i|A_{ij}|,\qquad
+ \|A\|_\infty=\max_i\sum_j|A_{ij}|,
+$$
+and $\|A\|_2=\sqrt{\gamma_{\max}(A^\top A)}$. Each is submultiplicative directly from $\|ABx\|\le\|A\|\,\|Bx\|$.
+
+Moreover,
+$$
+ \|A\|_2^2=\|A^\top A\|_2\le\|A^\top A\|_1
+ \le\|A^\top\|_1\|A\|_1=\|A\|_\infty\|A\|_1.
+$$
+If $A$ is symmetric, $\|A\|_1=\|A\|_\infty$, hence $\|A\|_2\le\|A\|_1=\|A\|_\infty$.
+:::
+
+### Exercise 6.3
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let symmetric nonnegative matrices satisfy $0\le A\le B$ entrywise. Prove the three stated comparison facts.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+For nonnegative matrices, induction gives $0\le A^m\le B^m$ entrywise: multiply $A^m\le B^m$ first by $A\le B$, preserving entrywise order throughout.
+
+Because symmetric nonnegative $A$ has $\|A\|_2=\lim_{m\to\infty}\|A^m\|_\infty^{1/m}$, the preceding comparison gives $\|A\|_2\le\|B\|_2$. For arbitrary symmetric $C$, entrywise $-|C|\le C\le|C|$ implies $|C^m|\le|C|^m$ after expanding products, hence $\|C\|_2\le\||C|\|_2$.
+:::
+
+### Exercise 6.4
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+For symmetric $A$, prove $I+A\preceq e^A$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Diagonalize $A=U\operatorname{diag}(\lambda_i)U^\top$. The scalar inequality $e^x\ge1+x$ gives $e^{\lambda_i}-1-\lambda_i\ge0$ for every $i$. Conjugating the resulting nonnegative diagonal matrix by $U$ proves the Loewner inequality.
+:::
+
+### Exercise 6.5
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Decide matrix monotonicity of squaring and the exponential; prove monotonicity of the logarithm on positive definite matrices.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Squaring is not matrix monotone. With $u=(1,1)^\top$, $A=uu^\top$, and $B=\operatorname{diag}(2,1)$, one has $0\preceq A\preceq B$ since $B-A=\operatorname{diag}(1,0)$, but
+$$
+ B^2-A^2=\begin{pmatrix}2&-2\\-2&1\end{pmatrix}
+$$
+is indefinite.
+
+The exponential is not matrix monotone either. If it were, differentiating the implication $e^{A+tH}\succeq e^A$ at $t=0$ for every $H\succeq0$ would force $D\exp_A(H)\succeq0$. Take $A=\operatorname{diag}(a,-a)$ and $H=uu^\top$, $u=(1,1)^\top$. In the eigenbasis,
+$$
+ D\exp_A(H)=\begin{pmatrix}e^a&\sinh(a)/a\\\sinh(a)/a&e^{-a}\end{pmatrix}.
+$$
+Its determinant is $1-[\sinh(a)/a]^2<0$ for $a\ne0$, a contradiction.
+
+For $0\prec A\preceq B$, inversion reverses order: $(A+tI)^{-1}\succeq(B+tI)^{-1}$. The integral representation
+$$
+ \log B-\log A=\int_0^\infty\big[(A+tI)^{-1}-(B+tI)^{-1}\big]dt
+$$
+is therefore positive semidefinite, proving $\log A\preceq\log B$.
+:::
+
+### Exercise 6.6
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Show that $\operatorname{var}(Q)=\mathbb E Q^2-(\mathbb EQ)^2$ is positive semidefinite.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+For symmetric $Q$,
+$$
+ \operatorname{var}(Q)=\mathbb E\big[(Q-\mathbb EQ)^2\big].
+$$
+For every $u$, $u^\top\operatorname{var}(Q)u=\mathbb E\|(Q-\mathbb EQ)u\|_2^2\ge0$. Hence $\operatorname{var}(Q)\succeq0$.
+:::
+
+### Exercise 6.7
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $g$ be zero-mean $\sigma$-sub-Gaussian. Establish matrix sub-Gaussian parameters for $Q=gB$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+If $B$ is deterministic symmetric, diagonalize it. Scalar sub-Gaussianity gives $\mathbb Ee^{\lambda gB}\preceq\exp(c^2\lambda^2\sigma^2B^2/2)$ (with the universal convention constant $c$ used in the text), so $Q$ is matrix sub-Gaussian with parameter $c^2\sigma^2B^2$.
+
+If $B$ is independent of $g$, symmetric, and $\|B\|_{\mathrm{op}}\le b$, condition on $B$, use the first result and $B^2\preceq b^2I$, then average. Thus the parameter is $c^2\sigma^2b^2I$.
+:::
+
+### Exercise 6.8
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+For independent centred symmetric sub-Gaussian matrices $Q_i$, bound $\mathbb E\gamma_{\max}(S_n)$ and $\mathbb E\|S_n\|_{\mathrm{op}}$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Let $S_n=n^{-1}\sum_iQ_i$ and $\sigma^2=\|n^{-1}\sum_iV_i\|_{\mathrm{op}}$. The matrix Laplace transform argument gives
+$$
+ \mathbb P\{\gamma_{\max}(S_n)\ge t\}\le d\exp\{-nt^2/(2\sigma^2)\}.
+$$
+Equivalently, $\mathbb E\gamma_{\max}(S_n)\le\sqrt{2\sigma^2\log d/n}$. Apply the same bound to $-S_n$ and use $\|S_n\|=\max\{\gamma_{\max}(S_n),\gamma_{\max}(-S_n)\}$ to obtain
+$$
+ \mathbb E\|S_n\|_{\mathrm{op}}\le\sqrt{2\sigma^2\log(2d)/n},
+$$
+which is (6.68).
+:::
+
+### Exercise 6.9
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+If symmetric $Q$ satisfies $\|Q\|_{\mathrm{op}}\le b$, prove the ingredients and then (6.30).
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Each eigenvalue $q$ of $Q$ lies in $[-b,b]$, hence $q^{j-2}\le b^{j-2}$ for $j\ge2$, so $Q^{j-2}\preceq b^{j-2}I$. If $A\preceq B$, then $C^\top AC\preceq C^\top BC$, since the difference is $C^\top(B-A)C\succeq0$. Taking $C=Q$ gives
+$$
+ Q^j=Q Q^{j-2}Q\preceq b^{j-2}Q^2.
+$$
+After expectation this is exactly the moment condition (6.30), with variance proxy $\mathbb EQ^2$.
+:::
+
+### Exercise 6.10
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Derive the rectangular matrix Bernstein inequality by self-adjoint dilation.
+:::
+
+::: {.callout-warning icon="false" title="Source erratum (pending approval)"}
+For $d_1\ne d_2$, the printed diagonal zero blocks in the dilation have incompatible dimensions. The intended dilation is $Q_i=\begin{pmatrix}0_{d_1\times d_1}&A_i\\A_i^\top&0_{d_2\times d_2}\end{pmatrix}$, used conditionally below.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The dilation has eigenvalues $\pm s_j(A_i)$ (and possibly zeros), so $\|Q_i\|=\|A_i\|$. Also
+$$
+ Q_i^2=\operatorname{diag}(A_iA_i^\top,A_i^\top A_i),
+$$
+whence the variance proxy has norm at most $\sigma^2$ from (6.43). Applying self-adjoint Bernstein to $\sum_iQ_i$, whose dimension is $d_1+d_2$, gives
+$$
+ \mathbb P\!\left\{\left\|\sum_{i=1}^nA_i\right\|\ge n\delta\right\}
+ \le2(d_1+d_2)\exp\!\left\{-\frac{n\delta^2}{2(\sigma^2+b\delta)}\right\},
+$$
+which is (6.69).
+:::
+
+### Exercise 6.11
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Apply the preceding rectangular inequality to $A_i=g_iB_i$ under the stated scalar moment and operator-norm bounds.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Independence and $\lVert B_i\rVert_{\mathrm{op}}\le b_2$ imply
+$$
+ \left\lVert\sum_i\mathbb EA_iA_i^\top\right\rVert_{\mathrm{op}}
+ \le n\sigma^2b_2^2
+ \quad\text{and}\quad
+ \left\lVert\sum_i\mathbb EA_i^\top A_i\right\rVert_{\mathrm{op}}
+ \le n\sigma^2b_2^2,
+$$
+and the scalar moment assumption gives the Bernstein scale $b_1b_2$. Thus Exercise 6.10 yields
+$$
+ \mathbb P\left\{\left\lVert n^{-1}\sum_iA_i\right\rVert_{\mathrm{op}}\ge\delta\right\}
+ \le(d_1+d_2)\exp\left\{-\frac{n\delta^2}{2(\sigma^2b_2^2+b_1b_2\delta)}\right\}.
+$$
+Integrating this tail (split at the sub-Gaussian/sub-exponential crossover) gives
+$$
+ \mathbb E\left\lVert n^{-1}\sum_iA_i\right\rVert_{\mathrm{op}}
+ \le\frac{2\sigma b_2}{\sqrt n}\{\sqrt{\log(d_1+d_2)}+\sqrt\pi\}
+ +\frac{4b_1b_2}{n}\{\log(d_1+d_2)+1\}.
+$$
+:::
+
+### Exercise 6.12
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Use $\varphi(u)=e^u-u-1$ to prove the displayed Bernstein ingredients and (6.47b).
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+On $\{\gamma_{\max}(S_n)\ge\delta\}$, monotonicity gives $\varphi(\lambda\gamma_{\max}(S_n))\ge\varphi(\lambda\delta)$. Since $\operatorname{tr}\varphi(\lambda S_n)\ge\varphi(\lambda\gamma_{\max}(S_n))$, Markov's inequality gives
+$$
+ \mathbb P\{\gamma_{\max}(S_n)\ge\delta\}
+ \le\inf_{\lambda>0}\frac{\operatorname{tr}\mathbb E\varphi(\lambda S_n)}{\varphi(\lambda\delta)}.
+$$
+
+For centred $Q$ with $\|Q\|\le1$, the scalar bound $e^{\lambda x}-\lambda x-1\le\varphi(\lambda)x^2$ for $|x|\le1$, transported through spectral calculus and expectation, yields
+$$
+ \log\Psi_Q(\lambda)\preceq\varphi(\lambda)\operatorname{var}(Q).
+$$
+The master trace-mgf bound then gives, with $\bar V=\sum_i\operatorname{var}(Q_i)$,
+$$
+ \operatorname{tr}\mathbb E\varphi(\lambda S_n)
+ \le\frac{\operatorname{tr}\bar V}{\|\bar V\|}
+ \exp\{\varphi(\lambda)\|\bar V\|\},
+$$
+the asserted (6.47b) form.
+:::
+
+### Exercise 6.13
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Derive vector Bernstein by applying the matrix result to a symmetric block dilation.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Set $Q_i=\begin{pmatrix}0&x_i^\top\\x_i&0\end{pmatrix}$. Then $\|Q_i\|=\|x_i\|_2$, $\|\sum_iQ_i\|=\|\sum_ix_i\|_2$, and
+$$
+ \sum_i\operatorname{var}(Q_i)=
+ \operatorname{diag}\!\left(\sum_i\mathbb E\|x_i\|_2^2,\ \sum_i\mathbb Ex_ix_i^\top\right).
+$$
+Applying Theorem 6.17 gives the vector Bernstein tail, with prefactor at most $d+1$, or more sharply $\operatorname{rank}(\Sigma)+1$. The intrinsic-dimension form (6.48) follows because the trace ratio of this block variance is at most $2$: both diagonal blocks have the same trace.
+:::
+
+### Exercise 6.14
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Prove existence of an exponentially large $1/2$-packing of the unit sphere whose empirical second moment is bounded by $2I/d$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Sample $M=\lceil e^{c_0d}\rceil$ independent uniform vectors $\theta_j$ on $S^{d-1}$. A spherical-cap estimate gives $\mathbb P(\|\theta_j-\theta_k\|<1/2)\le e^{-c_1d}$. Choose $c_0<c_1/3$; a union bound then shows that, with positive probability, all pairwise distances are at least $1/2$.
+
+Also $\mathbb E\theta\theta^\top=I/d$. For each point of a fixed $1/4$-net of the sphere (of size at most $9^d$), Hoeffding's inequality applied to $(u^\top\theta_j)^2\in[0,1]$, followed by a union bound and the net approximation, shows
+$$
+ \left\|\frac1M\sum_{j=1}^M\theta_j\theta_j^\top-\frac Id\right\|\le\frac1d
+$$
+with positive probability for this exponential $M$ and all sufficiently large $d$. Intersecting the two positive-probability events supplies a packing with $M\ge e^{c_0d}$ and $\|(1/M)\sum_j\theta_j\otimes\theta_j\|\le2/d$. Enlarging constants handles the finitely many small dimensions.
+:::
+
+### Exercise 6.15
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Bound diagonal covariance estimation under sub-Gaussian and finite-moment assumptions.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+For diagonal $D$, $\widehat D-D$ is diagonal and
+$$
+ \|\widehat D-D\|=\max_j\left|\frac1n\sum_{i=1}^n(x_{ij}^2-\mathbb Ex_{ij}^2)\right|.
+$$
+If $x_i$ is $\sigma$-sub-Gaussian, each centered square is sub-exponential with parameters of order $\sigma^2$. Scalar Bernstein and a union bound show that, for universal $c_j>0$,
+$$
+ \mathbb P\!\left\{\frac{\|\widehat D-D\|}{\sigma^2}
+ \ge c_0\sqrt{\frac{\log d}{n}}+\delta\right\}
+ \le c_1\exp\{-c_2n\min(\delta,\delta^2)\}.
+$$
+This is the stated form: choose the first term large enough to absorb the factor $d$ in the union bound.
+
+Under the stated $m$-moment condition, Rosenthal's inequality gives, for every coordinate,
+$$
+ \left\|\frac1n\sum_i(x_{ij}^2-\mathbb Ex_{ij}^2)\right\|_{m}
+ \le C_mn^{-1/2}.
+$$
+Markov's inequality and a union bound consequently yield
+$$
+ \mathbb P\!\left\{\|\widehat D-D\|\ge4\delta\sqrt{\frac{d^{2/m}}n}\right\}
+ \le K'_m\left(\frac1{2\delta}\right)^m.
+$$
+Here $K'_m$ absorbs the constants from the assumed moment bound and Rosenthal's inequality.
+:::
+
+### Exercise 6.16
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+For the adjacency matrix of a graph with maximum degree $s-1$ that contains an $s$-clique (with diagonal entries included as in the text), compute its operator norm.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Every row has at most $s$ ones after including the diagonal, so $\|A\|_\infty\le s$. Symmetry gives $\|A\|_{\mathrm{op}}\le\|A\|_\infty\le s$. On the clique, the principal $s\times s$ block is the all-ones matrix, whose unit constant vector has eigenvalue $s$. Its zero extension has Rayleigh quotient $s$, so $\|A\|_{\mathrm{op}}\ge s$. Therefore $\|A\|_{\mathrm{op}}=s$.
+:::

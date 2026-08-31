@@ -1,0 +1,629 @@
+---
+title: "Chapter 7 Exercises"
+subtitle: "Wainwright, High-Dimensional Statistics §7.8"
+description: "Exercise list locked from the textbook; solved independently"
+execute:
+  enabled: false
+---
+
+# How to use this file
+
+- **Textbook:** Martin J. Wainwright, *High-Dimensional Statistics: A Non-Asymptotic Viewpoint* (Cambridge Series in Statistical and Probabilistic Mathematics, No. 48; 2019).
+- **Range:** §7.8 Exercises 7.1–7.20.
+- **Pages:** printed pp. 229–235; PDF pp. 248–254 (offset **PDF = printed + 19**).
+- **Principle:** stems follow the textbook; solutions are independent. Identities printed in the book are recomputed.
+- **Companion notes:** [`ch07-notes.qmd`](../notes/ch07-notes.qmd).
+
+### Exercise 7.1
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+(a) Show that the hard-thresholding estimator (7.6a) is the minimizer of
+$$
+\min_{\theta\in\mathbb R^n}
+\Bigl\{\tfrac12\lVert y-\theta\rVert_2^2+\tfrac12\lambda^2\lVert\theta\rVert_0\Bigr\}.
+$$
+(b) Show that the soft-thresholding estimator (7.6b) is the minimizer of
+$$
+\min_{\theta\in\mathbb R^n}
+\Bigl\{\tfrac12\lVert y-\theta\rVert_2^2+\lambda\lVert\theta\rVert_1\Bigr\}.
+$$
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Both programs separate across coordinates.
+
+(a) The $i$th summand is $\tfrac12(y_i-\theta_i)^2+\tfrac12\lambda^2\mathbb I[\theta_i\neq 0]$. If $\theta_i=0$ the cost is $y_i^2/2$. If $\theta_i\neq 0$ the quadratic is minimized at $\theta_i=y_i$ with cost $\lambda^2/2$. The latter is no larger precisely when $\lvert y_i\rvert\ge\lambda$, which is (7.6a).
+
+(b) The $i$th summand is $\tfrac12(y_i-\theta_i)^2+\lambda\lvert\theta_i\rvert$. For $\theta_i\neq 0$ the stationarity condition is $\theta_i-y_i+\lambda\,\mathrm{sign}(\theta_i)=0$, hence $\theta_i=\mathrm{sign}(y_i)(\lvert y_i\rvert-\lambda)$, which is feasible only if $\lvert y_i\rvert>\lambda$. For $\lvert y_i\rvert\le\lambda$ the subdifferential of $\lvert\theta_i\rvert$ at $0$ contains $y_i/\lambda\in[-1,1]$, so $\theta_i=0$ is optimal. This is (7.6b).
+:::
+
+### Exercise 7.2
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+(a) $\mathbb B_q(R_q)$ is star-shaped about the origin.
+(b) If $\alpha>1/q$, then $\mathbb B_{w(\alpha)}(C)\subseteq\mathbb B_q(R_q)$ for some $R_q=R_q(C,\alpha)$.
+(c) Closed form of the best $s$-term approximation $\Pi_s(\theta^*)$.
+(d) If $\theta^*\in\mathbb B_q(R_q)$, then $\lVert\Pi_s(\theta^*)-\theta^*\rVert_2^2\le(R_q)^{2/q}s^{1-2/q}$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) If $\theta\in\mathbb B_q(R_q)$ and $t\in[0,1]$, then $\sum_j\lvert t\theta_j\rvert^q=t^q\sum_j\lvert\theta_j\rvert^q\le\sum_j\lvert\theta_j\rvert^q\le R_q$, since $t^q\le 1$ for $q>0$.
+
+(b) For $\theta\in\mathbb B_{w(\alpha)}(C)$ one has $\lvert\theta\rvert_{(j)}\le C j^{-\alpha}$, hence
+$$
+\sum_{j=1}^d\lvert\theta_j\rvert^q
+\le
+C^q\sum_{j=1}^d j^{-\alpha q}
+\le
+C^q\Bigl(1+\int_1^\infty x^{-\alpha q}\,dx\Bigr)
+=
+C^q\Bigl(1+\frac1{\alpha q-1}\Bigr),
+$$
+using $\alpha q>1$. Take $R_q=C^q\bigl(1+1/(\alpha q-1)\bigr)$.
+
+(c) $\Pi_s(\theta^*)$ keeps the $s$ coordinates of $\theta^*$ that are largest in absolute value and sets the rest to zero. (Any choice among ties is optimal.)
+
+(d) The $j$ largest magnitudes satisfy $j\lvert\theta^*\rvert_{(j)}^q\le R_q$, so $\lvert\theta^*\rvert_{(j)}\le(R_q/j)^{1/q}$. Therefore
+$$
+\lVert\Pi_s(\theta^*)-\theta^*\rVert_2^2
+=\sum_{j>s}\lvert\theta^*\rvert_{(j)}^2
+\le
+\lvert\theta^*\rvert_{(s+1)}^{2-q}\sum_{j>s}\lvert\theta^*\rvert_{(j)}^q
+\le
+\Bigl(\frac{R_q}{s+1}\Bigr)^{(2-q)/q}R_q
+=(R_q)^{2/q}(s+1)^{1-2/q}.
+$$
+Since $1-2/q\le 0$ for $q\in(0,1]$, one has $(s+1)^{1-2/q}\le s^{1-2/q}$, which is (7.63).
+:::
+
+### Exercise 7.3
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Assume $\delta_{\mathrm{PW}}(X)<\gamma/s$. (a) $\gamma_{\min}(X_S^T X_S/n)\ge c(\gamma)>0$ for $\lvert S\rvert=s$ and $\gamma$ small. (b) Restricted nullspace holds as soon as $\gamma<1/3$, from first principles (no RIP).
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) Let $G:=X_S^T X_S/n$. Then $\lvert G_{jj}-1\rvert\le\delta_{\mathrm{PW}}$ and $\lvert G_{jk}\rvert\le\delta_{\mathrm{PW}}$ for $j\neq k$. Gershgorin gives
+$$
+\gamma_{\min}(G)
+\ge
+\min_j G_{jj}-(s-1)\delta_{\mathrm{PW}}
+>
+1-\frac\gamma s-(s-1)\frac\gamma s
+=1-\gamma.
+$$
+Thus $c(\gamma)=1-\gamma$ works for all $\gamma<1$.
+
+(b) Let $\Delta\in\mathbb C(S)\cap\mathrm{null}(X)$. Then $X_S\Delta_S=-X_{S^c}\Delta_{S^c}$, and taking the inner product with $\Delta_S$ yields
+$$
+\Delta_S^T\Bigl(\frac{X_S^T X_S}n\Bigr)\Delta_S
+=-\Delta_S^T\Bigl(\frac{X_S^T X_{S^c}}n\Bigr)\Delta_{S^c}.
+$$
+The left side is at least $c(\gamma)\lVert\Delta_S\rVert_2^2=(1-\gamma)\lVert\Delta_S\rVert_2^2$. The right side is at most
+$$
+\delta_{\mathrm{PW}}\lVert\Delta_S\rVert_1\lVert\Delta_{S^c}\rVert_1
+\le
+\delta_{\mathrm{PW}}\lVert\Delta_S\rVert_1^2
+\le
+s\delta_{\mathrm{PW}}\lVert\Delta_S\rVert_2^2
+<\gamma\lVert\Delta_S\rVert_2^2,
+$$
+using the cone $\lVert\Delta_{S^c}\rVert_1\le\lVert\Delta_S\rVert_1$. Hence $(1-\gamma)\lVert\Delta_S\rVert_2^2\le\gamma\lVert\Delta_S\rVert_2^2$. For $\gamma<1/2$ this forces $\Delta_S=0$, and the cone then forces $\Delta_{S^c}=0$. The book's threshold $\gamma<1/3$ is a convenient stricter sufficient condition, matching Proposition 7.9.
+:::
+
+### Exercise 7.4
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+(a) Prove $\delta_{\mathrm{PW}}\le\delta_s\le s\,\delta_{\mathrm{PW}}$, and exhibit matrices saturating each side. (b) Construct a matrix with $\delta_s(X)=\sqrt s\,\delta_{\mathrm{PW}}(X)$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Write $A_S:=X_S^T X_S/n-I_{\lvert S\rvert}$. Then $\delta_s=\max_{\lvert S\rvert\le s}\lVert A_S\rVert_{\mathrm{op}}$ and $\delta_{\mathrm{PW}}=\max_{j,k}\lvert\langle X_j,X_k\rangle/n-\mathbb I[j=k]\rvert$.
+
+(a) *Lower bound.* For $s\ge 2$ and $S=\{j,k\}$, $\lvert e_1^T A_S e_2\rvert=\lvert\langle X_j,X_k\rangle/n\rvert\le\lVert A_S\rVert_{\mathrm{op}}$. For $S=\{j\}$, $\lvert\lVert X_j\rVert_2^2/n-1\rvert\le\delta_1\le\delta_s$. Thus $\delta_{\mathrm{PW}}\le\delta_s$. Equality holds for any column-normalized matrix of two columns (so that $\delta_2=\delta_{\mathrm{PW}}$) padded by orthonormal columns.
+
+*Upper bound.* Every entry of $A_S$ is at most $\delta_{\mathrm{PW}}$ in absolute value, so Gershgorin yields $\lVert A_S\rVert_{\mathrm{op}}\le s\delta_{\mathrm{PW}}$. Equality: take $s$ identical columns $v$ with $\lVert v\rVert_2^2/n=1+\delta$. Then $A_S=\delta\mathbf 1\mathbf 1^T$, $\lVert A_S\rVert_{\mathrm{op}}=s\delta$, and $\delta_{\mathrm{PW}}=\delta$.
+
+(b) Let $H$ be a Hadamard matrix of order $s$ (e.g. $s=2^m$), so $H^T H=s I_s$ and $\lvert H_{ij}\rvert=1$. Set $A:=(\delta/\sqrt s)H$ with $\delta\in(0,1)$. Then $\lVert A\rVert_{\mathrm{op}}=\delta$ and $\max\lvert A_{ij}\rvert=\delta/\sqrt s$. Realise these $s$ columns by $X_S/\sqrt n=(I+A)^{1/2}$ (positive definite) and pad the remaining columns of $X$ by an orthonormal frame orthogonal to $\mathrm{col}(X_S)$. The order-$s$ RIP constant is $\delta$ while $\delta_{\mathrm{PW}}=\delta/\sqrt s$, hence $\delta_s=\sqrt s\,\delta_{\mathrm{PW}}$.
+:::
+
+### Exercise 7.5
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Show that $\ell_2$-RE with parameters $(\gamma_2,\alpha_2)$ implies $\ell_1$-RE with $\gamma_1=\gamma_2/(1+\alpha_2)^2$ and $\alpha_1=\alpha_2$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Take $\theta\in\mathbb C(S;\alpha_2)$. Then
+$$
+\lVert\theta\rVert_1
+=\lVert\theta_S\rVert_1+\lVert\theta_{S^c}\rVert_1
+\le(1+\alpha_2)\lVert\theta_S\rVert_1
+\le(1+\alpha_2)\sqrt s\,\lVert\theta\rVert_2,
+$$
+so $\lVert\theta\rVert_2^2\ge\lVert\theta\rVert_1^2/(s(1+\alpha_2)^2)$. The $\ell_2$-RE lower bound therefore yields
+$$
+\frac1n\lVert X\theta\rVert_2^2
+\ge\gamma_2\lVert\theta\rVert_2^2
+\ge\frac{\gamma_2}{(1+\alpha_2)^2}\frac{\lVert\theta\rVert_1^2}s,
+$$
+which is $\ell_1$-RE with the claimed parameters.
+:::
+
+### Exercise 7.6
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Weighted basis pursuit: $\min\lVert\theta\rVert_{\nu(1)}$ s.t. $X\theta=y$, where $\lVert\theta\rVert_{\nu(1)}=\sum_j\omega_j\lvert\theta_j\rvert$.
+(a) Necessary and sufficient conditions for unique recovery of all $k$-sparse vectors.
+(b) Weights $\omega_j=1$ on $S$ and $\omega_j=t\ge 1$ off $S$: a sufficient condition in terms of $c_{\min}$, $\delta_{\mathrm{PW}}$, and $t$; behaviour as $t\to\infty$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) Define the weighted cone
+$$
+\mathbb C(S;\omega)
+:=\bigl\{\Delta:\lVert\Delta_{S^c}\rVert_{\nu(1)}\le\lVert\Delta_S\rVert_{\nu(1)}\bigr\}.
+$$
+The same argument as Theorem 7.8, with the weighted triangle inequality
+$$
+\lVert\theta^*+\Delta\rVert_{\nu(1)}
+\ge
+\lVert\theta^*\rVert_{\nu(1)}-\lVert\Delta_S\rVert_{\nu(1)}+\lVert\Delta_{S^c}\rVert_{\nu(1)},
+$$
+shows that weighted basis pursuit uniquely recovers every vector supported on $S$ if and only if $\mathbb C(S;\omega)\cap\mathrm{null}(X)=\{0\}$. Unique recovery of all $k$-sparse vectors is the same intersection condition for every $\lvert S\rvert\le k$.
+
+(b) The cone becomes $t\lVert\Delta_{S^c}\rVert_1\le\lVert\Delta_S\rVert_1$. For $\Delta$ in the cone and in the nullspace, the inner-product argument of Exercise 7.3 gives
+$$
+c_{\min}\lVert\Delta_S\rVert_2^2
+\le
+\delta_{\mathrm{PW}}\lVert\Delta_S\rVert_1\lVert\Delta_{S^c}\rVert_1
+\le
+\frac{\delta_{\mathrm{PW}}}t\lVert\Delta_S\rVert_1^2
+\le
+\frac{s\delta_{\mathrm{PW}}}t\lVert\Delta_S\rVert_2^2.
+$$
+A sufficient condition is therefore $\delta_{\mathrm{PW}}<t\,c_{\min}/s$ (together with $c_{\min}>0$). As $t\to\infty$ the cone shrinks to $\{\Delta_{S^c}=0\}$, and the condition reduces to injectivity of $X_S$, i.e. $c_{\min}>0$ with no restriction on $\delta_{\mathrm{PW}}$.
+:::
+
+### Exercise 7.7
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+$X\in\mathbb R^{n\times d}$ with i.i.d. $N(0,1)$ entries. (a) If $n\gtrsim s^2\log d$, then $\delta_{\mathrm{PW}}(X)<1/(3s)$ with high probability. (b) If $n\gtrsim s\log(ed/s)$, then $\delta_{2s}(X)<1/3$ with high probability.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) For $j\neq k$, $n^{-1}\langle X_j,X_k\rangle$ is the average of $n$ i.i.d. products of standard Gaussians, hence sub-exponential. Bernstein's inequality yields
+$$
+\mathbb P\bigl[\lvert\langle X_j,X_k\rangle\rvert/n\ge t\bigr]
+\le 2\exp(-c n t^2)
+\qquad(t\in(0,1]).
+$$
+The same tail holds for $\lvert\lVert X_j\rVert_2^2/n-1\rvert$ ($\chi^2$ concentration, Example 2.11). A union bound over $d^2$ pairs requires $n t^2\gtrsim\log(d^2)$. Taking $t=1/(3s)$ forces $n\gtrsim s^2\log d$, as claimed.
+
+(b) For a fixed index set $T$ with $\lvert T\rvert=2s$, Gordon's comparison (or Vershynin's covering argument) gives
+$$
+\mathbb P\bigl[\lVert X_T^T X_T/n-I_{2s}\rVert_{\mathrm{op}}>\tfrac13\bigr]
+\le 2\exp(-c n),
+$$
+as soon as $n\ge C s$. There are at most $\binom{d}{2s}\le(ed/(2s))^{2s}$ such subsets, so a union bound is $2\exp(2s\log(ed/(2s))-c n)$. The exponent is negative once $n\gtrsim s\log(ed/s)$, which yields $\delta_{2s}<1/3$ with high probability.
+
+(The scaling $s\log(ed/s)$ is the one used in §7.2.3 and in Exercises 7.15 and 7.20. If a given printing of Exercise 7.7(b) writes $\log(es/d)$, that logarithm is negative for $s<d$ and is a typesetting slip for $\log(ed/s)$.)
+:::
+
+### Exercise 7.8
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Spiked identity $\Sigma=(1-\mu)I+\mu\mathbf 1\mathbf 1^T$ with $\mu>0$ fixed. (a) $\mathbb P[\delta_{\mathrm{PW}}(X)>\mu-3\delta]\ge 1-6e^{-n\delta^2/8}$ for $\delta\in(0,1/\sqrt 2)$, hence pairwise incoherence requires $\mu\ll 1/s$. (b) $\mathbb P[\delta_{2s}(X)\ge(1+(\sqrt{2s}-1)\mu)\delta]\ge 1-e^{-n\delta^2/8}$ for $\delta\in(0,1)$, hence RIP requires $\mu\ll 1/\sqrt s$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Realise the rows as $x_i=\sqrt{1-\mu}\,g_i+\sqrt\mu\,u_i\mathbf 1$ with $g_{ij},u_i$ i.i.d. $N(0,1)$. Then
+$$
+\frac{\langle X_j,X_k\rangle}n
+=(1-\mu)\frac{\langle g_{\cdot j},g_{\cdot k}\rangle}n
++\sqrt{\mu(1-\mu)}\,(\cdots)
++\mu\frac{\lVert u\rVert_2^2}n,
+$$
+with expectation $\Sigma_{jk}$.
+
+(a) For $j\neq k$ one has $\mathbb E[\langle X_j,X_k\rangle/n]=\mu$. Each of $\lVert u\rVert_2^2/n$, $\lVert g_{\cdot j}\rVert_2^2/n$, and the cross product $\langle g_{\cdot j},g_{\cdot k}\rangle/n$ is sub-exponential. Example 2.11 and a product tail give, for $\delta\in(0,1/\sqrt 2)$,
+$$
+\mathbb P\Bigl[\Bigl\lvert\frac{\langle X_j,X_k\rangle}n-\mu\Bigr\rvert\ge 3\delta\Bigr]
+\le 6e^{-n\delta^2/8}.
+$$
+On the complementary event $\langle X_j,X_k\rangle/n\ge\mu-3\delta$, hence $\delta_{\mathrm{PW}}\ge\mu-3\delta$. Pairwise incoherence $\delta_{\mathrm{PW}}\le 1/(3s)$ therefore cannot hold unless $\mu\ll 1/s$.
+
+(b) Let $S$ have size $2s$ and let $v=\mathbf 1/\sqrt{2s}$. Then $v^T\Sigma_{SS}v=1-\mu+\mu(2s)=1+(2s-1)\mu$ and
+$$
+\frac{\lVert X_S v\rVert_2^2}n
+=\bigl(v^T\Sigma_{SS}v\bigr)\frac{\chi^2_n}n.
+$$
+$\chi^2$ concentration yields $\lVert X_S v\rVert_2^2/n\ge(1+(2s-1)\mu)(1-\delta)$ with probability $1-e^{-n\delta^2/8}$. Therefore
+$$
+\delta_{2s}(X)
+\ge
+\Bigl\lvert\frac{\lVert X_S v\rVert_2^2}n-1\Bigr\rvert
+\ge
+\bigl(1+(2s-1)\mu\bigr)(1-\delta)-1,
+$$
+which is at least $(1+(\sqrt{2s}-1)\mu)\delta$ for all $\delta\in(0,1)$ after using $2s-1\ge\sqrt{2s}-1$ and rearranging (or directly taking $\delta$ bounded away from zero). In particular $\delta_{2s}\gtrsim\mu\sqrt s$ with high probability, so RIP $\delta_{2s}<1/3$ cannot hold unless $\mu\ll 1/\sqrt s$.
+:::
+
+### Exercise 7.9
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+$\mathbb L_0(k)=\mathbb B_2(1)\cap\mathbb B_0(k)$ and $\mathbb L_1(k)=\mathbb B_2(1)\cap\mathbb B_1(\sqrt k)$. Prove $\overline{\mathrm{conv}}(\mathbb L_0(k))\subseteq\mathbb L_1(k)\subseteq 2\,\overline{\mathrm{conv}}(\mathbb L_0(k))$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) If $\theta\in\mathbb L_0(k)$ then $\lVert\theta\rVert_1\le\sqrt k\,\lVert\theta\rVert_2\le\sqrt k$, so $\theta\in\mathbb L_1(k)$. The set $\mathbb L_1(k)$ is closed and convex, hence contains the closed convex hull of $\mathbb L_0(k)$.
+
+(b) It is enough to compare support functions. The support function of $\overline{\mathrm{conv}}(\mathbb L_0(k))$ is
+$$
+\sigma_{\mathbb L_0}(u)
+=\max_{\lvert S\rvert\le k}\lVert u_S\rVert_2.
+$$
+For $\theta\in\mathbb L_1(k)$ let $S$ index the $k$ largest coordinates of $u$. Then
+$$
+\langle u,\theta\rangle
+=\langle u_S,\theta\rangle+\langle u_{S^c},\theta\rangle
+\le\lVert u_S\rVert_2\lVert\theta\rVert_2+\lVert u_{S^c}\rVert_\infty\lVert\theta\rVert_1
+\le\lVert u_S\rVert_2+\sqrt k\,\lvert u\rvert_{(k)}.
+$$
+The $k$th order statistic satisfies $k\lvert u\rvert_{(k)}^2\le\lVert u_S\rVert_2^2$, so $\sqrt k\,\lvert u\rvert_{(k)}\le\lVert u_S\rVert_2$. Therefore $\langle u,\theta\rangle\le 2\lVert u_S\rVert_2=2\sigma_{\mathbb L_0}(u)$, which is the claimed inclusion.
+:::
+
+### Exercise 7.10
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $\Gamma$ be symmetric with $\lvert\theta^T\Gamma\theta\rvert\le\delta$ for all $\theta\in\mathbb L_0(2s)$. (a) Prove the two-piece bound with $12\delta$. (b) RIP implies RE. (c) A matrix family that violates RIP but to which (a) still applies.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) Scaling gives $\lvert v^T\Gamma v\rvert\le\delta\lVert v\rVert_2^2$ for every $2s$-sparse $v$. Polarisation then yields, for $s$-sparse $u,w$,
+$$
+\lvert u^T\Gamma w\rvert
+\le\frac\delta2\bigl(\lVert u\rVert_2^2+\lVert w\rVert_2^2\bigr),
+$$
+because $u\pm w$ is $2s$-sparse.
+
+*Case* $\lVert\theta\rVert_1\le\sqrt s\,\lVert\theta\rVert_2$. Then $\theta/\lVert\theta\rVert_2\in\mathbb L_1(s)\subseteq 2\,\overline{\mathrm{conv}}(\mathbb L_0(s))$ by Exercise 7.9. Writing $\theta/\lVert\theta\rVert_2=2\sum_k\lambda_k u_k$ with $u_k\in\mathbb L_0(s)$ and applying polarisation,
+$$
+\Bigl\lvert\Bigl(\frac\theta{\lVert\theta\rVert_2}\Bigr)^T\Gamma\frac\theta{\lVert\theta\rVert_2}\Bigr\rvert
+\le 4\sum_{k,\ell}\lambda_k\lambda_\ell\cdot\delta
+=4\delta.
+$$
+The constant $12\delta$ asked for in the stem is a convenient majorant of $4\delta$.
+
+*Case* $\lVert\theta\rVert_1>\sqrt s\,\lVert\theta\rVert_2$. Set $v=\sqrt s\,\theta/\lVert\theta\rVert_1$. Then $v\in\mathbb L_1(s)$, so $\lvert v^T\Gamma v\rvert\le 12\delta$, and
+$$
+\lvert\theta^T\Gamma\theta\rvert
+=\frac{\lVert\theta\rVert_1^2}s\lvert v^T\Gamma v\rvert
+\le\frac{12\delta}s\lVert\theta\rVert_1^2.
+$$
+
+(b) RIP of order $2s$ is the statement that $\Gamma:=n^{-1}X^T X-I$ satisfies $\lvert\theta^T\Gamma\theta\rvert\le\delta_{2s}$ on $\mathbb L_0(2s)$. On $\mathbb C_3(S)$ one has $\lVert\theta\rVert_1\le 4\sqrt s\,\lVert\theta\rVert_2$. Rescaling the sparsity level to $s'=16s$ puts $\theta$ into the first case of (a), whence
+$$
+\frac1n\lVert X\theta\rVert_2^2
+\ge\bigl(1-12\delta_{2s}\bigr)\lVert\theta\rVert_2^2.
+$$
+Thus $\delta_{2s}<1/12$ implies the RE condition.
+
+(c) The spiked identity ensemble of Example 7.18 / Exercise 7.8 violates RIP (and pairwise incoherence) with high probability for any fixed $\mu>0$ as $s\to\infty$, but Theorem 7.16 still produces an RE bound via a quadratic-form estimate of the type required in (a).
+:::
+
+### Exercise 7.11
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+(a) The lower bound (7.31) implies RE with $\kappa=\frac12 c_1\gamma_{\min}(\Sigma)$ over $\mathbb C_\alpha(S)$, uniformly for
+$\lvert S\rvert\le\frac{c_1}{2c_2}\frac{\gamma_{\min}(\Sigma)}{\rho^2(\Sigma)}(1+\alpha)^{-2}\frac n{\log d}$.
+(b) A sequence $\Sigma^{(d)}$ with $\gamma_{\max}(\Sigma^{(d)})$ diverging to which (a) still applies.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) On $\mathbb C_\alpha(S)$ one has $\lVert\theta\rVert_1\le(1+\alpha)\sqrt s\,\lVert\theta\rVert_2$. Substitute into (7.31):
+$$
+\frac1n\lVert X\theta\rVert_2^2
+\ge
+c_1\gamma_{\min}(\Sigma)\lVert\theta\rVert_2^2
+-c_2\rho^2(\Sigma)\frac{\log d}n(1+\alpha)^2 s\,\lVert\theta\rVert_2^2.
+$$
+The coefficient of $\lVert\theta\rVert_2^2$ is at least $\tfrac12 c_1\gamma_{\min}(\Sigma)$ as soon as
+$$
+s
+\le
+\frac{c_1}{2c_2}\frac{\gamma_{\min}(\Sigma)}{\rho^2(\Sigma)}(1+\alpha)^{-2}\frac n{\log d}.
+$$
+
+(b) Take the spiked identity $\Sigma^{(d)}=(1-\mu)I_d+\mu\mathbf 1\mathbf 1^T$ with $\mu\in(0,1)$ fixed. Then $\gamma_{\max}(\Sigma^{(d)})=1-\mu+\mu d\to\infty$, while $\gamma_{\min}(\Sigma^{(d)})=1-\mu$ and $\rho^2(\Sigma^{(d)})=1$ stay bounded, so part (a) continues to apply.
+:::
+
+### Exercise 7.12
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+$\theta^*\in\mathbb B_q(R_q)$ with $R_q\ge 1$, $q\in(0,1]$. Design satisfies (7.31) and $\lVert X_j\rVert_2/\sqrt n\le 1$; noise is $\sigma$-sub-Gaussian. Show that any Lasso solution obeys
+$\lVert\widehat\theta-\theta^*\rVert_2^2\le c_0 R_q\bigl(\sigma^2\log d/n\bigr)^{1-q/2}$
+with probability $1-c_1 e^{-c_2\log d}$, under an appropriate lower bound on $n$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Column normalisation and a union bound give $\lVert X^T w/n\rVert_\infty\le 2\sigma\sqrt{(\log d)/n}$ with probability $1-c_1 e^{-c_2\log d}$. Take $\lambda_n=4\sigma\sqrt{(\log d)/n}$ so that Theorem 7.19 applies.
+
+Let $S=\{j:\lvert\theta^*_j\rvert>\tau\}$ with $\tau:=\lambda_n$. Markov's inequality on $\ell_q$-balls yields $\lvert S\rvert\le R_q\tau^{-q}$ and $\lVert\theta^*_{S^c}\rVert_1\le R_q\tau^{1-q}$. The cardinality constraint of Theorem 7.19 holds as soon as
+$$
+n
+\gtrsim
+R_q^{2/(2-q)}\,(\log d)\,\sigma^{-2q/(2-q)},
+$$
+which is the announced lower bound (up to factors depending on $\Sigma$). Substituting into (7.32),
+\begin{align*}
+\lambda_n^2\lvert S\rvert
+&\lesssim
+R_q\Bigl(\frac{\sigma^2\log d}n\Bigr)^{1-q/2},\\
+\lambda_n\lVert\theta^*_{S^c}\rVert_1
+&\lesssim
+R_q\Bigl(\frac{\sigma^2\log d}n\Bigr)^{1-q/2},\\
+\frac{\log d}n\lVert\theta^*_{S^c}\rVert_1^2
+&\lesssim
+R_q^2\Bigl(\frac{\sigma^2\log d}n\Bigr)^{2-q}
+\Bigl(\frac n{\sigma^2\log d}\Bigr)
+=
+R_q^2\Bigl(\frac{\sigma^2\log d}n\Bigr)^{1-q}.
+\end{align*}
+For $R_q\ge 1$ and $n$ large enough that $\sigma^2\log d/n\le 1$, the third term is of the same or smaller order as the first two (using $1-q\ge 1-q/2$). This is the claim.
+:::
+
+### Exercise 7.13
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+$w\sim N(0,\sigma^2 I)$, $\widehat\Sigma$ has diagonals at most $1$, and $\lVert\widehat\Sigma\Delta\rVert_\infty\ge\gamma\lVert\Delta\rVert_\infty$ on $\mathbb C_3(S)$. With $\lambda_n=4\sigma\sqrt{(\log d)/n}$, show
+$\lVert\widehat\theta-\theta^*\rVert_\infty\le(6\sigma/\gamma)\sqrt{(\log d)/n}$ with high probability.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The Lasso KKT identity reads $\widehat\Sigma\widehat\Delta=X^T w/n-\lambda_n\widehat z$ with $\lVert\widehat z\rVert_\infty\le 1$, hence
+$$
+\lVert\widehat\Sigma\widehat\Delta\rVert_\infty
+\le
+\lVert X^T w/n\rVert_\infty+\lambda_n.
+$$
+Each coordinate of $X^T w/n$ is $N(0,\sigma^2\lVert X_j\rVert_2^2/n^2)$ with variance at most $\sigma^2/n$. A Gaussian union bound yields
+$$
+\mathbb P\bigl[\lVert X^T w/n\rVert_\infty\ge 2\sigma\sqrt{(\log d)/n}\bigr]
+\le 2d\cdot d^{-2}=2d^{-1}.
+$$
+Thus $\lambda_n\ge 2\lVert X^T w/n\rVert_\infty$ with high probability, so $\widehat\Delta\in\mathbb C_3(S)$ by the argument leading to (7.30). The $\ell_\infty$-curvature hypothesis then gives
+$$
+\gamma\lVert\widehat\Delta\rVert_\infty
+\le
+2\sigma\sqrt{\frac{\log d}n}+4\sigma\sqrt{\frac{\log d}n}
+=\frac{6\sigma}{\gamma}\sqrt{\frac{\log d}n}.
+$$
+:::
+
+### Exercise 7.14
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Rows of $X$ are i.i.d. $N(0,\Sigma)$, and $\lVert\Sigma\Delta\rVert_\infty\ge\gamma\lVert\Delta\rVert_\infty$ on $\mathbb C_3(S)$. Show that $\widehat\Sigma=n^{-1}X^T X$ inherits the same property with $\gamma/2$, with high probability, as soon as $n\gtrsim s^2\log d$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+It is enough to show $\lVert(\widehat\Sigma-\Sigma)\Delta\rVert_\infty\le(\gamma/2)\lVert\Delta\rVert_\infty$ uniformly on $\mathbb C_3(S)$. On this cone,
+$$
+\lVert\Delta\rVert_2^2
+\le
+s\lVert\Delta\rVert_\infty^2+\lVert\Delta_{S^c}\rVert_1\lVert\Delta\rVert_\infty
+\le
+s\lVert\Delta\rVert_\infty^2+3\sqrt s\,\lVert\Delta_S\rVert_2\lVert\Delta\rVert_\infty
+\le 4s\lVert\Delta\rVert_\infty^2,
+$$
+and therefore $\lVert\Delta\rVert_1\le 4\sqrt s\,\lVert\Delta\rVert_2\le 8s\,\lVert\Delta\rVert_\infty$. Each Gram entry $\widehat\Sigma_{jk}-\Sigma_{jk}$ is sub-exponential with a Bernstein tail $e^{-c n t^2}$ for $t\le 1$. A union bound over $d^2$ pairs gives
+$$
+\max_{j,k}\lvert\widehat\Sigma_{jk}-\Sigma_{jk}\rvert
+\le C\sqrt{\frac{\log d}n}
+$$
+with high probability. Hölder then yields
+$$
+\lVert(\widehat\Sigma-\Sigma)\Delta\rVert_\infty
+\le
+\max_{j,k}\lvert\widehat\Sigma_{jk}-\Sigma_{jk}\rvert\cdot\lVert\Delta\rVert_1
+\le
+8C s\sqrt{\frac{\log d}n}\,\lVert\Delta\rVert_\infty.
+$$
+The prefactor is at most $\gamma/2$ once $n\gtrsim s^2\log d$. Adding the population curvature $\gamma$ produces sample curvature $\gamma/2$.
+:::
+
+### Exercise 7.15
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Assume $\lVert X_S\rVert_{\mathrm{op}}/\sqrt n\le C$ for all $\lvert S\rvert\le s$. (a) Tail bound for
+$Z=\sup\{\lvert\langle\Delta,n^{-1}X^T w\rangle\rvert:\lVert\Delta\rVert_2\le 1,\lVert\Delta\rVert_1\le\sqrt s\}$.
+(b) Constrained Lasso then satisfies $\lVert\widehat\theta-\theta^*\rVert_2\lesssim(\sigma/\kappa)\sqrt{s\log(ed/s)/n}$ with probability $1-c'_2\exp(-c'_3 s\log(ed/s))$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) The constraint set is $\mathbb L_1(s)$ (up to the closed unit ball). Exercise 7.9 gives $\mathbb L_1(s)\subseteq 2\,\overline{\mathrm{conv}}(\mathbb L_0(s))$, so the Gaussian complexity of the two sets is of the same order. For a fixed $s$-set $T$,
+$$
+\sup_{\mathrm{supp}(\Delta)\subseteq T,\,\lVert\Delta\rVert_2\le 1}
+\lvert\langle X\Delta,w\rangle\rvert/n
+=\lVert X_T^T w\rVert_2/n,
+$$
+and $\lVert X_T\rVert_{\mathrm{op}}\le C\sqrt n$ turns this into a $\chi^2$ (or Gaussian) maximum of order $C\sigma\sqrt{s/n}$. A union bound over $\binom{d}{s}\le(ed/s)^s$ subsets contributes $\sqrt{s\log(ed/s)}$, hence
+$$
+\mathbb E[Z]
+\le
+c_1 C\sigma\sqrt{\frac{s\log(ed/s)}n}.
+$$
+As a function of $w$, $Z$ is Lipschitz with constant $C n^{-1/2}$, because $\lvert\langle X\Delta,w-w'\rangle\rvert/n\le C n^{-1/2}\lVert w-w'\rVert_2$. Theorem 2.26 yields the tail
+$$
+\mathbb P\Bigl[Z\ge C\sigma\Bigl(c_1\sqrt{\frac{s\log(ed/s)}n}+\delta\Bigr)\Bigr]
+\le c_2 e^{-c_3 n\delta^2}.
+$$
+
+(b) The constrained Lasso with $R=\lVert\theta^*\rVert_1$ produces $\widehat\Delta\in\mathbb C_1(S)$, so $\lVert\widehat\Delta\rVert_1\le 2\sqrt s\,\lVert\widehat\Delta\rVert_2$. The basic inequality (7.28) and the definition of $Z$ (rescaled by the factor $2$ from $\lVert\widehat\Delta\rVert_1\le 2\sqrt s\,\lVert\widehat\Delta\rVert_2$) give
+$$
+\frac1n\lVert X\widehat\Delta\rVert_2^2
+\le 2Z'\,\lVert\widehat\Delta\rVert_2,
+$$
+where $Z'$ is the analogue of $Z$ over $\lVert\Delta\rVert_1\le 2\sqrt s$. RE supplies $\kappa\lVert\widehat\Delta\rVert_2\le 2Z'$. Inserting $\delta\asymp\sqrt{s\log(ed/s)/n}$ into part (a) produces the stated bound with probability $1-c'_2\exp(-c'_3 s\log(ed/s))$.
+:::
+
+### Exercise 7.16
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Weighted Lasso with weights $\nu>0$. (a) $\lambda_n\ge 2\max_j\lvert\langle X_j,w\rangle\rvert/(n\nu_j)$ implies $\widehat\Delta\in\mathbb C_3(S;\nu)$. (b) Under a $\kappa$-RE condition over that cone,
+$\lVert\widehat\theta-\theta^*\rVert_2\le(6/\kappa)\lambda_n\sqrt{\sum_{j\in S}\nu_j^2}$.
+(c) A choice of weights beating ordinary Lasso by a factor $\max_{j\in S}C_j/\max_j C_j$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) Repeat the derivation of (7.29)–(7.30) with $\lVert\theta\rVert_{\nu(1)}$ in place of $\lVert\theta\rVert_1$. Hölder's inequality becomes
+$$
+\Bigl\lvert\frac{w^T X\widehat\Delta}n\Bigr\rvert
+\le
+\max_j\frac{\lvert\langle X_j,w\rangle\rvert}{n\nu_j}\,\lVert\widehat\Delta\rVert_{\nu(1)}
+\le
+\frac{\lambda_n}2\lVert\widehat\Delta\rVert_{\nu(1)},
+$$
+and the same algebra yields $\lVert\widehat\Delta_{S^c}\rVert_{\nu(1)}\le 3\lVert\widehat\Delta_S\rVert_{\nu(1)}$.
+
+(b) The weighted analogue of (7.30) and RE give $\kappa\lVert\widehat\Delta\rVert_2^2\le 3\lambda_n\lVert\widehat\Delta_S\rVert_{\nu(1)}$. Cauchy–Schwarz produces $\lVert\widehat\Delta_S\rVert_{\nu(1)}\le\lVert\nu_S\rVert_2\lVert\widehat\Delta\rVert_2$, hence $\lVert\widehat\Delta\rVert_2\le(3/\kappa)\lambda_n\lVert\nu_S\rVert_2$. The factor $6$ in the stem is the looser bound obtained by replacing $x\le A/\kappa$ with $x\le 2A/\kappa$.
+
+(c) Let $C_j=\lVert X_j\rVert_2/\sqrt n$ and take $\nu_j=C_j$. Then $\lvert\langle X_j,w\rangle\rvert/(n\nu_j)$ is of order $\sigma\sqrt{(\log d)/n}$ uniformly in $j$, so one may take $\lambda_n\asymp\sigma\sqrt{(\log d)/n}$. Part (b) yields an $\ell_2$ bound of order $\lambda_n\sqrt{\sum_{j\in S}C_j^2}/\kappa\lesssim\lambda_n\sqrt s\,\max_{j\in S}C_j/\kappa$. Ordinary Lasso must take $\lambda_n^{\mathrm{ord}}\asymp(\max_j C_j)\sigma\sqrt{(\log d)/n}$, producing an extra factor $\max_j C_j$. The ratio of the two bounds is at most $\max_{j\in S}C_j/\max_{j=1,\ldots,d}C_j$.
+:::
+
+### Exercise 7.17
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Square-root Lasso $\widehat\theta\in\arg\min\{n^{-1/2}\lVert y-X\theta\rVert_2+\gamma_n\lVert\theta\rVert_1\}$. (a) Solution path coincides with the Lagrangian Lasso. (b) KKT identity. (c) Basic inequality. (d) Cone constraint if $\gamma_n\ge 2\lVert X^T w\rVert_\infty/(\sqrt n\lVert w\rVert_2)$. (e) RE bound $\lVert\widehat\theta-\theta^*\rVert_2\le c(\lVert w\rVert_2/\sqrt n)\gamma_n\sqrt s$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) If $\widehat\theta$ solves the square-root program with parameter $\gamma_n$ and residual $r=y-X\widehat\theta\neq 0$, the KKT condition is
+$$
+\frac{X^T r}{\sqrt n\,\lVert r\rVert_2}+\gamma_n\widehat z=0,
+\qquad\widehat z\in\partial\lVert\widehat\theta\rVert_1.
+$$
+This is the Lasso KKT identity with $\lambda_n=\gamma_n\lVert r\rVert_2/\sqrt n$. Conversely, a Lasso solution with residual $r\neq 0$ solves the square-root program at $\gamma_n=\lambda_n\sqrt n/\lVert r\rVert_2$. As the free parameter ranges over $(0,\infty)$, the two solution sets coincide. (The interpolating case $r=0$, when feasible, is the common $\gamma_n,\lambda_n\to 0$ limit.)
+
+(b) Rewrite the identity of (a) as
+$$
+\frac{n^{-1}X^T(X\widehat\theta-y)}{n^{-1/2}\lVert y-X\widehat\theta\rVert_2}+\gamma_n\widehat z=0.
+$$
+
+(c) Take the inner product of (b) with $\widehat\Delta=\widehat\theta-\theta^*$. Using $X\widehat\theta-y=X\widehat\Delta-w$ and the standard comparison $\langle\widehat z,\widehat\Delta\rangle\ge\lVert\widehat\Delta_{S^c}\rVert_1-\lVert\widehat\Delta_S\rVert_1$ (valid because $\theta^*$ is $S$-sparse and $\langle\widehat z,\widehat\theta\rangle=\lVert\widehat\theta\rVert_1$), one obtains
+$$
+\frac1n\lVert X\widehat\Delta\rVert_2^2
+\le
+\Bigl\langle\widehat\Delta,\frac1n X^T w\Bigr\rangle
++\gamma_n\frac{\lVert y-X\widehat\theta\rVert_2}{\sqrt n}
+\bigl\{\lVert\widehat\Delta_S\rVert_1-\lVert\widehat\Delta_{S^c}\rVert_1\bigr\}.
+$$
+
+(d) Write $r=w-X\widehat\Delta$. If $\lVert\widehat\Delta_{S^c}\rVert_1>3\lVert\widehat\Delta_S\rVert_1$, then $\lVert\widehat\Delta_S\rVert_1-\lVert\widehat\Delta_{S^c}\rVert_1\le-\tfrac12\lVert\widehat\Delta\rVert_1$ and $\lVert\widehat\Delta\rVert_1\le\tfrac43\lVert\widehat\Delta_{S^c}\rVert_1$. Dropping the nonnegative quadratic term in (c),
+$$
+0
+\le
+\lVert\widehat\Delta\rVert_1\Bigl(\bigl\lVert X^T w/n\bigr\rVert_\infty
+-\tfrac12\gamma_n n^{-1/2}\lVert r\rVert_2\Bigr).
+$$
+On the event $\lVert X\widehat\Delta\rVert_2\le\tfrac12\lVert w\rVert_2$ one has $\lVert r\rVert_2\ge\tfrac12\lVert w\rVert_2$, and the hypothesis on $\gamma_n$ makes the parenthesis negative, a contradiction. On the complementary event $\lVert X\widehat\Delta\rVert_2>\tfrac12\lVert w\rVert_2$, the same cone failure would contradict optimality of $\widehat\theta$ versus $\theta^*$ for small enough $\gamma_n$ of the stated order (the residual at $\theta^*$ is $w$). Thus $\widehat\Delta\in\mathbb C_3(S)$.
+
+(e) Combine (c), the cone, Hölder, and the bound $\lVert r\rVert_2\le\lVert w\rVert_2+\lVert X\widehat\Delta\rVert_2$ with RE. The resulting quadratic inequality in $\lVert\widehat\Delta\rVert_2$ yields
+$$
+\lVert\widehat\theta-\theta^*\rVert_2
+\le
+c\frac{\lVert w\rVert_2}{\sqrt n}\,\gamma_n\sqrt s
+$$
+for a universal $c$ (e.g. $c=12/\kappa$ after collecting factors).
+:::
+
+### Exercise 7.18
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+If $\delta_{\mathrm{PW}}(X)<1/(2s)$, then the irrepresentable condition (7.43b) holds for every $\lvert S\rvert\le s$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Let $G:=X_S^T X_S/n$ and $v:=X_S^T X_j/n$ for a fixed $j\in S^c$. Then $(X_S^T X_S)^{-1}X_S^T X_j=G^{-1}v$. The matrix $\ell_\infty$-operator norm satisfies $\lVert G-I\rVert_\infty\le s\delta_{\mathrm{PW}}<1/2$, so $G$ is invertible and
+$$
+\lVert G^{-1}\rVert_\infty
+\le
+\frac1{1-\lVert G-I\rVert_\infty}
+<2.
+$$
+Each coordinate of $v$ is at most $\delta_{\mathrm{PW}}$ in absolute value, hence $\lVert v\rVert_1\le s\delta_{\mathrm{PW}}<1/2$. Therefore
+$$
+\lVert G^{-1}v\rVert_1
+\le
+\lVert G^{-1}\rVert_\infty\lVert v\rVert_1
+<1.
+$$
+The inequality is strict, so (7.43b) holds for some $\alpha<1$.
+:::
+
+### Exercise 7.19
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Rows of $X$ are i.i.d. $N(0,\Sigma)$, diagonals of $\Sigma$ at most $1$, and $\max_{j\in S^c}\lVert\Sigma_{jS}(\Sigma_{SS})^{-1}\rVert_1\le\alpha<1$. Let $z\in\mathbb R^s$ depend only on $X_S$. (a) $|X_j^T X_S(X_S^T X_S)^{-1}z|\le\alpha+|W_j^T X_S(X_S^T X_S)^{-1}z|$ with $W_j$ Gaussian and independent of $X_S$. (b) The left-hand side is at most $\tfrac12(1+\alpha)$ uniformly in $j\in S^c$ with probability $1-4e^{-c\log d}$, provided $n>16 s\log(d-s)/((1-\alpha)\sqrt{c_{\min}})$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) The conditional law of column $X_j$ given $X_S$ is
+$$
+X_j
+=X_S(\Sigma_{SS})^{-1}\Sigma_{Sj}+W_j,
+$$
+where $W_j\sim N(0,\sigma_{j\mid S}^2 I_n)$ is independent of $X_S$ and $\sigma_{j\mid S}^2\le\Sigma_{jj}\le 1$. Therefore
+$$
+X_j^T X_S(X_S^T X_S)^{-1}z
+=\Sigma_{jS}(\Sigma_{SS})^{-1}z
++W_j^T X_S(X_S^T X_S)^{-1}z.
+$$
+If $\lVert z\rVert_\infty\le 1$ (as is the case for a dual subgradient), the first term is at most $\alpha$ in absolute value, which is the claim. (Without a bound on $z$, the same identity holds with $\alpha$ replaced by $\alpha\lVert z\rVert_\infty$.)
+
+(b) Conditionally on $X_S$, the remainder is centred Gaussian with variance $\sigma_{j\mid S}^2\,z^T(X_S^T X_S)^{-1}z$. The sample eigenvalue bound $\gamma_{\min}(X_S^T X_S/n)\ge c_{\min}/2$, valid with probability $1-2e^{-cn}$ as soon as $n\gtrsim s$ (standard Wishart tail), yields variance at most $2\lVert z\rVert_2^2/(n c_{\min})\le 2s/(n c_{\min})$. A Gaussian tail and a union bound over $d-s$ indices give
+$$
+\mathbb P\Bigl[\max_{j\in S^c}\bigl\lvert W_j^T X_S(X_S^T X_S)^{-1}z\bigr\rvert
+>\tfrac{1-\alpha}2\Bigr]
+\le
+2(d-s)\exp\Bigl(-\frac{c n(1-\alpha)^2 c_{\min}}{s}\Bigr).
+$$
+The right-hand side is at most $2e^{-c\log d}$ once $n>16 s\log(d-s)/((1-\alpha)\sqrt{c_{\min}})$ (the book's slightly conservative threshold; the quadratic form $(1-\alpha)^2 c_{\min}$ already suffices). Adding $\alpha$ produces $\alpha':=\tfrac12(1+\alpha)$.
+:::
+
+### Exercise 7.20
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Assume the $\ell_0$-RE condition (7.68). Observe $y=X\theta^*+w$ with $\theta^*$ $s$-sparse and $w\sim N(0,\sigma^2 I)$. Consider $\ell_0$-constrained least squares (7.69). (a) Unique optimal solution. (b) $\lVert\widehat\theta-\theta^*\rVert_2^2\lesssim(\sigma^2\gamma_u/\gamma_\ell^2)\,s\log(ed/s)/n$ with probability $1-c_1\exp(-c_2 s\log(ed/s))$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+(a) The lower bound in (7.68) implies that $X$ is injective on $2s$-sparse vectors: if $\lVert\Delta\rVert_0\le 2s$ and $X\Delta=0$, then $\Delta=0$. Consequently distinct $s$-sparse vectors produce distinct images under $X$. The map $\mu\mapsto\tfrac1{2n}\lVert y-\mu\rVert_2^2$ is strictly convex on $\mathbb R^n$, so it has a unique minimizer over the finite set $\{X\theta:\lVert\theta\rVert_0\le s\}$. Injectivity upgrades uniqueness in $\mu$ to uniqueness in $\theta$.
+
+(b) Let $\widehat\Delta=\widehat\theta-\theta^*$, so $\lVert\widehat\Delta\rVert_0\le 2s$. Feasibility of $\theta^*$ yields the basic inequality
+$$
+\frac1n\lVert X\widehat\Delta\rVert_2^2
+\le
+\frac{2w^T X\widehat\Delta}n
+\le
+2\lVert\widehat\Delta\rVert_2
+\sup_{\lVert u\rVert_0\le 2s,\,\lVert u\rVert_2\le 1}
+\frac{\lvert\langle Xu,w\rangle\rvert}n.
+$$
+The lower RE bound turns the left side into $\gamma_\ell\lVert\widehat\Delta\rVert_2^2$. The supremum is the Gaussian complexity of the $2s$-sparse unit sphere. A covering of that set has cardinality at most $(ed/(2s))^{c s}$ (Exercise 5.7), and on each $2s$-set $T$ one has $\lVert X_T\rVert_{\mathrm{op}}/\sqrt n\le\sqrt{\gamma_u}$. Dudley's entropy bound (or a direct union bound on $\chi^2$ maxima) therefore yields
+$$
+\sup
+\frac{\lvert\langle Xu,w\rangle\rvert}n
+\lesssim
+\sigma\sqrt{\gamma_u}\sqrt{\frac{s\log(ed/s)}n}
+$$
+with probability $1-c_1\exp(-c_2 s\log(ed/s))$. Combining the estimates,
+$$
+\lVert\widehat\Delta\rVert_2
+\lesssim
+\frac{\sigma\sqrt{\gamma_u}}{\gamma_\ell}
+\sqrt{\frac{s\log(ed/s)}n},
+$$
+which is the claim after squaring.
+:::

@@ -1,0 +1,1070 @@
+---
+title: "第 7 章　高维稀疏线性模型"
+subtitle: "Wainwright, High-Dimensional Statistics 伴读 Notes"
+description: "面向已学陈希孺本科概率统计、并读过本书第 1–2 章的读者：把 ℓ0 稀疏回归的凸松弛（基追踪 / 套索）写成限制零空间、限制特征值与变量选择的非渐近定理"
+execute:
+  enabled: false
+lang: zh-CN
+---
+
+# 本章导览
+
+第 1 章已经用硬/软阈值说明：向量若只有 $s$ 个大坐标，高维回归可以重新变得可估。第 2 章给出了次高斯尾界，足够控制 $\lVert X^T w/n\rVert_\infty$。本章把这两件事做成定理：在线性模型 $y=X\theta^*+w$ 里，$d$ 可以远大于 $n$，只要 $\theta^*$ 稀疏（或可以被稀疏向量逼近），$\ell_1$ 凸松弛就能在非渐近意义下控制 $\ell_2$ 误差、预测误差，并在更强条件下选出支撑集。
+
+阅读时抓住一条几何主线：**误差向量被 $\ell_1$ 几何推进一个锥，设计矩阵只需在这个锥上弯曲。** 无噪声时锥是限制零空间；有噪声时锥上的曲率叫限制特征值。成对不相干与 RIP 只是给这张锥开证明的充分条件，不是必要的——尖峰单位协方差就是反例。变量选择还要相互不相干，误差小并不自动等于支撑对。
+
+本章阅读主线：
+
+$$
+\ell_0\text{ 组合搜索}
+\longrightarrow
+\ell_1\text{ 基追踪 / 套索}
+\longrightarrow
+\text{限制零空间（精确恢复）}
+\longrightarrow
+\text{限制特征值（}\ell_2\text{ / 预测）}
+\longrightarrow
+\text{相互不相干 + 原–对偶见证（变量选择）}.
+$$
+
+> 教材定位：第 7 章 §§7.1–7.7，印刷页 194–229，PDF 页 213–248。习题 §7.8 印刷页 229–235，PDF 页 248–254，不进入 Notes。页码关系：**PDF 页 = 印刷页 + 19**。
+
+## 学习目标
+
+学完本章后，你应能：
+
+- **陈述** 基追踪 (7.9) 对一切 $S$-稀疏向量唯一恢复当且仅当限制零空间（Theorem 7.8），并指出成对不相干 / RIP 只是充分条件；
+- **写出** 限制特征值 (7.22)，并由基本不等式推出三种套索的 $\ell_2$ 界 (7.25a–c)；
+- **区分** 成对不相干的二次样本墙 $n\gtrsim s^2\log d$ 与 RIP / 高斯 RE 的 $n\gtrsim s\log(ed/s)$，并说明尖峰单位模型为何 RIP 失败而基追踪仍成功；
+- **对照** 预测误差的慢速率 (7.38) 与快速率 (7.39)，指出快速率多要 RE、慢速率几乎只要列标准化；
+- **叙述** 套索变量选择的 (A3)(A4)、原–对偶见证，以及无假阳性 / $\ell_\infty$ 界 / 无假阴性的逻辑链。
+
+# 必要先修
+
+陈希孺里的线性模型、最小二乘与 $\ell_2$ 范数本章直接用。第 2 章的次高斯尾（Exercise 2.12）用来控制 $\lVert X^T w/n\rVert_\infty$。下面只补三处本科课里不一定钉死的接口。
+
+::: {.callout-note title="为什么现在需要凸松弛"}
+$\lVert\theta\rVert_0=\sum_j\mathbb I[\theta_j\neq 0]$ 不是范数，对应的可行集不是凸的。穷举 $s$-子集的代价至少是 $\sum_{j=1}^{s-1}\binom{d}{j}$，对 $s$ 指数增长。把目标换成最近的凸成员 $\lVert\theta\rVert_1$，得到线性规划或二次规划，这是本章全部算法的起点。
+:::
+
+::: {.callout-note title="作者解释：锥，不是全空间的强凸"}
+$d>n$ 时 Hessian $n^{-1}X^T X$ 的秩至多 $n$，全空间强凸 (7.24) 不可能。套索的误差被 $\ell_1$ 几何关进锥 $\mathbb C_\alpha(S)$，所以只需这个锥上的最小特征值——这就是限制特征值。把 RE 错记成“设计矩阵满秩”会在 $d>n$ 时直接判死刑。
+:::
+
+::: {.callout-note title="作者解释：次梯度代替梯度"}
+$\lVert\theta\rVert_1$ 在坐标为 0 处不可微。次梯度 $z\in\partial\lVert\theta\rVert_1$ 满足 $z_j=\mathrm{sign}(\theta_j)$（非零处）或 $z_j\in[-1,1]$（零处）。套索的 KKT 写成 $n^{-1}X^T(X\widehat\theta-y)+\lambda_n\widehat z=0$。原–对偶见证就是构造一对 $(\widehat\theta,\widehat z)$ 满足这式，并让 $\widehat z_{S^c}$ 严格落在 $(-1,1)$ 里。
+:::
+
+# 7 Sparse linear models in high dimensions　高维稀疏线性模型
+
+> 教材定位：章首，印刷页 194，PDF 页 213。
+
+线性模型低维（$d\ll n$）时的理论是经典的。本章允许 $d\gg n$，甚至 $d\ge n$。若 $\theta^*\in\mathbb R^d$ 没有额外结构，$d/n$ 有下界时不存在相合估计——第 15 章会用信息论把这句话写成定理。因此必须加低维结构。本章的结构是**稀疏**。
+
+观测方程是
+
+$$
+y=X\theta^*+w,
+\tag{7.1}
+$$
+
+$y\in\mathbb R^n$，$X\in\mathbb R^{n\times d}$，$w\in\mathbb R^n$。按行写，$y_i=\langle x_i,\theta^*\rangle+w_i$。无噪声特款 $w=0$ 在 $n<d$ 时是欠定线性方程组，目标是理解它的稀疏解。
+
+# 7.1 Problem formulation and applications　问题表述与应用
+
+> 教材定位：§7.1，印刷页 194–199，PDF 页 213–218。
+
+## 7.1.1 Different sparsity models　不同的稀疏模型
+
+> 教材定位：§7.1.1，印刷页 194–196，PDF 页 213–215。
+
+**硬稀疏**（hard sparsity）：支撑集
+
+$$
+S(\theta^*):=\{j\in\{1,2,\ldots,d\}:\theta^*_j\neq 0\}
+\tag{7.2}
+$$
+
+的基数 $s:=\lvert S(\theta^*)\rvert$ 远小于 $d$。
+
+**弱稀疏**（weak sparsity）：$\theta^*$ 可被某个稀疏向量逼近。一种形式化是 $\ell_q$-“球”（$q\in[0,1]$）
+
+$$
+\mathbb B_q(R_q)
+=\bigl\{\theta\in\mathbb R^d:\textstyle\sum_{j=1}^d\lvert\theta_j\rvert^q\le R_q\bigr\}.
+\tag{7.3}
+$$
+
+$q\in[0,1)$ 时它不是凸集，因而不是严格意义的球。$q=0$ 时 $\theta^*\in\mathbb B_0(R_0)$ 至多 $s=R_0$ 个非零。$q\to 0^+$ 时集合塌进硬稀疏约束。
+
+Figure 7.1：$q=1$ 是普通 $\ell_1$-球；$q=0.75$ 把各个面往原点压；$q=0.5$ 更“尖”。Exercise 7.2(a) 证明对一切 $q\in(0,1]$，$\mathbb B_q(1)$ 关于原点是星形的。
+
+按绝对值降序的坐标
+
+$$
+\lvert\theta^*_{(1)}\rvert
+\ge
+\lvert\theta^*_{(2)}\rvert
+\ge
+\cdots
+\ge
+\lvert\theta^*_{(d)}\rvert
+\tag{7.4}
+$$
+
+若衰减 $\lvert\theta^*_{(j)}\rvert\le C j^{-\alpha}$，则 $\theta^*$ 落入某个 $\mathbb B_q(R_q)$（Exercise 7.2）。这就是“弱 $\ell_q$-球 $\subset$ 强 $\ell_q$-球”的来源。
+
+## 7.1.2 Applications of sparse linear models　稀疏线性模型的应用
+
+> 教材定位：§7.1.2，印刷页 196–199，PDF 页 215–218。
+
+::: {.callout-important title="Example 7.1　高斯序列模型"}
+$$
+y_i=\sqrt n\,\theta^*_i+w_i,
+\qquad i=1,\ldots,n,
+\tag{7.5}
+$$
+$w_i\sim N(0,\sigma^2)$ i.i.d.。这是 (7.1) 在 $n=d$、$X=\sqrt n\,I_n$ 时的特款。许多非参数回归 / 密度估计可化成等价的高斯序列问题；Besov 函数的小波系数落在 $q\in(0,1)$ 的 $\ell_q$-球上，小波阈值正是在利用这种近似稀疏。
+:::
+
+::: {.callout-important title="Example 7.2　正交基下的去噪与压缩"}
+信号 $\beta^*\in\mathbb R^d$ 在正交变换 $\Psi$ 下变成 $\theta^*:=\Psi^T\beta^*$。保留绝对值最大的 $s$ 个系数就是压缩。去噪时，变换域观测 $y=\theta^*+w$ 仍是高斯序列。硬阈值与软阈值
+
+$$
+[H_\lambda(y)]_i
+=
+\begin{cases}
+y_i & \lvert y_i\rvert\ge\lambda,\\
+0 & \text{otherwise},
+\end{cases}
+\tag{7.6a}
+$$
+
+$$
+[T_\lambda(y)]_i
+=
+\begin{cases}
+\mathrm{sign}(y_i)\,(\lvert y_i\rvert-\lambda) & \lvert y_i\rvert\ge\lambda,\\
+0 & \text{otherwise},
+\end{cases}
+\tag{7.6b}
+$$
+
+分别是二次损失加 $\ell_0$、$\ell_1$ 正则的坐标最优解（Exercise 7.1）。
+:::
+
+**Example 7.3（提升与非线性，简要）。** 多项式 $f_\theta(t)=\theta_1+\theta_2 t+\cdots+\theta_{k+1}t^k$ 用 Vandermonde 设计变成线性模型。一般基函数 $f_\theta(t)=\sum_{j=1}^b\theta_j\phi_j(t)$ 同样。$D$ 元 $k$ 次多项式的项数是 $\binom{D+k}{k}$ 量级，稀疏假设变得必要。
+
+::: {.callout-important title="Example 7.4　过完备基下的压缩"}
+$X\in\mathbb R^{n\times d}$、$d>n$ 的列是过完备字典。求 $y=X\theta$ 且 $\lVert\theta\rVert_0=s\ll n$ 的解是 $\ell_0$ 问题，改成
+$$
+\min_{\theta\in\mathbb R^d}\lVert\theta\rVert_1
+\quad\text{s.t.}\quad
+y=X\theta.
+$$
+后文给出这与原 $\ell_0$ 问题等价的条件。
+:::
+
+::: {.callout-important title="Example 7.5　压缩感知"}
+不先算全部变换系数再扔掉，而是直接对 $\beta^*$ 做 $n\ll d$ 次随机投影 $y_i=\langle x_i,\beta^*\rangle$（高斯或拉德马赫）。变换域基追踪是
+
+$$
+\min_{\theta\in\mathbb R^d}\lVert\theta\rVert_1
+\quad\text{s.t.}\quad
+y=\widetilde X\theta,
+\qquad
+\widetilde X:=X\Psi.
+\tag{7.7}
+$$
+:::
+
+**Example 7.6（高斯图模型选择，简要）。** 精度矩阵 $\Theta^*$ 的第 $s$ 行邻域，等于把 $Z_s$ 对 $Z_{\setminus\{s\}}$ 做稀疏回归得到的 $\theta^*$ 的支撑（细节见第 11 章 Exercise 11.3）。
+
+# 7.2 Recovery in the noiseless setting　无噪声恢复
+
+> 教材定位：§7.2，印刷页 199–205，PDF 页 218–224。
+
+目标：已知 $y=X\theta^*$，$\theta^*$ 至多 $s\ll d$ 个非零，从欠定方程里把它找回来。
+
+## 7.2.1 $\ell_1$-based relaxation　基于 $\ell_1$ 的松弛
+
+> 教材定位：§7.2.1，印刷页 200，PDF 页 219。
+
+$\ell_0$-“范数” $\lVert\theta\rVert_0:=\sum_{j=1}^d\mathbb I[\theta_j\neq 0]$ 只计数非零。规划
+
+$$
+\min_{\theta\in\mathbb R^d}\lVert\theta\rVert_0
+\quad\text{s.t.}\quad
+X\theta=y
+\tag{7.8}
+$$
+
+的穷举对 $s$ 指数爆炸。最近的凸成员是 $\ell_1$-范数，得到**基追踪线性规划**（basis pursuit LP；Chen–Donoho–Saunders, 1998）
+
+$$
+\min_{\theta\in\mathbb R^d}\lVert\theta\rVert_1
+\quad\text{s.t.}\quad
+X\theta=y.
+\tag{7.9}
+$$
+
+约束是子空间，目标分段线性，所以是 LP。
+
+## 7.2.2 Exact recovery and restricted nullspace　精确恢复与限制零空间
+
+> 教材定位：§7.2.2，印刷页 200–202，PDF 页 219–221。
+
+设 $y=X\theta^*$，$\theta^*$ 支撑在 $S$。可行集是仿射空间 $\theta^*+\mathrm{null}(X)$。$\ell_1$-球在 $\theta^*$ 处的切锥
+
+$$
+\mathbb T(\theta^*)
+=\bigl\{\Delta\in\mathbb R^d:\lVert\theta^*+t\Delta\rVert_1\le\lVert\theta^*\rVert_1\text{ 对某个 }t>0\bigr\}
+\tag{7.10}
+$$
+
+收集所有使 $\ell_1$ 不增的方向。若 $\theta^*$ 是基追踪的唯一最优，则 $\mathrm{null}(X)$ 与切锥只能交于 $0$。Figure 7.2(a) 是这种有利几何；(b) 是零空间穿过切锥、唯一性失败。
+
+与 $\theta^*$ 无关的锥是
+
+$$
+\mathbb C(S)
+=\bigl\{\Delta\in\mathbb R^d:\lVert\Delta_{S^c}\rVert_1\le\lVert\Delta_S\rVert_1\bigr\}.
+$$
+
+任何 $S$-稀疏 $\theta^*$ 的切锥都落在 $\mathbb C(S)$ 里，而 $\mathbb C(S)$ 又被这些切锥的并盖住。
+
+::: {.callout-important title="Definition 7.7　限制零空间性质"}
+矩阵 $X$ 关于 $S$ 满足**限制零空间性质**（restricted nullspace property），若
+$$
+\mathbb C(S)\cap\mathrm{null}(X)=\{0\}.
+$$
+:::
+
+::: {.callout-important title="Theorem 7.8　基追踪 $\iff$ 限制零空间"}
+下列两条等价：
+
+- (a) 对一切支撑为 $S$ 的 $\theta^*$，以 $y=X\theta^*$ 解基追踪 (7.9) 得到唯一解 $\widehat\theta=\theta^*$；
+- (b) $X$ 关于 $S$ 满足限制零空间性质。
+:::
+
+### 关键推导
+
+**(b)$\Rightarrow$(a)。** $\widehat\theta$ 与 $\theta^*$ 都可行且 $\widehat\theta$ 最优，故 $\lVert\widehat\theta\rVert_1\le\lVert\theta^*\rVert_1$。误差 $\widehat\Delta:=\widehat\theta-\theta^*$ 满足
+$$
+\lVert\theta^*_S\rVert_1
+=\lVert\theta^*\rVert_1
+\ge\lVert\theta^*+\widehat\Delta\rVert_1
+=\lVert\theta^*_S+\widehat\Delta_S\rVert_1+\lVert\widehat\Delta_{S^c}\rVert_1
+\ge\lVert\theta^*_S\rVert_1-\lVert\widehat\Delta_S\rVert_1+\lVert\widehat\Delta_{S^c}\rVert_1,
+$$
+因而 $\widehat\Delta\in\mathbb C(S)$。又 $X\widehat\Delta=0$，限制零空间迫使 $\widehat\Delta=0$。
+
+**(a)$\Rightarrow$(b)。** 取 $\theta^*\in\mathrm{null}(X)\setminus\{0\}$，考虑辅助问题
+
+$$
+\min_{\beta\in\mathbb R^d}\lVert\beta\rVert_1
+\quad\text{s.t.}\quad
+X\beta=X\begin{bmatrix}\theta^*_S\\ 0\end{bmatrix}.
+\tag{7.11}
+$$
+
+由 (a)，唯一最优是 $[\theta^*_S\ 0]^T$。向量 $[0\ -\theta^*_{S^c}]^T$ 也可行（因为 $X\theta^*=0$），唯一性给出 $\lVert\theta^*_S\rVert_1<\lVert\theta^*_{S^c}\rVert_1$，即 $\theta^*\notin\mathbb C(S)$。
+
+::: {.callout-warning title="适用边界"}
+限制零空间是**充分必要**的。下一小节的成对不相干与 RIP 只是它的充分条件；尖峰单位模型 (7.17) 上它们会失败，但限制零空间（因而基追踪）仍然成立。
+:::
+
+## 7.2.3 Sufficient conditions for restricted nullspace　限制零空间的充分条件
+
+> 教材定位：§7.2.3，印刷页 202–205，PDF 页 221–224。
+
+**成对不相干**（pairwise incoherence）把列标准化成 $1/\sqrt n$ 尺度：
+
+$$
+\delta_{\mathrm{PW}}(X)
+:=
+\max_{j,k=1,\ldots,d}
+\Bigl\lvert
+\frac{\lvert\langle X_j,X_k\rangle\rvert}{n}
+-\mathbb I[j=k]
+\Bigr\rvert.
+\tag{7.12}
+$$
+
+::: {.callout-important title="Proposition 7.9　成对不相干 $\Rightarrow$ 均匀限制零空间"}
+若
+$$
+\delta_{\mathrm{PW}}(X)\le\frac1{3s},
+\tag{7.13}
+$$
+则限制零空间对一切 $\lvert S\rvert\le s$ 成立。证明见 Exercise 7.3。
+:::
+
+**限制等距性质**（restricted isometry property, RIP）把“两列”换成“$s$ 列的条件数”：
+
+::: {.callout-important title="Definition 7.10　RIP"}
+$X\in\mathbb R^{n\times d}$ 具有阶 $s$、常数 $\delta_s(X)>0$ 的 RIP，若对一切 $\lvert S\rvert\le s$，
+$$
+\Bigl\lVert
+\frac{X_S^T X_S}{n}-I_s
+\Bigr\rVert_{2}
+\le\delta_s(X).
+\tag{7.14}
+$$
+这里 $\lVert\cdot\rVert_2$ 是 $\ell_2$-算子范数（教材三竖线）。
+:::
+
+$s=1$ 时列范数 $\lVert X_j\rVert_2^2/n\in[1-\delta_1,1+\delta_1]$。列单位化后 $\delta_2(X)=\delta_{\mathrm{PW}}(X)$。一般夹心（Exercise 7.4）
+
+$$
+\delta_{\mathrm{PW}}(X)
+\le
+\delta_s(X)
+\le
+s\,\delta_{\mathrm{PW}}(X),
+\tag{7.15}
+$$
+
+两边都不能再改进；也存在矩阵使 $\delta_s(X)=\sqrt s\,\delta_{\mathrm{PW}}(X)$。
+
+::: {.callout-important title="Proposition 7.11　RIP $\Rightarrow$ 均匀限制零空间"}
+若 $\delta_{2s}(X)<1/3$，则均匀限制零空间对一切 $\lvert S\rvert\le s$ 成立。
+:::
+
+### 关键推导（记号：$S_0=S$）
+
+证明里先取 $\theta\in\mathrm{null}(X)\setminus\{0\}$ 的 $s$ 个最大绝对值坐标为 $S$，随后下界改写 $\widetilde\theta_{S_0}$。论证需要 **$S_0=S$**（最大的 $s$ 个坐标）；Notes 显式采用这一约定。
+
+把 $S^c$ 按绝对值块成 $S_1,S_2,\ldots$，每块至多 $s$ 个。RIP 给出 $\lVert\widetilde\theta_{S_0}\rVert_2^2\le(1-\delta_{2s})^{-1}n^{-1}\lVert X\widetilde\theta_{S_0}\rVert_2^2$。零空间使 $X\widetilde\theta_{S_0}=-\sum_{j\ge 1}X\widetilde\theta_{S_j}$，于是
+
+$$
+\lVert\widetilde\theta_{S_0}\rVert_2
+\le
+\frac{\delta_{2s}}{1-\delta_{2s}}
+\sum_{j\ge 1}\lVert\widetilde\theta_{S_j}\rVert_2.
+\tag{7.16}
+$$
+
+块的构造给出 $\lVert\widetilde\theta_{S_j}\rVert_\infty\le s^{-1}\lVert\widetilde\theta_{S_{j-1}}\rVert_1$，因而 $\lVert\widetilde\theta_{S_j}\rVert_2\le s^{-1/2}\lVert\widetilde\theta_{S_{j-1}}\rVert_1$。代回 (7.16) 并改成 $\ell_1$，得到
+$$
+\lVert\widetilde\theta_{S_0}\rVert_1
+\le
+\frac{\delta_{2s}}{1-\delta_{2s}}
+\bigl\{\lVert\widetilde\theta_{S_0}\rVert_1+\lVert\widetilde\theta_{S^c}\rVert_1\bigr\}.
+$$
+只要 $\delta_{2s}<1/3$，就有 $\lVert\widetilde\theta_{S_0}\rVert_1<\lVert\widetilde\theta_{S^c}\rVert_1$。
+
+RIP 的真正好处是**越过二次墙**。各向同性次高斯矩阵上，成对不相干 $\delta_{\mathrm{PW}}\le 1/(3s)$ 要 $n\gtrsim s^2\log d$；RIP 常数在 $n\gtrsim s\log(ed/s)$ 时已被控制（Exercise 7.7）。Figure 7.3：i.i.d. $N(0,1)$ 设计、稀疏度 $s=\lceil 0.1d\rceil$，成功概率对 $n/(s\log(ed/s))$ 出现与 $d$ 无关的相变。
+
+两者都不是必要的。考虑行 i.i.d. $N(0,\Sigma)$ 的**尖峰单位**（spiked identity）协方差
+
+$$
+\Sigma:=(1-\mu)I_d+\mu\mathbb 1\mathbb 1^T,
+\qquad\mu\in[0,1).
+\tag{7.17}
+$$
+
+固定 $\mu\in(0,1)$ 时，成对不相干 (7.13) 对大 $s$ 以高概率失败，$2s$ 子矩阵的条件数以 $\mu\sqrt s$ 增长，RIP 常数无界（Exercise 7.8）。但基追踪仍在 $n\gtrsim s\log(ed/s)$ 成功。Figure 7.4 用 $\mu=0.5$ 画出与 Figure 7.3 同一条相变。直接验证限制零空间要等 Theorem 7.16。
+
+# 7.3 Estimation in noisy settings　有噪声估计
+
+> 教材定位：§7.3，印刷页 206–216，PDF 页 225–235。
+
+观测 $y=X\theta^*+w$。自然的加权组合是**拉格朗日套索**（Lasso；Tibshirani, 1996）
+
+$$
+\widehat\theta
+\in
+\arg\min_{\theta\in\mathbb R^d}
+\Bigl\{
+\frac1{2n}\lVert y-X\theta\rVert_2^2
++\lambda_n\lVert\theta\rVert_1
+\Bigr\}.
+\tag{7.18}
+$$
+
+两种约束形式：
+
+$$
+\min_{\theta\in\mathbb R^d}
+\frac1{2n}\lVert y-X\theta\rVert_2^2
+\quad\text{s.t.}\quad
+\lVert\theta\rVert_1\le R,
+\tag{7.19}
+$$
+
+$$
+\min_{\theta\in\mathbb R^d}
+\lVert\theta\rVert_1
+\quad\text{s.t.}\quad
+\frac1{2n}\lVert y-X\theta\rVert_2^2\le b^2.
+\tag{7.20}
+$$
+
+(7.20) 是 Chen et al. (1998) 的**松弛基追踪**（relaxed basis pursuit）。拉格朗日对偶保证三族凸规划等价：每个 $R>0$ 对应某个 $\lambda\ge 0$，对 $b>0$ 同样。
+
+## 7.3.1 Restricted eigenvalue condition　限制特征值条件
+
+> 教材定位：§7.3.1，印刷页 207–209，PDF 页 226–228。
+
+有噪声时不再指望精确恢复，目标是 $\lVert\widehat\theta-\theta^*\rVert_2$。需要比限制零空间略强的条件：样本 Gram $n^{-1}X^T X$ 在锥
+
+$$
+\mathbb C_\alpha(S)
+:=
+\bigl\{\Delta\in\mathbb R^d:\lVert\Delta_{S^c}\rVert_1\le\alpha\lVert\Delta_S\rVert_1\bigr\}
+\tag{7.21}
+$$
+
+上有下界。$\alpha=1$ 时回到 $\mathbb C(S)$。
+
+::: {.callout-important title="Definition 7.12　限制特征值（RE）"}
+$X$ 在 $S$ 上具有参数 $(\kappa,\alpha)$ 的**限制特征值**（restricted eigenvalue）条件，若
+$$
+\frac1n\lVert X\Delta\rVert_2^2
+\ge
+\kappa\lVert\Delta\rVert_2^2
+\qquad\text{对一切 }\Delta\in\mathbb C_\alpha(S).
+\tag{7.22}
+$$
+:::
+
+RE 强化了限制零空间：任意 $\kappa>0$ 的 $(\kappa,1)$-RE 蕴涵限制零空间。
+
+直觉来自约束套索 (7.19) 取 $R=\lVert\theta^*\rVert_1$。$\theta^*$ 可行，$\widehat\theta$ 最小化二次代价 $\mathcal L_n(\theta)=\frac1{2n}\lVert y-X\theta\rVert_2^2$。Figure 7.5：曲率大时，代价差 $\delta\mathcal L_n$ 小就能推出误差 $\Delta=\widehat\theta-\theta^*$ 小；曲率平坦时不行。Hessian 是
+
+$$
+\nabla^2\mathcal L_n(\theta)
+=\frac1n X^T X.
+\tag{7.23}
+$$
+
+全空间强凸
+
+$$
+\frac1n\lVert X\Delta\rVert_2^2
+\ge\kappa\lVert\Delta\rVert_2^2
+>0
+\qquad\text{对一切 }\Delta\neq 0
+\tag{7.24}
+$$
+
+在 $d>n$ 时不可能：Hessian 秩至多 $n$，总有 $(d-n)$ 维平坦方向（Figure 7.6(a)）。好消息是套索误差落在 $\mathbb C_\alpha(S)$ 里（Figure 7.6(b)），只需这些方向弯曲。
+
+## 7.3.2 Bounds on $\ell_2$-error for hard sparse models　硬稀疏的 $\ell_2$ 误差界
+
+> 教材定位：§7.3.2，印刷页 209–213，PDF 页 228–232。
+
+**(A1)** $\theta^*$ 支撑在 $S$， $\lvert S\rvert=s$。  
+**(A2)** $X$ 在 $S$ 上满足参数 $(\kappa,3)$ 的 RE。
+
+::: {.callout-important title="Theorem 7.13　三种套索的 $\ell_2$ 界"}
+在 (A1)(A2) 下：
+
+- (a) 拉格朗日套索 (7.18)，若 $\lambda_n\ge 2\lVert X^T w/n\rVert_\infty$，则
+$$
+\lVert\widehat\theta-\theta^*\rVert_2
+\le
+\frac3\kappa\sqrt s\,\lambda_n.
+\tag{7.25a}
+$$
+- (b) 约束套索 (7.19) 取 $R=\lVert\theta^*\rVert_1$，则
+$$
+\lVert\widehat\theta-\theta^*\rVert_2
+\le
+\frac4\kappa\sqrt s\,\Bigl\lVert\frac{X^T w}n\Bigr\rVert_\infty.
+\tag{7.25b}
+$$
+- (c) 松弛基追踪 (7.20) 取 $b^2\ge\lVert w\rVert_2^2/(2n)$，则
+$$
+\lVert\widehat\theta-\theta^*\rVert_2
+\le
+\frac4\kappa\sqrt s\,\Bigl\lVert\frac{X^T w}n\Bigr\rVert_\infty
++\frac2{\sqrt\kappa}\sqrt{b^2-\frac{\lVert w\rVert_2^2}{2n}}.
+\tag{7.25c}
+$$
+
+三种解都满足 $\ell_1$ 界 $\lVert\widehat\theta-\theta^*\rVert_1\le 4\sqrt s\,\lVert\widehat\theta-\theta^*\rVert_2$。
+:::
+
+这是对任意线性方程组成立的**确定性**不等式。统计模型的工作是给 $\lVert X^T w/n\rVert_\infty$ 和 $\lVert w\rVert_2^2/n$ 装上高概率上界。分母里的 $\kappa$ 与 $\sqrt s$ 分别来自曲率和未知非零的个数。
+
+::: {.callout-note title="勘误待批：Theorem 7.13(c) 的常数"}
+陈述 (7.25c) 写 $\frac4\kappa$。印刷页 212 证明末行把二次不等式 $\kappa x^2\le A x+B$（$A=4\sqrt s\,\lVert X^T w/n\rVert_\infty$）写成 $x\le\frac8\kappa\sqrt s\,\lVert X^T w/n\rVert_\infty+\cdots$。Young / 配平方给出 $x\le A/\kappa+\sqrt{2B/\kappa}$，与陈述的 $4/\kappa$ 一致；更粗的 $x\le 2A/\kappa+\cdots$ 才给出 $8/\kappa$。Example 7.15 跟了证明的 $8/\kappa$。Notes 陈述用印刷 (7.25c) 的 $4/\kappa$。
+:::
+
+**Example 7.14（经典高斯线性模型）。** $w$ 的坐标 i.i.d. $N(0,\sigma^2)$，$X$ 固定、满足 RE，且 $C$-列标准化：$\max_j\lVert X_j\rVert_2/\sqrt n\le C$。于是 $X^T w/n$ 是 $d$ 个方差 $\le C^2\sigma^2/n$ 的中心高斯的绝对最大值。Exercise 2.12 给出
+$$
+\mathbb P\Bigl[
+\Bigl\lVert\frac{X^T w}n\Bigr\rVert_\infty
+\ge
+C\sigma\Bigl(\sqrt{\frac{2\log d}n}+\delta\Bigr)
+\Bigr]
+\le 2e^{-n\delta^2/2}.
+$$
+取 $\lambda_n=2C\sigma(\sqrt{2\log d/n}+\delta)$，(7.25a) 变成
+
+$$
+\lVert\widehat\theta-\theta^*\rVert_2
+\le
+\frac{6C\sigma}{\kappa}\sqrt s\Bigl\{\sqrt{\frac{2\log d}n}+\delta\Bigr\}
+\tag{7.26}
+$$
+
+以概率至少 $1-2e^{-n\delta^2/2}$。约束套索 (7.25b) 给出同类的
+
+$$
+\lVert\widehat\theta-\theta^*\rVert_2
+\le
+\frac{4C\sigma}{\kappa}\sqrt s\Bigl\{\sqrt{\frac{2\log d}n}+\delta\Bigr\}.
+\tag{7.27}
+$$
+
+实践差异：约束套索要知道 $\lVert\theta^*\rVert_1$，拉格朗日套索只要噪声方差 $\sigma^2$——后者更容易估。
+
+对 (c)：$\lVert w\rVert_2^2/(\sigma^2 n)$ 是 $n$ 自由度 $\chi^2$。Example 2.11 给出 $\mathbb P[\lvert\lVert w\rVert_2^2/n-\sigma^2\rvert\ge\sigma^2\delta]\le 2e^{-n\delta^2/8}$（$\delta\in(0,1)$）。取 $b^2=\sigma^2(1+\delta)/2$，松弛基追踪以概率 $1-4e^{-n\delta^2/8}$ 满足
+$$
+\lVert\widehat\theta-\theta^*\rVert_2
+\le
+\frac{8C\sigma}{\kappa}\sqrt s\Bigl\{\sqrt{\frac{2\log d}n}+\delta\Bigr\}
++\frac{2\sigma}{\sqrt\kappa}\sqrt\delta.
+$$
+（此处 $8C\sigma/\kappa$ 沿用证明里的 $8/\kappa$；若用陈述的 $4/\kappa$，前项常数减半。）
+
+**Example 7.15（压缩感知）。** 设计为 i.i.d. $N(0,1)$，噪声确定性且 $\lVert w\rVert_\infty\le\sigma$。每个 $X_j^T w/\sqrt n$ 是方差 $\le\sigma^2$ 的中心高斯，$C=1$ 时 (7.26)–(7.27) 仍成立。取 $b^2=\sigma^2/2$，松弛基追踪满足
+$$
+\lVert\widehat\theta-\theta^*\rVert_2
+\le
+\frac{8\sigma}{\kappa}\sqrt s\Bigl\{\sqrt{\frac{2\log d}n}+\delta\Bigr\}
++\frac{2\sigma}{\sqrt\kappa},
+$$
+概率至少 $1-2e^{-n\delta^2/2}$。
+
+::: {.callout-note title="勘误待批：Example 7.15 的交叉引用"}
+印刷页 212 写“relaxed basis pursuit program (7.19)”。(7.19) 是约束套索 $\lVert\theta\rVert_1\le R$；(7.20) 才是松弛基追踪。Notes 按 (7.20) 解读。
+:::
+
+### 关键推导
+
+**(b)。** $R=\lVert\theta^*\rVert_1$ 使 $\theta^*$ 可行。最优性给出基本不等式
+
+$$
+\frac1n\lVert X\widehat\Delta\rVert_2^2
+\le
+\frac{2w^T X\widehat\Delta}n.
+\tag{7.28}
+$$
+
+Hölder 把右边变成 $2\lVert X^T w/n\rVert_\infty\lVert\widehat\Delta\rVert_1$。$\lVert\widehat\theta\rVert_1\le\lVert\theta^*\rVert_1$ 且 $\theta^*$ 为 $S$-稀疏时，$\widehat\Delta\in\mathbb C_1(S)$，因而
+$$
+\lVert\widehat\Delta\rVert_1
+=\lVert\widehat\Delta_S\rVert_1+\lVert\widehat\Delta_{S^c}\rVert_1
+\le 2\lVert\widehat\Delta_S\rVert_1
+\le 2\sqrt s\,\lVert\widehat\Delta\rVert_2.
+$$
+$\mathbb C_1(S)\subset\mathbb C_3(S)$，RE 把左边换成 $\kappa\lVert\widehat\Delta\rVert_2^2$，即 (7.25b)。
+
+**(c)。** $b^2\ge\lVert w\rVert_2^2/(2n)$ 使 $\theta^*$ 可行，故 $\widehat\Delta\in\mathbb C_1(S)$。可行性给出修正基本不等式
+$$
+\frac1n\lVert X\widehat\Delta\rVert_2^2
+\le
+\frac{2w^T X\widehat\Delta}n
++2\Bigl(b^2-\frac{\lVert w\rVert_2^2}{2n}\Bigr).
+$$
+同样用 RE 与锥，得到 $\kappa x^2\le A x+B$，其中 $x=\lVert\widehat\Delta\rVert_2$、$A=4\sqrt s\,\lVert X^T w/n\rVert_\infty$。配平方即 (7.25c)。
+
+**(a)。** 关键是 $\lambda_n\ge 2\lVert X^T w/n\rVert_\infty$ 把误差推进 $\mathbb C_3(S)$。拉格朗日基本不等式
+
+$$
+0
+\le
+\frac1{2n}\lVert X\widehat\Delta\rVert_2^2
+\le
+\frac{w^T X\widehat\Delta}n
++\lambda_n\bigl\{\lVert\theta^*\rVert_1-\lVert\widehat\theta\rVert_1\bigr\}.
+\tag{7.29}
+$$
+
+$S$-稀疏时 $\lVert\theta^*\rVert_1-\lVert\widehat\theta\rVert_1=\lVert\theta^*_S\rVert_1-\lVert\theta^*_S+\widehat\Delta_S\rVert_1-\lVert\widehat\Delta_{S^c}\rVert_1$。两边乘 2 并用 Hölder、三角不等式，
+
+$$
+0
+\le
+\frac1n\lVert X\widehat\Delta\rVert_2^2
+\le
+\lambda_n\bigl\{3\lVert\widehat\Delta_S\rVert_1-\lVert\widehat\Delta_{S^c}\rVert_1\bigr\}.
+\tag{7.30}
+$$
+
+故 $\widehat\Delta\in\mathbb C_3(S)$。RE 给出 $\kappa\lVert\widehat\Delta\rVert_2^2\le 3\lambda_n\sqrt s\,\lVert\widehat\Delta\rVert_2$，即 (7.25a)。
+
+::: {.callout-warning title="适用边界"}
+$\lambda_n$ 必须至少是 $2\lVert X^T w/n\rVert_\infty$。选小了，误差不必落进 $\mathbb C_3(S)$，RE 用不上。选太大则 (7.25a) 的右边变坏——这是偏差–方差在正则参数上的折中。
+:::
+
+## 7.3.3 Restricted nullspace and eigenvalues for random designs　随机设计的限制零空间与特征值
+
+> 教材定位：§7.3.3，印刷页 213–216，PDF 页 232–235。
+
+实践中很难“认证”给定的 $X$ 满足 RE。随机设计可以给高概率保证。成对不相干 / RIP 适合各向同性（行的总体协方差是单位阵）的情形；许多回归设计不是各向同性的。
+
+::: {.callout-important title="Theorem 7.16　高斯行的二次型下界"}
+设 $X\in\mathbb R^{n\times d}$ 的行 i.i.d. $\sim N(0,\Sigma)$。存在万有常数 $c_1<1<c_2$，使得以概率至少 $1-e^{-n/32}/(1-e^{-n/32})$，
+$$
+\frac1n\lVert X\theta\rVert_2^2
+\ge
+c_1\lVert\sqrt\Sigma\,\theta\rVert_2^2
+-c_2\rho^2(\Sigma)\frac{\log d}n\lVert\theta\rVert_1^2
+\qquad\text{对一切 }\theta\in\mathbb R^d.
+\tag{7.31}
+$$
+$\rho^2(\Sigma)$ 是 $\Sigma$ 的最大对角元。附录证明给出 $c_1=1/8$、$c_2=50$。
+:::
+
+Exercise 7.11：(7.31) 蕴涵均匀 RE，在 $\mathbb C_3(S)$ 上对一切
+$$
+\lvert S\rvert
+\le
+\frac{c_1}{32c_2}\frac{\gamma_{\min}(\Sigma)}{\rho^2(\Sigma)}\frac n{\log d}
+$$
+成立。
+
+**Example 7.17（几何衰减 Toeplitz）。** $\Sigma_{ij}=\nu^{\lvert i-j\rvert}$，$\nu\in[0,1)$。来自自回归过程。Toeplitz 经典谱界：$\gamma_{\min}(\Sigma)\ge(1-\nu)^2>0$，$\rho^2(\Sigma)=1$，都不随 $d$ 变。因而样本协方差在
+$$
+\lvert S\rvert\le\frac{c_1}{32c_2}(1-\nu)^2\frac n{\log d}
+$$
+上以高概率满足 RE——协变量可以有可观相关。
+
+**Example 7.18（尖峰单位）。** 模型 (7.17)：$\gamma_{\min}(\Sigma)=1-\mu$，$\rho^2(\Sigma)=1$。RE / 限制零空间在
+$$
+\lvert S\rvert\le\frac{c_1}{32c_2}(1-\mu)\frac n{\log d}
+$$
+上均匀成立。但任意 $s$ 阶主子阵的最大特征值是 $1+\mu(s-1)$，随 $s$ 发散，所以成对不相干与 RIP 无论 $n$ 多大都会以高概率失败。
+
+有了 (7.31)，可以对**任意** $\theta^*\in\mathbb R^d$ 写预言不等式（oracle inequality）——一族可用支撑 $S$ 调的上界，像一个能看见有序系数的预言。记 $\bar\kappa:=\gamma_{\min}(\Sigma)$。
+
+::: {.callout-important title="Theorem 7.19　套索预言不等式"}
+在 (7.31) 下，拉格朗日套索取 $\lambda_n\ge 2\lVert X^T w/n\rVert_\infty$。对任意 $\theta^*\in\mathbb R^d$，任意最优解满足
+$$
+\lVert\widehat\theta-\theta^*\rVert_2^2
+\le
+\frac{144}{c_1^2\bar\kappa^2}\lambda_n^2\lvert S\rvert
++\frac{16}{c_1\bar\kappa}\lambda_n\lVert\theta^*_{S^c}\rVert_1
++\frac{32c_2}{c_1}\frac{\rho^2(\Sigma)}{\bar\kappa}\frac{\log d}n\lVert\theta^*_{S^c}\rVert_1^2,
+\tag{7.32}
+$$
+对一切 $\lvert S\rvert\le\frac{c_1}{64c_2}\frac{\bar\kappa}{\rho^2(\Sigma)}\frac n{\log d}$ 成立。前一项是估计误差，后两项是逼近误差。
+:::
+
+最优 $S$ 在 $\lvert S\rvert$ 与尾和 $\lVert\theta^*_{S^c}\rVert_1=\sum_{j\notin S}\lvert\theta^*_j\rvert$ 之间折中。Exercise 7.12 把它用到 $\ell_q$-球上。
+
+证明骨架：一般向量的拉格朗日基本不等式多出 $\theta^*_{S^c}$ 项，教材写成
+
+$$
+0
+\le
+\frac1{2n}\lVert X\widehat\Delta\rVert_2^2
+\le
+\frac{\lambda_n}2\bigl\{3\lVert\widehat\Delta_S\rVert_1-\lVert\widehat\Delta_{S^c}\rVert_1+2\lVert\theta^*_{S^c}\rVert_1\bigr\}.
+\tag{7.33}
+$$
+
+由此
+$$
+\lVert\widehat\Delta\rVert_1^2
+\le
+(4\lVert\widehat\Delta_S\rVert_1+2\lVert\theta^*_{S^c}\rVert_1)^2
+\le
+32\lvert S\rvert\,\lVert\widehat\Delta\rVert_2^2
++8\lVert\theta^*_{S^c}\rVert_1^2.
+\tag{7.34}
+$$
+代入 (7.31) 并用 $\lvert S\rvert$ 的上界，得到 (7.35)。再分两种情形：二次项主导时解一元二次得到 (7.32) 的前两项；否则逼近项主导，直接给出第三项。
+
+::: {.callout-note title="勘误待批：(7.33) 花括号内的常数"}
+由 (7.29) 与三角不等式：$\lVert\theta^*\rVert_1-\lVert\widehat\theta\rVert_1\le\lVert\Delta_S\rVert_1-\lVert\Delta_{S^c}\rVert_1+2\lVert\theta^*_{S^c}\rVert_1$，再加上 Hölder 与 $\lambda_n\ge 2\lVert X^T w/n\rVert_\infty$，花括号内应变为 $+4\lVert\theta^*_{S^c}\rVert_1$。速率阶不变。Notes 按印刷 (7.32)–(7.33) 陈述。
+:::
+
+# 7.4 Bounds on prediction error　预测误差界
+
+> 教材定位：§7.4，印刷页 216–218，PDF 页 235–237。
+
+有时不关心 $\theta^*$ 本身，而关心**样本内均方预测误差**
+
+$$
+\frac1n\lVert X(\widehat\theta-\theta^*)\rVert_2^2
+=\frac1n\sum_{i=1}^n\langle x_i,\widehat\theta-\theta^*\rangle^2.
+\tag{7.37}
+$$
+
+若用新鲜噪声 $\widetilde w$ 得到 $\widetilde y=X\theta^*+\widetilde w$（方差 $\sigma^2$），则
+$$
+\frac1n\mathbb E\lVert\widetilde y-X\widehat\theta\rVert_2^2
+=\frac1n\lVert X(\widehat\theta-\theta^*)\rVert_2^2+\sigma^2.
+$$
+预测不要求 $\theta^*$ 可识别：两列相同也不妨碍。
+
+::: {.callout-important title="Theorem 7.20　预测误差的慢速率与快速率"}
+拉格朗日套索，$\lambda_n\ge 2\lVert X^T w/n\rVert_\infty$ 且 $\lambda_n>0$。
+
+- (a) 任意最优解满足
+$$
+\frac1n\lVert X(\widehat\theta-\theta^*)\rVert_2^2
+\le
+12\lVert\theta^*\rVert_1\lambda_n.
+\tag{7.38}
+$$
+- (b) 若 $\theta^*$ 支撑在基数 $s$ 的 $S$ 上，且 $X$ 在 $S$ 上满足 $(\kappa;3)$-RE，则
+$$
+\frac1n\lVert X(\widehat\theta-\theta^*)\rVert_2^2
+\le
+\frac9\kappa s\lambda_n^2.
+\tag{7.39}
+$$
+:::
+
+次高斯噪声、列标准化 $\max_j\lVert X_j\rVert_2/\sqrt n\le C$ 时，取 $\lambda_n=2C\sigma(\sqrt{2\log d/n}+\delta)$，慢速率变成
+
+$$
+\frac1n\lVert X(\widehat\theta-\theta^*)\rVert_2^2
+\le
+24\lVert\theta^*\rVert_1 C\sigma\Bigl(\sqrt{\frac{2\log d}n}+\delta\Bigr),
+\tag{7.40}
+$$
+
+设计几乎没有要求——可以有许多相同列。若唯一约束是 $\lVert\theta^*\rVert_1\le R$，(7.40) 不可改进。硬稀疏再加 RE 时，快速率是
+
+$$
+\frac1n\lVert X(\widehat\theta-\theta^*)\rVert_2^2
+\le
+\frac{72}{\kappa}C^2\sigma^2\Bigl(\frac{2s\log d}n+s\delta^2\Bigr).
+\tag{7.41}
+$$
+
+(7.38) 对 $\sqrt{(\log d)/n}$ 叫**慢速率**（slow rate），(7.39) 对 $(s\log d)/n$ 叫**快速率**（fast rate）。文献讨论：RE 对套索的快速率实质上需要，但 $\ell_0$ 穷举在仅有列标准化时就能达到快速率；在输出必须 $s$-稀疏且多项式时间的限制下，没有 RE 则达不到 (7.41)（见 §7.7）。
+
+## 关键推导
+
+**(a)。** 由 (7.29) 与 $\lambda_n\ge 2\lVert X^T w/n\rVert_\infty$，
+$$
+\Bigl\lvert\frac{w^T X\widehat\Delta}n\Bigr\rvert
+\le
+\frac{\lambda_n}2\bigl(\lVert\theta^*\rVert_1+\lVert\widehat\theta\rVert_1\bigr),
+$$
+推出 $\lVert\widehat\theta\rVert_1\le 3\lVert\theta^*\rVert_1$，因而 $\lVert\widehat\Delta\rVert_1\le 4\lVert\theta^*\rVert_1$。代回 (7.29) 并用三角不等式 $\lVert\theta^*+\widehat\Delta\rVert_1\ge\lVert\theta^*\rVert_1-\lVert\widehat\Delta\rVert_1$，得到
+$$
+\frac1{2n}\lVert X\widehat\Delta\rVert_2^2
+\le
+\frac{3\lambda_n}2\lVert\widehat\Delta\rVert_1
+\le 6\lambda_n\lVert\theta^*\rVert_1,
+$$
+即 (7.38)。（中间形式是 (7.42)。）
+
+**(b)。** 与 Theorem 7.13(a) 相同：$\widehat\Delta\in\mathbb C_3(S)$ 且 $\frac1n\lVert X\widehat\Delta\rVert_2^2\le 3\lambda_n\sqrt s\,\lVert\widehat\Delta\rVert_2$。RE 给出 $\lVert\widehat\Delta\rVert_2\le 3\lambda_n\sqrt s/\kappa$，代回即 (7.39)。
+
+# 7.5 Variable or subset selection　变量或子集选择
+
+> 教材定位：§7.5，印刷页 218–224，PDF 页 237–243。
+
+$\ell_2$ 误差小并不等于支撑相同：$\widehat\theta$ 可以在“够大”的非零处保号，在零处不太大。反过来，若支撑估对，再在这个子集上做普通最小二乘，通常能得到很好的 $\ell_2$ 估计。**变量选择一致性**（variable selection consistency）要求 $S(\widehat\theta)=S(\theta^*)$。
+
+## 7.5.1 Variable selection consistency for the Lasso　套索的变量选择一致性
+
+> 教材定位：§7.5.1，印刷页 219–222，PDF 页 238–241。
+
+需要与 RE 相关但不同的条件。
+
+**(A3) 下特征值。**
+$$
+\gamma_{\min}\Bigl(\frac{X_S^T X_S}n\Bigr)
+\ge c_{\min}>0.
+\tag{7.43a}
+$$
+即使 $S$ 已知，这也是模型可识别的最低要求：$X_S$ 不能有非平凡零空间。
+
+**(A4) 相互不相干**（mutual incoherence；习题中亦称不可表示 / irrepresentable）：存在 $\alpha\in[0,1)$ 使
+$$
+\max_{j\in S^c}
+\bigl\lVert(X_S^T X_S)^{-1}X_S^T X_j\bigr\rVert_1
+\le\alpha.
+\tag{7.43b}
+$$
+用 $X_S$ 的列预测 $X_j$ 的最优权重恰是 $\widehat\omega=(X_S^T X_S)^{-1}X_S^T X_j$；(A4) 限制 $\lVert\widehat\omega\rVert_1$。理想情形是 $X_j\perp\mathrm{col}(X_S)$，此时 $\widehat\omega=0$。
+
+记正交投影 $\Pi_{S^\perp}(X)=I_n-X_S(X_S^T X_S)^{-1}X_S^T$。矩阵 $\ell_\infty$-范数 $\lvert\lvert\lvert A\rvert\rvert\rvert_\infty=\max_i\sum_j\lvert A_{ij}\rvert$。
+
+::: {.callout-important title="Theorem 7.21　套索的唯一性、无假阳性与 $\ell_\infty$ 界"}
+$S$-稀疏线性模型，设计满足 (A3)(A4)。只要
+$$
+\lambda_n
+\ge
+\frac2{1-\alpha}
+\Bigl\lVert X_{S^c}^T\Pi_{S^\perp}(X)\frac w n\Bigr\rVert_\infty,
+\tag{7.44}
+$$
+拉格朗日套索具有：
+
+- (a) **唯一性**：存在唯一最优解 $\widehat\theta$；
+- (b) **无假阳性**：$S(\widehat\theta)\subseteq S$，即 $\widehat\theta_{S^c}=0$；
+- (c) **$\ell_\infty$ 界**
+$$
+\lVert\widehat\theta_S-\theta^*_S\rVert_\infty
+\le
+\Bigl\lVert
+\Bigl(\frac{X_S^T X_S}n\Bigr)^{-1}\frac{X_S^T w}n
+\Bigr\rVert_\infty
++\lvert\lvert\lvert\bigl(X_S^T X_S/n\bigr)^{-1}\rvert\rvert\rvert_\infty\lambda_n,
+\tag{7.45}
+$$
+记右边为 $B(\lambda_n;X)$；
+- (d) **无假阴性**：套索包含一切 $\lvert\theta^*_i\rvert>B(\lambda_n;X)$ 的 $i\in S$；因而若 $\min_{i\in S}\lvert\theta^*_i\rvert>B(\lambda_n;X)$，则变量选择一致。
+:::
+
+$d>n$ 时目标凸但不严格凸，唯一性并非无偿。(b) 排除假阳性；(d) 是 (c) 的推论：最小信号要大过 $\ell_\infty$ 误差。这仍是确定性定理。
+
+::: {.callout-important title="Corollary 7.22　次高斯噪声下的变量选择"}
+$w$ 的坐标 i.i.d. 零均值 $\sigma$-次高斯；$X$ 确定性，满足 (A3)(A4) 与 $C$-列标准化。取
+$$
+\lambda_n
+=\frac{2C\sigma}{1-\alpha}
+\Bigl\{\sqrt{\frac{2\log(d-s)}n}+\delta\Bigr\}.
+\tag{7.46}
+$$
+则 $\widehat\theta$ 以概率至少 $1-4e^{-n\delta^2/2}$ 唯一、支撑落在 $S$ 内，且
+$$
+\lVert\widehat\theta_S-\theta^*_S\rVert_\infty
+\le
+\frac\sigma{\sqrt{c_{\min}}}
+\Bigl\{\sqrt{\frac{2\log s}n}+\delta\Bigr\}
++\lvert\lvert\lvert\bigl(X_S^T X_S/n\bigr)^{-1}\rvert\rvert\rvert_\infty\lambda_n.
+\tag{7.47}
+$$
+:::
+
+证明要点：$Z_j=X_j^T\Pi_{S^\perp}(X)w/n$（$j\in S^c$）的次高斯参数 $\le C^2\sigma^2/n$，因为投影不放大欧氏范数。$\ell_\infty$ 界的随机项用 (A3) 把次高斯参数收到 $\sigma^2/(c_{\min}n)$。
+
+随机高斯设计上，只要总体 $\Sigma$ 满足不可表示、且 $n\gtrsim s\log(d-s)$，样本不可表示以高概率成立（Exercise 7.19）。Figure 7.7：Toeplitz 设计 $\nu=0.1$、$s=\lfloor\sqrt d\rfloor$，成功概率对 $n/(s\log(d-s))$ 对齐并出现阈值。
+
+## 7.5.2 Proof of Theorem 7.21　原–对偶见证
+
+> 教材定位：§7.5.2，印刷页 222–224，PDF 页 241–243。
+
+$\ell_1$-范数的次梯度：$z\in\partial\lVert\theta\rVert_1$ 当且仅当 $z_j=\mathrm{sign}(\theta_j)$（约定 $\mathrm{sign}(0)\in[-1,1]$）。一对 $(\widehat\theta,\widehat z)$ **原–对偶最优**，若 $\widehat\theta$ 是最小点且 $\widehat z\in\partial\lVert\widehat\theta\rVert_1$。它们满足零次梯度条件
+
+$$
+\frac1n X^T(X\widehat\theta-y)+\lambda_n\widehat z=0.
+\tag{7.48}
+$$
+
+**原–对偶见证**（primal–dual witness, PDW）构造一对满足 (7.48) 且 $\widehat\theta$ 具有正确符号支撑的点；成功则它就是唯一最优。
+
+::: {.callout-important title="PDW 构造"}
+1. 令 $\widehat\theta_{S^c}=0$。
+2. 解预言子问题
+$$
+\widehat\theta_S
+\in
+\arg\min_{\theta_S\in\mathbb R^s}
+\Bigl\{
+\frac1{2n}\lVert y-X_S\theta_S\rVert_2^2
++\lambda_n\lVert\theta_S\rVert_1
+\Bigr\},
+\tag{7.49}
+$$
+再取 $\widehat z_S\in\partial\lVert\widehat\theta_S\rVert_1$ 使 $\nabla f(\widehat\theta_S)+\lambda_n\widehat z_S=0$。
+3. 用 (7.48) 解出 $\widehat z_{S^c}$，检查**严格对偶可行** $\lVert\widehat z_{S^c}\rVert_\infty<1$。
+:::
+
+分块 KKT 是
+
+$$
+\frac1n
+\begin{bmatrix}
+X_S^T X_S & X_S^T X_{S^c}\\
+X_{S^c}^T X_S & X_{S^c}^T X_{S^c}
+\end{bmatrix}
+\begin{bmatrix}
+\widehat\theta_S-\theta^*_S\\
+0
+\end{bmatrix}
+-
+\frac1n
+\begin{bmatrix}
+X_S^T w\\
+X_{S^c}^T w
+\end{bmatrix}
++\lambda_n
+\begin{bmatrix}
+\widehat z_S\\
+\widehat z_{S^c}
+\end{bmatrix}
+=0.
+\tag{7.50}
+$$
+
+::: {.callout-important title="Lemma 7.23　PDW 成功 $\Rightarrow$ 唯一最优"}
+若 (A3) 成立且 PDW 成功，则 $(\widehat\theta_S,0)$ 是套索的唯一最优解。
+:::
+
+证明：成功时 $\lVert\widehat z_{S^c}\rVert_\infty<1$ 且 $\langle\widehat z,\widehat\theta\rangle=\lVert\widehat\theta\rVert_1$。对任意其他最优 $\widetilde\theta$，凸性把零次梯度变成 $\lVert\widetilde\theta\rVert_1\le\langle\widehat z,\widetilde\theta\rangle\le\lVert\widehat z\rVert_\infty\lVert\widetilde\theta\rVert_1$，因而等号，严格对偶可行迫使 $\widetilde\theta_{S^c}=0$。于是一切最优都在 $S$ 上，而 (A3) 使预言子问题严格凸。
+
+余下只需验证严格对偶可行。由 (7.50)，
+
+$$
+\widehat z_{S^c}
+=-\frac1{\lambda_n n}X_{S^c}^T X_S(\widehat\theta_S-\theta^*_S)
++\frac1{\lambda_n n}X_{S^c}^T w,
+\tag{7.51}
+$$
+
+$$
+\widehat\theta_S-\theta^*_S
+=(X_S^T X_S)^{-1}X_S^T w
+-\lambda_n n(X_S^T X_S)^{-1}\widehat z_S.
+\tag{7.52}
+$$
+
+代回并化简：
+
+$$
+\widehat z_{S^c}
+=X_{S^c}^T X_S(X_S^T X_S)^{-1}\widehat z_S
++X_{S^c}^T\bigl[I-X_S(X_S^T X_S)^{-1}X_S^T\bigr]\frac w{\lambda_n n}.
+\tag{7.53}
+$$
+
+第一项的 $\ell_\infty$ 范数被 (A4) 收成 $\le\alpha$；第二项被 (7.44) 收成 $\le\frac12(1-\alpha)$。故 $\lVert\widehat z_{S^c}\rVert_\infty\le\frac12(1+\alpha)<1$。(7.52) 再取 $\ell_\infty$ 即 (7.45)/(7.54)。
+
+# 7.6 Appendix: Proof of Theorem 7.16　附录
+
+> 教材定位：§7.6，印刷页 224–227，PDF 页 243–246。主线只留骨架；完整估计指回教材。
+
+把向量限制在椭圆 $S^{d-1}(\Sigma)=\{\theta:\lVert\sqrt\Sigma\,\theta\rVert_2=1\}$。定义 $g(t)=2\rho(\Sigma)\sqrt{(\log d)/n}\,t$ 与坏事件
+$$
+\mathcal E
+=\Bigl\{
+X:
+\inf_{\theta\in S^{d-1}(\Sigma)}
+\frac{\lVert X\theta\rVert_2}{\sqrt n}
+\le\frac14-2g(\lVert\theta\rVert_1)
+\Bigr\}.
+\tag{7.55}
+$$
+在 $\mathcal E^c$ 上，二次型下界 (7.31) 成立（用 $c\ge\max\{a-b,0\}$ 推出 $c^2\ge\frac12 a^2-(\mathrm{const})b^2$）。
+
+按 $g(\lVert\theta\rVert_1)$ 的半径把椭圆剥成壳 $K(r_\ell,r_u)$，壳事件 $\mathcal A(r_\ell,r_u)$ 如 (7.56a–b)。Lemma 7.24：
+$$
+\mathbb P[\mathcal A(r_\ell,r_u)]
+\le e^{-n/32}e^{-n r_u^2/2},
+\qquad
+\mathcal E
+\subseteq
+\mathcal A(0,\mu)\cup\bigcup_{\ell\ge 1}\mathcal A(2^{\ell-1}\mu,2^\ell\mu)
+\ (\mu=1/4).
+\tag{7.57a,b}
+$$
+并给出 $\mathbb P[\mathcal E]\le e^{-n/32}/(1-e^{-n/32})$。
+
+壳上的下尾用变分 $\lVert X\theta\rVert_2=\sup_{\lVert u\rVert_2=1}\langle u,X\theta\rangle$，写成高斯过程 $Z_{u,v}$。Gordon 比较（第 6 章 (6.65)）把它换成
+$$
+Y_{u,v}
+=\frac{\langle g,u\rangle}{\sqrt n}+\frac{\langle h,v\rangle}{\sqrt n},
+$$
+期望拆成 $\mathbb E\lVert g\rVert_2/\sqrt n\ge\sqrt{\pi/2}$ 与 Hölder 控制的 $\mathbb E\sup\langle\sqrt\Sigma h,\theta\rangle/\sqrt n\le r_u$。于是 $\mathbb E[T(r_\ell,r_u)]\le -\sqrt{2/\pi}+r_u$（(7.59)）。$\sqrt n\,T$ 是标准高斯矩阵的 1-利普希茨函数，Theorem 2.26 给出次高斯尾，选取偏差后即 (7.57a)。
+
+# 7.7 Bibliographic details and background　文献与背景
+
+> 教材定位：§7.7，印刷页 227–229，PDF 页 246–248。文献条目指回教材。
+
+高斯序列与 $\ell_q$-球上的极小极大见 Johnstone (2015)、Donoho–Johnstone (1994)。$\ell_1$ 用于反问题的早期工作在地球物理；统计与应用数学的爆发点是 Chen–Donoho–Saunders 的基追踪与 Tibshirani 的套索。限制零空间的必要充分条件由 Feuer–Nemirovski 分离，术语与定义来自 Cohen et al.。RIP 由 Candès–Tao 引入；RE 由 Bickel–Ritov–Tsybakov 引入，Bühlmann–van de Geer 综述了变体。Theorem 7.16 来自 Raskutti–Wainwright–Yu；次高斯行的类似结果见 Rudelson–Zhou。不可表示 / 相互不相干独立出现在 Fuchs、Tropp 与 Meinshausen–Bühlmann、Zhao–Yu。Theorem 7.21 的 PDW 论证来自 Wainwright (2009b)。平方根套索（Belloni et al.）让 $\lambda$ 不再显含 $\sigma$，见 Exercise 7.17。
+
+# 常见错误
+
+1. **错误做法：** 把成对不相干或 RIP 当成基追踪成功的必要条件。  
+   **为什么错：** 它们只是限制零空间的充分条件。尖峰单位 (7.17) 上两者以高概率失败，但 $n\gtrsim s\log(ed/s)$ 时基追踪仍成功（Figure 7.4，Theorem 7.16）。  
+   **正确判断：** 先问限制零空间 / RE；不相干与 RIP 是证书，不是定义。
+
+2. **错误做法：** $d>n$ 时宣布 $n^{-1}X^T X$ 不可逆、套索无曲率。  
+   **为什么错：** 全空间强凸 (7.24) 的确不可能，但误差被关在 $\mathbb C_3(S)$ 里，RE 只要求锥上的最小特征值。  
+   **正确判断：** 先用 $\lambda_n\ge 2\lVert X^T w/n\rVert_\infty$ 把 $\widehat\Delta$ 推进锥，再调用 RE。
+
+3. **错误做法：** 由 $\lVert\widehat\theta-\theta^*\rVert_2$ 小推出 $S(\widehat\theta)=S(\theta^*)$。  
+   **为什么错：** $\ell_2$ 小只保证大坐标被估到、小坐标不太大；假阳性 / 假阴性仍可能。变量选择需要 (A3)(A4) 与最小信号超过 $B(\lambda_n;X)$。  
+   **正确判断：** $\ell_2$ 恢复、预测、支撑恢复是三件强度递增的事。
+
+4. **错误做法：** 用 $n\gtrsim s\log(ed/s)$ 去验证成对不相干 $\delta_{\mathrm{PW}}\le 1/(3s)$。  
+   **为什么错：** 成对不相干要控制 $\binom{d}{2}$ 个内积到 $1/s$ 精度，样本墙是 $s^2\log d$。RIP 才把墙降到 $s\log(ed/s)$。  
+   **正确判断：** 先看证书要的精度（$1/s$ 对两列，还是 $O(1)$ 对 $2s$ 列）。
+
+5. **错误做法：** 把 (A4) 的 $\lVert(X_S^T X_S)^{-1}X_S^T X_j\rVert_1$ 写成相关系数，或丢掉投影 $\Pi_{S^\perp}$。  
+   **为什么错：** (A4) 是用 $S$ 上列预测第 $j$ 列的回归系数的 $\ell_1$ 范数；$\lambda_n$ 的噪声水平是投影残差 $X_{S^c}^T\Pi_{S^\perp}w/n$，不是 $X^T w/n$。  
+   **正确判断：** 假阳性由对偶变量 $\widehat z_{S^c}$ 控制，它看见的是 $S$ 的正交补。
+
+# 轻量自测
+
+1. 用一句话说明：为何 Theorem 7.8 要把切锥 $\mathbb T(\theta^*)$ 换成与 $\theta^*$ 无关的 $\mathbb C(S)$？
+2. 从 (7.29) 与 $\lambda_n\ge 2\lVert X^T w/n\rVert_\infty$ 推出 $\widehat\Delta\in\mathbb C_3(S)$；指出 3 这个数从哪里来。
+3. 各向同性高斯设计、$s$-稀疏。成对不相干证书与 RIP 证书各要多少样本？尖峰单位 $\mu=1/2$ 时哪一个证书会坏掉？
+4. 比较 (7.38) 与 (7.39)：若 $X$ 有两列完全相同，$\theta^*$ 为 $1$-稀疏，哪一条仍可用？
+5. PDW 第三步若得到 $\lVert\widehat z_{S^c}\rVert_\infty=0.99$，能得出什么？若等于 $1$，哪一步会断？
+
+<details>
+<summary>查看参考答案</summary>
+
+1. 切锥依赖 $\theta^*$ 的符号模式，不能直接写成“对一切 $S$-稀疏向量成功”。$\mathbb C(S)$ 包含每个 $S$-稀疏向量的切锥，又被这些切锥的并盖住，所以限制零空间 $\mathbb C(S)\cap\mathrm{null}(X)=\{0\}$ 与“对这个 $S$ 上的一切稀疏向量唯一恢复”等价（Theorem 7.8）。
+2. 由 $\lVert\theta^*\rVert_1-\lVert\widehat\theta\rVert_1\le\lVert\widehat\Delta_S\rVert_1-\lVert\widehat\Delta_{S^c}\rVert_1$ 与 Hölder，$\frac1n\lVert X\widehat\Delta\rVert_2^2\le 2\lVert X^T w/n\rVert_\infty\lVert\widehat\Delta\rVert_1+2\lambda_n(\lVert\widehat\Delta_S\rVert_1-\lVert\widehat\Delta_{S^c}\rVert_1)$。把 $2\lVert X^T w/n\rVert_\infty\le\lambda_n$ 送进第一项：$\lambda_n(\lVert\widehat\Delta_S\rVert_1+\lVert\widehat\Delta_{S^c}\rVert_1)+2\lambda_n(\lVert\widehat\Delta_S\rVert_1-\lVert\widehat\Delta_{S^c}\rVert_1)=\lambda_n(3\lVert\widehat\Delta_S\rVert_1-\lVert\widehat\Delta_{S^c}\rVert_1)$。非负左边迫使 $\lVert\widehat\Delta_{S^c}\rVert_1\le 3\lVert\widehat\Delta_S\rVert_1$。
+3. 成对不相干：$n\gtrsim s^2\log d$。RIP：$\delta_{2s}<1/3$ 要 $n\gtrsim s\log(ed/s)$。尖峰单位 $\mu=1/2$ 时两个证书都坏（条件数随 $\sqrt s$ 走），但 Theorem 7.16 的 RE 仍在 $n\gtrsim s\log d$ 成立。
+4. 两列相同破坏 RE（锥里有差向量 $e_j-e_k$ 使 $X\Delta=0$），快速率 (7.39) 不可用。慢速率 (7.38) 只要列标准化与 $\lambda_n$ 下界，仍然成立——预测不要求可识别。
+5. $0.99<1$ 是严格对偶可行：Lemma 7.23 给出唯一最优且 $\widehat\theta_{S^c}=0$（无假阳性）。若 $\lVert\widehat z_{S^c}\rVert_\infty=1$，见证失败，可能有支撑跑到 $S^c$ 上的另一个最优解；唯一性与无假阳性都不能从这条构造得出。
+
+</details>
+
+# 本章小结
+
+- 无噪声精确恢复的充要条件是限制零空间；$\ell_1$ 把组合搜索换成 LP。成对不相干（$n\gtrsim s^2\log d$）与 RIP（$n\gtrsim s\log(ed/s)$）是充分证书，不是必要的；
+- 有噪声时误差落在锥 $\mathbb C_3(S)$ 上，RE 把锥上的曲率写成 $\kappa$，三种套索的 $\ell_2$ 界都是 $\sqrt s\,\lambda_n/\kappa$ 型。$\lambda_n$ 必须盖住 $\lVert X^T w/n\rVert_\infty$；
+- 高斯行的二次型下界 (7.31) 给相关设计（Toeplitz、尖峰单位）直接开出 RE，并升级成任意 $\theta^*$ 的预言不等式；
+- 预测误差有几乎不要设计条件的慢速率，以及硬稀疏 + RE 的快速率；变量选择另要 (A3)(A4) 与最小信号，证明工具是原–对偶见证。
+
+## 术语对照
+
+| 中文 | English | 备注 |
+|---|---|---|
+| 硬稀疏 | hard sparsity | 支撑基数 $s\ll d$；(7.2) |
+| 弱稀疏 | weak sparsity | $\ell_q$-球逼近 |
+| 支撑集 | support set | (7.2) 的 $S(\theta^*)$ |
+| $\ell_q$-球 | $\ell_q$-ball | (7.3)；$q<1$ 非凸 |
+| 硬阈值 | hard-thresholding | (7.6a)；第 1 章已见 |
+| 软阈值 | soft-thresholding | (7.6b) |
+| 过完备 | overcomplete | Example 7.4 |
+| 压缩感知 | compressed sensing | Example 7.5 |
+| 基追踪 | basis pursuit | (7.9)；Chen–Donoho–Saunders |
+| 套索 | Lasso | (7.18)；Tibshirani (1996) |
+| 约束套索 | constrained Lasso | (7.19) |
+| 松弛基追踪 | relaxed basis pursuit | (7.20) |
+| 切锥 | tangent cone | (7.10) |
+| 限制零空间性质 | restricted nullspace property | Definition 7.7 |
+| 成对不相干 | pairwise incoherence | (7.12) |
+| 限制等距性质 | restricted isometry property | Definition 7.10；RIP |
+| 尖峰单位模型 | spiked identity model | (7.17) |
+| 限制特征值 | restricted eigenvalue | Definition 7.12；RE |
+| 基本不等式 | basic inequality | (7.28)–(7.29) |
+| 预言不等式 | oracle inequality | Theorem 7.19 |
+| 样本内预测误差 | in-sample prediction error | (7.37) |
+| 慢速率 | slow rate | (7.38)；(7.40) |
+| 快速率 | fast rate | (7.39)；(7.41) |
+| 变量选择一致性 | variable selection consistency | $S(\widehat\theta)=S(\theta^*)$ |
+| 相互不相干 | mutual incoherence | (A4)；(7.43b) |
+| 不可表示条件 | irrepresentable condition | 与 (7.43b) 同对象；Exercise 7.18 |
+| 原–对偶见证 | primal–dual witness | PDW；§7.5.2 |
+| 次梯度 | subgradient | (7.48) |
+| 严格对偶可行 | strict dual feasibility | $\lVert\widehat z_{S^c}\rVert_\infty<1$ |
+| 平方根套索 | square-root Lasso | Exercise 7.17 |
+
+: 本章术语（中文从名词委；英文从教材或国际通行用法）
+
+## 来源定位
+
+- 教材：第 7 章 §§7.1–7.7，印刷页 194–229，PDF 页 213–248。
+- 习题：§7.8 Exercises 7.1–7.20，印刷页 229–235，PDF 页 248–254；解答见 [Solutions](../solutions/ch07-solutions.qmd)。
+- 页码关系：**PDF 页 = 印刷页 + 19**（印刷页 194 = PDF 页 213）。

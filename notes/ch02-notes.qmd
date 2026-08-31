@@ -1,0 +1,862 @@
+---
+title: "第 2 章　基本尾界与集中不等式"
+subtitle: "Wainwright, High-Dimensional Statistics 伴读 Notes"
+description: "面向已学陈希孺本科概率统计的读者：从马尔可夫/切比雪夫/切尔诺夫接到次高斯、次指数、霍夫丁、伯恩斯坦、鞅差与高斯利普希茨集中"
+execute:
+  enabled: false
+lang: zh-CN
+---
+
+# 本章导览
+
+第 1 章已经把问题换成非渐近语言：对固定的 $(n,d)$，要有**显式的高概率尾界**。本章给出全书最常用的一批尾界。陈希孺里的马尔可夫、切比雪夫、矩母函数你已经会用；这里不重证这三条，而是把它们升级成**按矩母函数增长速度分类**的语言——次高斯（sub-Gaussian）与次指数（sub-exponential）——再写出独立和、鞅差、高斯利普希茨函数的集中。
+
+阅读时抓住一条标度：次高斯尾是 $e^{-t^2}$，次指数尾在近处仍是 $e^{-t^2}$、远处变成 $e^{-t}$。霍夫丁只看见区间长度，伯恩斯坦把方差写进分母，所以方差远小于区间平方时更锐。函数不是独立和时，用杜布鞅把 $f(X)-\mathbb E f$ 拆成鞅差，再套同一套矩母函数。高斯向量的利普希茨函数则有**与维数无关**的次高斯参数。
+
+本章阅读主线：
+
+$$
+\text{切尔诺夫 / 矩母函数}
+\longrightarrow
+\text{次高斯（霍夫丁）}
+\longrightarrow
+\text{次指数（伯恩斯坦）}
+\longrightarrow
+\text{鞅差 / 有界差分}
+\longrightarrow
+\text{高斯利普希茨（维数无关）}.
+$$
+
+> 教材定位：第 2 章 §§2.1–2.6，印刷页 21–50，PDF 页 40–69。习题 §2.7 印刷页 50–57，PDF 页 69–76，不进入 Notes。页码关系：**PDF 页 = 印刷页 + 19**。
+
+## 学习目标
+
+学完本章后，你应能：
+
+- **陈述** 次高斯定义 (2.8) 与集中 (2.9)，并由切尔诺夫推出霍夫丁 (2.10)–(2.11)；
+- **区分** 次高斯与次指数：写出定义 (2.13)、两段尾界（Proposition 2.9）以及伯恩斯坦 (2.17b)；
+- **说明** 为何有界变量用伯恩斯坦可能优于霍夫丁（方差 $\sigma^2$ 对区间半长 $b$）；
+- **把** 有界差分函数写成杜布鞅差，并写出阿祖马–霍夫丁 (2.30) 与 McDiarmid (2.33)；
+- **应用** Theorem 2.26：标准高斯向量的 $L$-利普希茨函数是参数 $\le L$ 的次高斯，且参数不随维数变坏。
+
+# 必要先修
+
+马尔可夫、切比雪夫、以及“对 $e^{\lambda X}$ 再用马尔可夫”的切尔诺夫，本章直接当工具用。下面只补三处本科课里不一定钉死的接口。
+
+::: {.callout-note title="为什么现在需要矩母函数的邻域"}
+切尔诺夫要的不是某一个矩，而是 $\varphi(\lambda)=\mathbb E[e^{\lambda(X-\mu)}]$ 在 $0$ 的一个区间里有限。次高斯要求它对**所有** $\lambda$ 都不超过高斯矩母函数；次指数只要求在 $\lvert\lambda\rvert<1/\alpha$ 里如此。$\chi^2$ 的矩母函数在 $\lambda=1/2$ 炸掉，所以它不是次高斯。
+:::
+
+::: {.callout-note title="作者解释：条件期望的塔性质够用"}
+§2.2 的过滤、适应、鞅，用到的条件期望规则只有两条：$\mathbb E[\mathbb E[Z\mid\mathcal F]]=\mathbb E[Z]$（塔性质），以及 $\mathcal G\subset\mathcal F$ 时 $\mathbb E[\mathbb E[Z\mid\mathcal F]\mid\mathcal G]=\mathbb E[Z\mid\mathcal G]$。杜布鞅 $Y_k=\mathbb E[f(X)\mid X_1,\ldots,X_k]$ 就是把信息一格一格放进来。陈希孺里的“对前面的 $X_1,\ldots,X_k$ 求条件期望”已经够读本节。
+:::
+
+::: {.callout-note title="作者解释：次高斯参数不是方差"}
+$N(\mu,\sigma^2)$ 的次高斯参数恰好是 $\sigma$。一般次高斯只有 $\mathrm{var}(X)\le\sigma^2$（Exercise 2.5）。霍夫丁用区间半长 $(b-a)/2$ 当参数，可能远大于标准差——这正是后面要换伯恩斯坦的原因。
+:::
+
+# 2 Basic tail and concentration bounds　基本尾界与集中
+
+> 教材定位：章首，印刷页 21，PDF 页 40。
+
+**偏差不等式**（deviation inequality）管单侧事件 $\{X\ge t\}$；**集中不等式**（concentration inequality）管 $\{X$ 靠近均值或中位数$\}$。本章是大偏差与测度集中文献的入口；第 3 章再讲熵方法与运输不等式。
+
+# 2.1 Classical bounds　经典界
+
+> 教材定位：§2.1，印刷页 21–32，PDF 页 40–51。
+
+控制 $\mathbb P[X\ge t]$ 的一条路是控制 $X$ 的矩。矩的阶越高，尾界越尖：一阶给出马尔可夫，二阶给出切比雪夫，矩母函数给出切尔诺夫。
+
+## 2.1.1 From Markov to Chernoff　从马尔可夫到切尔诺夫
+
+> 教材定位：§2.1.1，印刷页 21–22，PDF 页 40–41。
+
+非负、期望有限的 $X$：
+
+$$
+\mathbb P[X\ge t]
+\le
+\frac{\mathbb E[X]}{t}
+\qquad t>0.
+\tag{2.1}
+$$
+
+有限方差时，对 $Y=(X-\mu)^2$ 再用 (2.1)，得到切比雪夫
+
+$$
+\mathbb P[\lvert X-\mu\rvert\ge t]
+\le
+\frac{\mathrm{var}(X)}{t^2}
+\qquad t>0.
+\tag{2.2}
+$$
+
+两者都是**锐的**：存在随机变量使等号成立（Exercise 2.1）。有 $k$ 阶中心矩时，对 $\lvert X-\mu\rvert^k$ 用马尔可夫：
+
+$$
+\mathbb P[\lvert X-\mu\rvert\ge t]
+\le
+\frac{\mathbb E[\lvert X-\mu\rvert^k]}{t^k}
+\qquad t>0.
+\tag{2.3}
+$$
+
+若矩母函数在 $0$ 的邻域存在，即存在 $b>0$ 使 $\varphi(\lambda)=\mathbb E[e^{\lambda(X-\mu)}]$ 对 $\lvert\lambda\rvert\le b$ 有限，则对 $\lambda\in[0,b]$ 把马尔可夫用在 $Y=e^{\lambda(X-\mu)}$ 上：
+
+$$
+\mathbb P[X-\mu\ge t]
+=
+\mathbb P\bigl[e^{\lambda(X-\mu)}\ge e^{\lambda t}\bigr]
+\le
+\frac{\mathbb E[e^{\lambda(X-\mu)}]}{e^{\lambda t}}.
+\tag{2.4}
+$$
+
+对 $\lambda$ 取最优，得到切尔诺夫界（Chernoff bound）
+
+$$
+\log\mathbb P[X-\mu\ge t]
+\le
+\inf_{\lambda\in[0,b]}
+\bigl\{\log\mathbb E[e^{\lambda(X-\mu)}]-\lambda t\bigr\}.
+\tag{2.5}
+$$
+
+::: {.callout-note title="作者解释：多项式矩并不更弱"}
+Exercise 2.3 证明：非负 $X$ 上，最优 $k$ 阶矩界从不差于切尔诺夫。实践里仍多用切尔诺夫，因为独立和的矩母函数直接乘开。
+:::
+
+## 2.1.2 Sub-Gaussian variables and Hoeffding bounds　次高斯与霍夫丁
+
+> 教材定位：§2.1.2，印刷页 22–25，PDF 页 41–44。
+
+切尔诺夫给出的尾形，取决于矩母函数长多快。最整齐的一类叫做次高斯。
+
+::: {.callout-important title="Example 2.1　高斯尾界"}
+设 $X\sim N(\mu,\sigma^2)$。矩母函数对一切 $\lambda\in\mathbb R$ 都是
+$$
+\mathbb E[e^{\lambda X}]
+=
+e^{\mu\lambda+\sigma^2\lambda^2/2}.
+\tag{2.6}
+$$
+代入 (2.5)，对 $\lambda\ge 0$ 最小化二次式 $\lambda^2\sigma^2/2-\lambda t$，在 $\lambda=t/\sigma^2$ 取到 $-t^2/(2\sigma^2)$。因此
+$$
+\mathbb P[X\ge\mu+t]
+\le
+e^{-t^2/(2\sigma^2)}
+\qquad t\ge 0.
+\tag{2.7}
+$$
+除了一个多项式因子，这个上尾与米尔斯比（Mills ratio，Exercise 2.2）给出的真尾同阶。
+:::
+
+被 (2.6) 的上界定义的，就是次高斯。
+
+::: {.callout-important title="Definition 2.2　次高斯"}
+设 $X$ 的均值 $\mu=\mathbb E[X]$。若存在 $\sigma>0$ 使得
+$$
+\mathbb E\bigl[e^{\lambda(X-\mu)}\bigr]
+\le
+e^{\sigma^2\lambda^2/2}
+\qquad\text{对一切 }\lambda\in\mathbb R,
+\tag{2.8}
+$$
+则称 $X$ 是参数为 $\sigma$ 的**次高斯**（sub-Gaussian）随机变量。$\sigma$ 叫做次高斯参数。
+:::
+
+$N(\mu,\sigma^2)$ 是参数 $\sigma$ 的次高斯。把 (2.8) 送进切尔诺夫，立刻得到与 (2.7) 相同的上尾；$-X$ 次高斯当且仅当 $X$ 次高斯，故下尾同样成立。合起来：
+
+$$
+\mathbb P[\lvert X-\mu\rvert\ge t]
+\le
+2e^{-t^2/(2\sigma^2)}
+\qquad t\in\mathbb R.
+\tag{2.9}
+$$
+
+**Example 2.3（拉德马赫）。** $\varepsilon$ 等概率取 $\{\pm 1\}$。幂级数只留下偶次项，且 $(2k)!\ge 2^k k!$，因此
+$$
+\mathbb E[e^{\lambda\varepsilon}]
+=
+\sum_{k=0}^\infty\frac{\lambda^{2k}}{(2k)!}
+\le
+e^{\lambda^2/2}.
+$$
+故 $\sigma=1$。方差也是 $1$，这里参数与标准差一致。
+
+**Example 2.4（有界变量）。** $X$ 零均值、支在 $[a,b]$。设 $X'$ 为独立副本。指数凸，故
+$$
+\mathbb E_X[e^{\lambda X}]
+=
+\mathbb E_X\bigl[e^{\lambda(X-\mathbb E_{X'}[X'])}\bigr]
+\le
+\mathbb E_{X,X'}[e^{\lambda(X-X')}].
+$$
+$X-X'$ 与 $\varepsilon(X-X')$ 同分布（$\varepsilon$ 独立拉德马赫）。条件于 $(X,X')$ 用 Example 2.3，再由 $\lvert X-X'\rvert\le b-a$，得到参数至多 $\sigma=b-a$。这是对称化（symmetrization）的一次演示：先引入独立副本，再用拉德马赫把差变对称。Exercise 2.4 把参数锐化到 $(b-a)/2$。
+
+独立次高斯在线性运算下封闭：若 $X_1,X_2$ 独立、参数 $\sigma_1,\sigma_2$，则 $X_1+X_2$ 的参数为 $\sqrt{\sigma_1^2+\sigma_2^2}$（Exercise 2.13）。于是独立和套 (2.7) 得到霍夫丁界。
+
+::: {.callout-important title="Proposition 2.5　霍夫丁界（Hoeffding bound）"}
+设 $X_i$ 独立，均值为 $\mu_i$，次高斯参数 $\sigma_i$。则对一切 $t\ge 0$，
+$$
+\mathbb P\Bigl[\sum_{i=1}^n(X_i-\mu_i)\ge t\Bigr]
+\le
+\exp\Bigl(-\frac{t^2}{2\sum_{i=1}^n\sigma_i^2}\Bigr).
+\tag{2.10}
+$$
+:::
+
+若每个 $X_i\in[a,b]$，Exercise 2.4 给出 $\sigma=(b-a)/2$，因此
+
+$$
+\mathbb P\Bigl[\sum_{i=1}^n(X_i-\mu_i)\ge t\Bigr]
+\le
+e^{-2t^2/(n(b-a)^2)}.
+\tag{2.11}
+$$
+
+这是霍夫丁最常见的写法；Proposition 2.5 对一般次高斯同样成立。
+
+次高斯有三条彼此等价的看法：矩母函数被高斯控制、尾被某个高斯控制、偶矩被高斯偶矩控制。Theorem 2.6 把第四条（平方的指数矩）也算进去。
+
+::: {.callout-important title="Theorem 2.6　次高斯的等价刻画"}
+设 $X$ 零均值。下列命题等价：
+
+- (I) 存在 $\sigma\ge 0$，使 $\mathbb E[e^{\lambda X}]\le e^{\lambda^2\sigma^2/2}$ 对一切 $\lambda\in\mathbb R$ 成立（2.12a）；
+- (II) 存在 $c\ge 0$ 与 $Z\sim N(0,\tau^2)$，使 $\mathbb P[\lvert X\rvert\ge s]\le c\,\mathbb P[\lvert Z\rvert\ge s]$ 对一切 $s\ge 0$ 成立（2.12b）；
+- (III) 存在 $\theta\ge 0$，使 $\mathbb E[X^{2k}]\le (2k)!\,\theta^{2k}/(2^k k!)$ 对一切 $k=1,2,\ldots$ 成立（2.12c）；
+- (IV) 存在 $\sigma\ge 0$，使 $\mathbb E[e^{\lambda X^2/(2\sigma^2)}]\le 1/\sqrt{1-\lambda}$ 对一切 $\lambda\in[0,1)$ 成立（2.12d）。
+:::
+
+证明圈是 $(\mathrm{I})\Rightarrow(\mathrm{II})\Rightarrow(\mathrm{III})\Rightarrow(\mathrm{I})$ 以及 $(\mathrm{I})\Leftrightarrow(\mathrm{IV})$，见 §2.4。常数在各条之间不必相同。
+
+::: {.callout-warning title="适用边界"}
+次高斯要求矩母函数在整个实轴上存在。多项式尾、指数尾（例如 $\chi^2$、拉普拉斯）都不满足 (2.8)。此时不要硬套霍夫丁，改用下一小节的次指数。
+:::
+
+## 2.1.3 Sub-exponential variables and Bernstein bounds　次指数与伯恩斯坦
+
+> 教材定位：§2.1.3，印刷页 25–31，PDF 页 44–50。
+
+::: {.callout-important title="Definition 2.7　次指数"}
+设 $X$ 的均值 $\mu=\mathbb E[X]$。若存在非负参数 $(\nu,\alpha)$ 使得
+$$
+\mathbb E\bigl[e^{\lambda(X-\mu)}\bigr]
+\le
+e^{\nu^2\lambda^2/2}
+\qquad\text{对一切 }\lvert\lambda\rvert<\frac1\alpha,
+\tag{2.13}
+$$
+则称 $X$ 是**次指数**（sub-exponential）的。约定 $\alpha=0$ 时 $1/\alpha=+\infty$。
+:::
+
+每个次高斯变量都是次指数（取 $\nu=\sigma$、$\alpha=0$）。反过来不成立。
+
+**Example 2.8。** $Z\sim N(0,1)$，$X=Z^2$。对 $\lambda<1/2$，
+$$
+\mathbb E[e^{\lambda(X-1)}]
+=
+\frac{e^{-\lambda}}{\sqrt{1-2\lambda}};
+$$
+$\lambda>1/2$ 时矩母函数无穷，故 $X$ 不是次高斯。直接估计给出：当 $\lvert\lambda\rvert<1/4$ 时
+$$
+\frac{e^{-\lambda}}{\sqrt{1-2\lambda}}
+\le
+e^{2\lambda^2}
+=
+e^{4\lambda^2/2},
+\tag{2.14}
+$$
+因此 $(\nu,\alpha)=(2,4)$。
+
+切尔诺夫加 (2.13)，得到两段尾：小 $t$ 像次高斯，大 $t$ 变成线性指数。
+
+::: {.callout-important title="Proposition 2.9　次指数尾界"}
+若 $X$ 有次指数参数 $(\nu,\alpha)$，则
+$$
+\mathbb P[X-\mu\ge t]
+\le
+\begin{cases}
+e^{-t^2/(2\nu^2)} & \text{若 }0\le t\le \nu^2/\alpha,\\
+e^{-t/(2\alpha)} & \text{若 }t>\nu^2/\alpha.
+\end{cases}
+$$
+左侧 $\{X-\mu\le -t\}$ 同样；两尾再乘 $2$。
+:::
+
+### 关键推导
+
+不妨 $\mu=0$。对 $\lambda\in[0,\alpha^{-1})$，
+$$
+\mathbb P[X\ge t]
+\le
+\exp\bigl(-\lambda t+\lambda^2\nu^2/2\bigr)
+=:
+\exp\bigl(g(\lambda,t)\bigr).
+$$
+无约束最小点 $\lambda^*=t/\nu^2$。若 $t<\nu^2/\alpha$，则 $\lambda^*$ 落在允许区间内，$g^*=-t^2/(2\nu^2)$。若 $t\ge\nu^2/\alpha$，则 $g(\cdot,t)$ 在 $[0,\lambda^*)$ 递减，约束最小在边界 $\lambda^\dagger=\alpha^{-1}$：
+$$
+g(\lambda^\dagger,t)
+=
+-\frac t\alpha+\frac{\nu^2}{2\alpha^2}
+\le
+-\frac t{2\alpha},
+$$
+因为 $\nu^2/\alpha\le t$。
+
+直接算矩母函数往往不现实。伯恩斯坦条件改用多项式矩。设 $\sigma^2=\mathrm{var}(X)$。若
+
+$$
+\bigl\lvert\mathbb E[(X-\mu)^k]\bigr\rvert
+\le
+\tfrac12\,k!\,\sigma^2 b^{k-2}
+\qquad k=2,3,4,\ldots,
+\tag{2.15}
+$$
+
+则称 $X$ 满足参数 $b$ 的**伯恩斯坦条件**（Bernstein’s condition）。$\lvert X-\mu\rvert\le b$ 几乎必然时 (2.15) 成立，但不少无界变量也满足。把 $e^{\lambda(X-\mu)}$ 展开，用 (2.15) 收几何级数：对 $\lvert\lambda\rvert<1/b$，
+
+$$
+\mathbb E[e^{\lambda(X-\mu)}]
+\le
+1+\frac{\lambda^2\sigma^2/2}{1-b\lvert\lambda\rvert}
+\le
+\exp\Bigl(\frac{\lambda^2\sigma^2/2}{1-b\lvert\lambda\rvert}\Bigr).
+\tag{2.16}
+$$
+
+因而 $X$ 是参数 $(\sqrt 2\,\sigma,\,2b)$ 的次指数。把 (2.16) 直接送进切尔诺夫、取 $\lambda=t/(bt+\sigma^2)$，常数比 Proposition 2.9 略好。
+
+::: {.callout-important title="Proposition 2.10　伯恩斯坦型界"}
+若 $X$ 满足 (2.15)，则对 $\lvert\lambda\rvert<1/b$ 有 (2.17a)（即 (2.16)），并且
+$$
+\mathbb P[\lvert X-\mu\rvert\ge t]
+\le
+2e^{-t^2/(2(\sigma^2+bt))}
+\qquad t\ge 0.
+\tag{2.17b}
+$$
+:::
+
+::: {.callout-note title="直觉：方差对区间长度"}
+即使 $\lvert X-\mu\rvert\le b$，霍夫丁给出的次高斯参数是 $b$（或 Exercise 2.4 的 $b/2$），而 (2.17b) 在 $t$ 不太大时表现得像参数 $\sigma$ 的次高斯。因为 $\sigma^2=\mathbb E[(X-\mu)^2]\le b^2$，这个界从不更差；当变量偶尔取大值但方差很小（$\sigma^2\ll b^2$）时，实质更好。后续统计最优速率经常靠这种“方差型”控制。有界情形还可以用更锐的贝内特不等式（Bennett，Exercise 2.7）。
+:::
+
+独立次指数和的参数很好记。若 $X_k$ 独立、参数 $(\nu_k,\alpha_k)$，则 $\sum(X_k-\mu_k)$ 的参数是
+$$
+\alpha_*:=\max_k\alpha_k,
+\qquad
+\nu_*:=\sqrt{\sum_{k=1}^n\nu_k^2},
+$$
+因为矩母函数在 $\lvert\lambda\rvert<1/\alpha_*$ 上乘开。对样本均值套 Proposition 2.9：
+
+$$
+\mathbb P\Bigl[\frac1n\sum_{i=1}^n(X_k-\mu_k)\ge t\Bigr]
+\le
+\begin{cases}
+\exp\bigl(-nt^2/(2(\nu_*^2/n))\bigr) & 0\le t\le\nu_*^2/(n\alpha_*),\\
+\exp(-nt/(2\alpha_*)) & t>\nu_*^2/(n\alpha_*).
+\end{cases}
+\tag{2.18}
+$$
+（两尾再乘 $2$。）i.i.d. 时 $\nu_*=\nu\sqrt n$、$\alpha_*=\alpha$，二次段就是 $e^{-nt^2/(2\nu^2)}$。
+
+**Example 2.11（$\chi^2$）。** $Y=\sum_{k=1}^n Z_k^2\sim\chi^2_n$，$Z_k\sim N(0,1)$ i.i.d.。每个 $Z_k^2$ 的参数是 $(2,4)$，故 $Y$ 的参数是 $(2\sqrt n,4)$。对 $t\in(0,1)$ 落在二次段，
+
+$$
+\mathbb P\Bigl[\Bigl\lvert\frac1n\sum_{k=1}^n Z_k^2-1\Bigr\rvert\ge t\Bigr]
+\le
+2e^{-nt^2/8}.
+\tag{2.19}
+$$
+
+这正是第 1 章 LDA vignette 里 $\lVert\hat\mu_j-\mu_j\rVert_2^2$ 集中在 $d/n$ 的那条尾界。
+
+**Example 2.12（Johnson–Lindenstrauss）。** 给定 $N\ge 2$ 个点 $u^1,\ldots,u^N\in\mathbb R^d$。要用 $F:\mathbb R^d\to\mathbb R^m$、$m\ll d$，使所有两两平方距离乘上 $(1\pm\delta)$：
+
+$$
+(1-\delta)
+\le
+\frac{\lVert F(u^i)-F(u^j)\rVert_2^2}{\lVert u^i-u^j\rVert_2^2}
+\le
+(1+\delta)
+\qquad i\neq j.
+\tag{2.20}
+$$
+
+构造：$\mathbf X\in\mathbb R^{m\times d}$ 的元素 i.i.d. $N(0,1)$，$F(u)=\mathbf X u/\sqrt m$。固定 $u\neq 0$，行 $x_i$ 给出 $\langle x_i,u/\lVert u\rVert_2\rangle\sim N(0,1)$，故 $\lVert\mathbf X u\rVert_2^2/\lVert u\rVert_2^2\sim\chi^2_m$。由 (2.19)，
+$$
+\mathbb P\Bigl[\frac{\lVert F(u)\rVert_2^2}{\lVert u\rVert_2^2}\notin[1-\delta,1+\delta]\Bigr]
+\le
+2e^{-m\delta^2/8}.
+$$
+对 $\binom N2$ 对点做并，失败概率 $\le 2\binom N2 e^{-m\delta^2/8}$。要它小于 $\varepsilon$，取
+$$
+m>\frac{16}{\delta^2}\log(N/\varepsilon)
+$$
+即可。$m$ **不依赖** 环境维数 $d$，只对数依赖于点数。
+
+与 Theorem 2.6 平行，次指数也有等价刻画。
+
+::: {.callout-important title="Theorem 2.13　次指数的等价刻画"}
+设 $X$ 零均值。下列命题等价：
+
+- (I) 存在 $(\nu,\alpha)\ge 0$，使 $\mathbb E[e^{\lambda X}]\le e^{\nu^2\lambda^2/2}$ 对 $\lvert\lambda\rvert<1/\alpha$ 成立（2.21a）；
+- (II) 存在 $c_0>0$，使 $\mathbb E[e^{\lambda X}]<\infty$ 对一切 $\lvert\lambda\rvert\le c_0$ 成立；
+- (III) 存在 $c_1,c_2>0$，使 $\mathbb P[\lvert X\rvert\ge t]\le c_1 e^{-c_2 t}$ 对一切 $t>0$ 成立（2.21b）；
+- (IV) $\gamma:=\sup_{k\ge 2}(\mathbb E[\lvert X\rvert^k]/k!)^{1/k}$ 有限。
+:::
+
+证明见 §2.5。核心是：(II) 说矩母函数在 $0$ 的开区间里存在，这已经等价于指数尾、也等价于阶乘矩的半径有限。
+
+## 2.1.4 Some one-sided results　单侧结果
+
+> 教材定位：§2.1.4，印刷页 31–32，PDF 页 50–51。
+
+伯恩斯坦条件常用 $\lvert X\rvert\le b$ 来验证。若只有单侧有界，仍有单侧尾。
+
+::: {.callout-important title="Proposition 2.14　单侧伯恩斯坦"}
+若 $X\le b$ 几乎必然，则
+$$
+\mathbb E\bigl[e^{\lambda(X-\mathbb E[X])}\bigr]
+\le
+\exp\Bigl(\frac{\lambda^2\mathbb E[X^2]/2}{1-b\lambda/3}\Bigr)
+\qquad\lambda\in[0,3/b).
+\tag{2.22a}
+$$
+因而若 $X_i$ 独立且 $X_i\le b$ a.s.，
+$$
+\mathbb P\Bigl[\sum_{i=1}^n(X_i-\mathbb E X_i)\ge n\delta\Bigr]
+\le
+\exp\Bigl(
+-\frac{n\delta^2}{2\bigl(n^{-1}\sum_i\mathbb E[X_i^2]+b\delta/3\bigr)}
+\Bigr).
+\tag{2.22b}
+$$
+:::
+
+下有界时对 $-X$ 用同一结论。特别地，独立非负 $Y_i\ge 0$ 的**下尾**是纯次高斯型（没有线性项），只是用二阶矩代替方差：
+
+$$
+\mathbb P\Bigl[\sum_{i=1}^n(Y_i-\mathbb E Y_i)\le -n\delta\Bigr]
+\le
+\exp\Bigl(
+-\frac{n\delta^2}{2n^{-1}\sum_{i=1}^n\mathbb E[Y_i^2]}
+\Bigr).
+\tag{2.23}
+$$
+
+证明的代数核是 $h(u)=2(e^u-u-1)/u^2$。由 $X\le b$ 得 $h(\lambda X)\le h(\lambda b)$，再用 $k!\ge 2\cdot 3^{k-2}$（$k\ge 2$）收几何级数，得到 $h(\lambda b)\le(1-\lambda b/3)^{-1}$。切尔诺夫里取
+$$
+\lambda
+=
+\frac{n\delta}{\sum_i\mathbb E[X_i^2]+n\delta b/3}
+$$
+即得 (2.22b)。
+
+# 2.2 Martingale-based methods　基于鞅的方法
+
+> 教材定位：§2.2，印刷页 32–40，PDF 页 51–59。
+
+到此为止的对象是独立和。一般函数 $f(X_1,\ldots,X_n)$ 没有独立性，经典办法是把它写成鞅差之和。
+
+## 2.2.1 Background　背景
+
+> 教材定位：§2.2.1，印刷页 33–35，PDF 页 52–54。
+
+设 $X=(X_1,\ldots,X_n)$ 独立，$f:\mathbb R^n\to\mathbb R$ 可积。令 $Y_0=\mathbb E[f(X)]$，$Y_n=f(X)$，以及
+
+$$
+Y_k
+=
+\mathbb E\bigl[f(X)\mid X_1,\ldots,X_k\bigr]
+\qquad k=1,\ldots,n-1.
+\tag{2.24}
+$$
+
+$Y_0$ 是常数，$Y_k$ 随 $k$ 增加而多一份随机性。望远镜分解
+$$
+f(X)-\mathbb E[f(X)]
+=
+Y_n-Y_0
+=
+\sum_{k=1}^n(Y_k-Y_{k-1})
+$$
+把偏差写成增量 $D_k=Y_k-Y_{k-1}$。$\{Y_k\}$ 是杜布鞅（Doob martingale），$\{D_k\}$ 是鞅差。
+
+一般定义需要过滤。嵌套的 $\sigma$-域序列 $\mathcal F_k\subset\mathcal F_{k+1}$ 叫做**过滤**（filtration）。若 $Y_k$ 关于 $\mathcal F_k$ 可测，则称 $\{Y_k\}$ **适应**于 $\{\mathcal F_k\}$。杜布构造里 $\mathcal F_k=\sigma(X_1,\ldots,X_k)$。
+
+::: {.callout-important title="Definition 2.15　鞅"}
+设 $\{Y_k\}_{k=1}^\infty$ 适应于过滤 $\{\mathcal F_k\}_{k=1}^\infty$。称 $\{(Y_k,\mathcal F_k)\}$ 是**鞅**（martingale），若对一切 $k\ge 1$，
+$$
+\mathbb E[\lvert Y_k\rvert]<\infty
+\qquad\text{且}\qquad
+\mathbb E[Y_{k+1}\mid\mathcal F_k]=Y_k.
+\tag{2.25}
+$$
+:::
+
+若 $\mathcal F_k=\sigma(X_1,\ldots,X_k)$，称 $\{Y_k\}$ 关于 $\{X_k\}$ 是鞅。若它关于自身是鞅（$\mathcal F_k=\sigma(Y_1,\ldots,Y_k)$），就简单说 $\{Y_k\}$ 是鞅序列。
+
+**Example 2.16。** i.i.d.、均值 $\mu$ 的部分和 $S_k=\sum_{j=1}^k X_j$ 满足 $\mathbb E[S_{k+1}\mid\mathcal F_k]=\mu+S_k$。因此 $\{S_k\}$ 本身一般不是鞅，但 $Y_k=S_k-k\mu$ 是。
+
+**Example 2.17（杜布）。** $\mathbb E[\lvert f(X)\rvert]<\infty$ 时，(2.24) 确是关于 $\{X_k\}$ 的鞅：$\mathbb E[\lvert Y_k\rvert]\le\mathbb E[\lvert f\rvert]$（Jensen），且塔性质给出 $\mathbb E[Y_{k+1}\mid X_1^k]=Y_k$。
+
+**Example 2.18。** 若样本来自密度 $f$，而 $Y_k=\prod_{\ell=1}^k g(X_\ell)/f(X_\ell)$ 是相对于另一密度 $g$ 的似然比，则 $\mathbb E[g(X)/f(X)]=1$，故 $\{Y_k\}$ 是鞅。这是序贯检验里停时分析的起点。
+
+适应序列 $\{(D_k,\mathcal F_k)\}$ 是**鞅差**（martingale difference），若
+
+$$
+\mathbb E[\lvert D_k\rvert]<\infty
+\qquad\text{且}\qquad
+\mathbb E[D_{k+1}\mid\mathcal F_k]=0.
+\tag{2.26}
+$$
+
+鞅 $\{Y_k\}_{k=0}^\infty$ 的增量 $D_k=Y_k-Y_{k-1}$ 自动是鞅差，因为 $Y_k$ 对 $\mathcal F_k$ 可测。于是
+
+$$
+Y_n-Y_0
+=
+\sum_{k=1}^n D_k.
+\tag{2.27}
+$$
+
+## 2.2.2 Concentration bounds for martingale difference sequences　鞅差的集中
+
+> 教材定位：§2.2.2，印刷页 35–40，PDF 页 54–59。
+
+下面的定理把“条件于过去，增量是次指数”提升成和的次指数。
+
+::: {.callout-important title="Theorem 2.19　鞅差的伯恩斯坦型界"}
+设 $\{(D_k,\mathcal F_k)\}$ 是鞅差，且 $\mathbb E[e^{\lambda D_k}\mid\mathcal F_{k-1}]\le e^{\lambda^2\nu_k^2/2}$ 几乎必然，对一切 $\lvert\lambda\rvert<1/\alpha_k$。则：
+
+- (a) $\sum_{k=1}^n D_k$ 是次指数，参数 $\bigl(\sqrt{\sum_k\nu_k^2},\,\alpha_*\bigr)$，其中 $\alpha_*=\max_k\alpha_k$；
+- (b) 两尾 (2.28)：若 $0\le t\le(\sum\nu_k^2)/\alpha_*$，界是 $2\exp(-t^2/(2\sum\nu_k^2))$；若 $t$ 更大，界是 $2\exp(-t/(2\alpha_*))$。
+:::
+
+证明是条件期望迭代：先对 $\mathcal F_{n-1}$ 条件，用假设吃掉 $D_n$，再往回剥。得到的矩母函数上界与独立次指数和相同，再套 Proposition 2.9。
+
+有界增量是次高斯（Exercise 2.4），于是得到阿祖马–霍夫丁。
+
+::: {.callout-important title="Corollary 2.20　阿祖马–霍夫丁（Azuma–Hoeffding）"}
+设 $\{(D_k,\mathcal F_k)\}$ 是鞅差，且 $D_k\in[a_k,b_k]$ 几乎必然。则对一切 $t\ge 0$，
+$$
+\mathbb P\Bigl[\Bigl\lvert\sum_{k=1}^n D_k\Bigr\rvert\ge t\Bigr]
+\le
+2\exp\Bigl(-\frac{2t^2}{\sum_{k=1}^n(b_k-a_k)^2}\Bigr).
+\tag{2.30}
+$$
+:::
+
+条件变量 $(D_k\mid\mathcal F_{k-1})$ 仍落在 $[a_k,b_k]$，故条件次高斯参数 $\le(b_k-a_k)/2$。指数里的 $2$ 来自 $1/(2\sigma^2)=1/(2\cdot(b-a)^2/4)=2/(b-a)^2$。
+
+对函数，把“改一个坐标，函数值不能跳太远”写成有界差分。给定 $x,x'\in\mathbb R^n$ 与坐标 $k$，令
+
+$$
+x^{\backslash k}_j
+:=
+\begin{cases}
+x_j & j\neq k,\\
+x'_k & j=k.
+\end{cases}
+\tag{2.31}
+$$
+
+称 $f$ 满足参数 $(L_1,\ldots,L_n)$ 的**有界差分不等式**（bounded difference inequality），若
+
+$$
+\lvert f(x)-f(x^{\backslash k})\rvert
+\le
+L_k
+\qquad\text{对一切 }x,x'\in\mathbb R^n.
+\tag{2.32}
+$$
+
+若 $f$ 对汉明距离 $d_H(x,y)=\sum_i\mathbb I[x_i\neq y_i]$ 是 $L$-利普希茨，则每个坐标都可取同一个 $L$。
+
+::: {.callout-important title="Corollary 2.21　有界差分不等式"}
+设 $f$ 满足 (2.32)，且 $X=(X_1,\ldots,X_n)$ 的坐标独立。则对一切 $t\ge 0$，
+$$
+\mathbb P\bigl[\lvert f(X)-\mathbb E[f(X)]\rvert\ge t\bigr]
+\le
+2\exp\Bigl(-\frac{2t^2}{\sum_{k=1}^n L_k^2}\Bigr).
+\tag{2.33}
+$$
+:::
+
+杜布鞅差 $D_k=\mathbb E[f\mid X_1^k]-\mathbb E[f\mid X_1^{k-1}]$ 几乎必然落在某个长度为 $L_k$ 的随机区间 $[A_k,B_k]$ 里：把第 $k$ 个坐标换成使条件期望最小/最大的值，独立性把条件期望写成对 $X_{k+1}^n$ 的普通期望，再用 (2.32)。阿祖马–霍夫丁给出 (2.33)。
+
+汉明 $L$-利普希茨时 $\sum L_k^2=nL^2$，于是
+
+$$
+\mathbb P\bigl[\lvert f(X)-\mathbb E[f(X)]\rvert\ge t\bigr]
+\le
+2e^{-2t^2/(nL^2)}
+\qquad t\ge 0.
+\tag{2.35}
+$$
+
+**Example 2.22。** $f(x)=\sum(x_i-\mu_i)$、$X_i\in[a,b]$ 时 $L=b-a$，(2.35) 回到带系数 $2$ 的两尾霍夫丁。
+
+**Example 2.23（$U$-统计量）。** 对称 $g:\mathbb R^2\to\mathbb R$，
+$$
+U
+:=
+\binom n2^{-1}\sum_{j<k}g(X_j,X_k).
+\tag{2.36}
+$$
+$U$ 不是独立和，但依赖很弱。若 $\lVert g\rVert_\infty\le b$，改第 $k$ 个样本只影响 $n-1$ 对，
+$$
+\lvert f(x)-f(x^{\backslash k})\rvert
+\le
+\frac{(n-1)\cdot 2b}{\binom n2}
+=
+\frac{4b}n,
+$$
+故 $L_k=4b/n$。代入 (2.33)：$\sum L_k^2=16b^2/n$，
+$$
+\mathbb P[\lvert U-\mathbb E U\rvert\ge t]
+\le
+2e^{-nt^2/(8b^2)}.
+$$
+
+**Example 2.24（随机图的团数）。** 埃尔德什–雷尼图：$\binom d2$ 条可能边独立以概率 $p$ 出现。团数 $C(G)$ 作为边指示向量的函数，改一条边最多使团数变 $1$，故每个坐标 $L=1$。把 (2.35) 里的样本数读成边数 $n=\binom d2$（教材印刷页 39 未把这个 $n$ 写明，见勘误待批），得到
+$$
+\mathbb P\bigl[n^{-1}\lvert C(G)-\mathbb E C(G)\rvert\ge\delta\bigr]
+\le
+2e^{-2n\delta^2}.
+$$
+这保证团数相对 $n$ 的偏差集中；绝对偏差的自然尺度其实是 $O(1)$，有界差分给出的是较粗的 $O(\sqrt n)$ 代理。
+
+**Example 2.25（拉德马赫复杂度）。** $\varepsilon_k$ i.i.d. 拉德马赫，$\mathcal A\subset\mathbb R^n$，
+$$
+Z
+:=
+\sup_{a\in\mathcal A}\sum_{k=1}^n a_k\varepsilon_k
+=
+\sup_{a\in\mathcal A}\langle a,\varepsilon\rangle.
+\tag{2.37}
+$$
+$\mathbb E[Z]$ 是集合 $\mathcal A$ 的拉德马赫复杂度 $\mathcal R(\mathcal A)$，第 4、5 章会反复出现。改第 $k$ 个符号：$f(\varepsilon)-f(\varepsilon^{\backslash k})\le 2\sup_{a\in\mathcal A}\lvert a_k\rvert$，故 $L_k=2\sup_a\lvert a_k\rvert$。Corollary 2.21 给出 $Z$ 的次高斯参数至多 $2\sqrt{\sum_k\sup_a a_k^2}$。更锐的参数 $\sqrt{\sup_a\sum_k a_k^2}$ 要到第 3 章 Example 3.5。
+
+# 2.3 Lipschitz functions of Gaussian variables　高斯变量的利普希茨函数
+
+> 教材定位：§2.3，印刷页 40–45，PDF 页 59–64。
+
+高斯向量上的利普希茨函数有一种特别干净的、**与维数无关**的集中。称 $f:\mathbb R^n\to\mathbb R$ 对欧氏范数是 $L$-利普希茨，若
+
+$$
+\lvert f(x)-f(y)\rvert
+\le
+L\lVert x-y\rVert_2
+\qquad\text{对一切 }x,y\in\mathbb R^n.
+\tag{2.38}
+$$
+
+::: {.callout-important title="Theorem 2.26　高斯利普希茨集中"}
+设 $(X_1,\ldots,X_n)$ 为 i.i.d. 标准正态，$f$ 对欧氏范数 $L$-利普希茨。则 $f(X)-\mathbb E[f(X)]$ 是参数至多 $L$ 的次高斯，因而
+$$
+\mathbb P\bigl[\lvert f(X)-\mathbb E[f(X)]\rvert\ge t\bigr]
+\le
+2e^{-t^2/(2L^2)}
+\qquad t\ge 0.
+\tag{2.39}
+$$
+:::
+
+无论 $n$ 多大，尾都像方差 $L^2$ 的一维高斯。这是真正的维数无关。
+
+教材正文证明的是稍弱的常数：可微时 $\lVert\nabla f\rVert_2\le L$，用下面的插值引理把矩母函数变成 $\exp(\lambda^2\pi^2 L^2/8)$，即次高斯参数 $\pi L/2$，尾界 $2\exp(-2t^2/(\pi^2 L^2))$。锐常数见文献注。利普希茨函数几乎处处可微（Rademacher 定理），可把可微情形延拓出去。
+
+::: {.callout-important title="Lemma 2.27　高斯插值"}
+设 $f$ 可微，$\phi:\mathbb R\to\mathbb R$ 凸。若 $X,Y\sim N(0,I_n)$ 独立，则
+$$
+\mathbb E\bigl[\phi\bigl(f(X)-\mathbb E[f(X)]\bigr)\bigr]
+\le
+\mathbb E\Bigl[\phi\Bigl(\frac\pi2\langle\nabla f(X),Y\rangle\Bigr)\Bigr].
+\tag{2.40}
+$$
+:::
+
+对 $\phi(t)=e^{\lambda t}$ 用 (2.40)：内层 $\langle Y,\nabla f(x)\rangle\sim N(0,\lVert\nabla f(x)\rVert_2^2)$，再由 $\lVert\nabla f\rVert_2\le L$ 得到参数 $\pi L/2$。
+
+引理的证明用旋转不变性。令 $Z_k(\theta)=X_k\sin\theta+Y_k\cos\theta$。凸性给出 $\mathbb E_X[\phi(f(X)-\mathbb E_Y f(Y))]\le\mathbb E[\phi(f(X)-f(Y))]$。把差写成
+$$
+f(X)-f(Y)
+=
+\int_0^{\pi/2}\langle\nabla f(Z(\theta)),Z'(\theta)\rangle\,d\theta,
+$$
+再把 $\phi$ 的 Jensen 用在这个平均值上。对每个 $\theta$，$(Z_k(\theta),Z'_k(\theta))$ 是标准二维高斯，期望与 $\theta$ 无关，积分坍缩成 (2.40)。
+
+::: {.callout-warning title="适用边界"}
+证明本质地用了高斯的旋转不变性。球面均匀、严格对数凹测度有类似结论（第 3 章）。**没有凸性等额外结构时，任意次高斯坐标的利普希茨函数不必有维数无关的次高斯集中**——Ledoux (2001) 给过拉德马赫向量上的反例。有界变量加上凸性则可以，见 §3.3.5。
+:::
+
+**Example 2.28（再看 $\chi^2$）。** $Y=\sum Z_k^2$，$V=\sqrt{Y/n}=\lVert Z\rVert_2/\sqrt n$。欧氏范数 1-利普希茨，故 $\mathbb P[V\ge\mathbb E V+\delta]\le e^{-n\delta^2/2}$。Jensen 给出 $\mathbb E V\le 1$，因此 $\mathbb P[Y/n\ge(1+\delta)^2]\le e^{-n\delta^2/2}$。对 $\delta\in[0,1]$ 用 $(1+\delta)^2\le 1+3\delta$，令 $t=3\delta$，
+
+$$
+\mathbb P[Y\ge n(1+t)]
+\le
+e^{-nt^2/18}
+\qquad t\in[0,3].
+\tag{2.44}
+$$
+
+与 (2.19) 的 $e^{-nt^2/8}$ 相比，利普希茨路径的常数更差，但不需要认 $Z_k^2$ 是次指数。
+
+**Example 2.29。** 次序统计量 $X_{(1)}\le\cdots\le X_{(n)}$ 满足 $\lvert X_{(k)}-Y_{(k)}\rvert\le\lVert X-Y\rVert_2$，故每个都是 1-利普希茨。$X$ 为标准高斯向量时，$\mathbb P[\lvert X_{(k)}-\mathbb E X_{(k)}\rvert\ge\delta]\le 2e^{-\delta^2/2}$。
+
+**Example 2.30（高斯复杂度）。** $W_k$ i.i.d. $N(0,1)$，$\mathcal A\subset\mathbb R^n$，
+$$
+Z
+:=
+\sup_{a\in\mathcal A}\sum_{k=1}^n a_k W_k
+=
+\sup_{a\in\mathcal A}\langle a,W\rangle.
+\tag{2.46}
+$$
+这是 Example 2.25 的高斯版。$f(w)=\sup_{a\in\mathcal A}\langle a,w\rangle$ 的欧氏利普希茨常数是欧氏宽度 $D(\mathcal A)=\sup_{a\in\mathcal A}\lVert a\rVert_2$，因此
+
+$$
+\mathbb P[\lvert Z-\mathbb E Z\rvert\ge\delta]
+\le
+2\exp\bigl(-\delta^2/(2D^2(\mathcal A))\bigr).
+\tag{2.47}
+$$
+
+**Example 2.31（高斯混沌）。** $Q$ 对称，$w,\widetilde w$ 独立 $N(0,I_n)$，$Z=w^T Q\widetilde w$。条件于 $\widetilde w$，$Z$ 是方差 $\lVert Q\widetilde w\rVert_2^2$ 的中心高斯。$Y=\lVert Q\widetilde w\rVert_2$ 对 $\widetilde w$ 的利普希茨常数是算子范数 $\lvert\lvert\lvert Q\rvert\rvert\rvert_2$，且 $\mathbb E Y\le\lvert\lvert\lvert Q\rvert\rvert\rvert_F$。拼起来得到次指数型尾
+$$
+\mathbb P[\lvert Z\rvert\ge\delta]
+\le
+4\exp\Bigl(-\frac{\delta^2}{4\lvert\lvert\lvert Q\rvert\rvert\rvert_F^2+4\delta\lvert\lvert\lvert Q\rvert\rvert\rvert_2}\Bigr).
+$$
+
+**Example 2.32。** $X\in\mathbb R^{n\times d}$（$n>d$）元素 i.i.d. $N(0,1)$。Weyl 定理：$\max_k\lvert\sigma_k(X)-\sigma_k(Y)\rvert\le\lvert\lvert\lvert X-Y\rvert\rvert\rvert_2\le\lvert\lvert\lvert X-Y\rvert\rvert\rvert_F$，故每个奇异值作为矩阵的函数是 1-利普希茨，
+$$
+\mathbb P\bigl[\lvert\sigma_k(X)-\mathbb E[\sigma_k(X)]\rvert\ge\delta\bigr]
+\le
+2e^{-\delta^2/2}.
+\tag{2.52}
+$$
+期望本身本章还不会算，但集中已经保证“期望就是典型值”。第 6 章再处理期望。
+
+# 2.4 Appendix A　次高斯等价性
+
+> 教材定位：§2.4，印刷页 45–48，PDF 页 64–67。此处只保留 Theorem 2.6 的证明骨架；细节指回教材。
+
+圈：$(\mathrm{I})\Rightarrow(\mathrm{II})\Rightarrow(\mathrm{III})\Rightarrow(\mathrm{I})$，再 $(\mathrm{I})\Leftrightarrow(\mathrm{IV})$。
+
+- $(\mathrm{I})\Rightarrow(\mathrm{II})$：次高斯上尾 $e^{-t^2/(2\sigma^2)}$ 对 $Z\sim N(0,2\sigma^2)$ 的米尔斯比下界 (2.53) 做商。$t\le 2\sigma$ 时分母有均匀下界 $1/\sqrt{8e}$；$t>2\sigma$ 时令 $s=t/\sigma$，数值上界仍是 $\sqrt{8e}$。故 $c=\sqrt{8e}$。
+- $(\mathrm{II})\Rightarrow(\mathrm{III})$：$\mathbb E[X^{2k}]=\int_0^\infty\mathbb P(\lvert X\rvert>s^{1/(2k)})\,ds\le c\,\mathbb E[Z^{2k}]$，高斯偶矩是 $(2k)!\,\tau^{2k}/(2^k k!)$。取 $\theta=c\tau$ 时多一个 $c^{1/k}\le c$ 的因子，仍是 (2.12c) 的形状。
+- $(\mathrm{III})\Rightarrow(\mathrm{I})$：对称情形奇次矩为零，幂级数直接给出参数 $\theta$。非对称时用柯西–施瓦茨加算术–几何平均把奇次矩收成相邻偶次矩，参数变成 $\sqrt 2\,\theta$。
+- $(\mathrm{I})\Rightarrow(\mathrm{IV})$：把 $\mathbb E[e^{\lambda X}]\le e^{\lambda^2\sigma^2/2}$ 两边乘 $e^{-\lambda^2\sigma^2/(2s)}$，对 $\lambda$ 积分（Fubini），高斯积分给出 $1/\sqrt{1-s}$。
+- $(\mathrm{IV})\Rightarrow(\mathrm{I})$：小 $\lambda$ 用 $e^u\le u+e^{9u^2/16}$ 把问题送回 (IV)；大 $\lambda$ 用 Young $uv\le u^2/(2\alpha)+\alpha v^2/2$ 配平方完成。
+
+# 2.5 Appendix B　次指数等价性
+
+> 教材定位：§2.5，印刷页 48–49，PDF 页 67–68。
+
+链：$(\mathrm{I})\Leftrightarrow(\mathrm{II})\Leftrightarrow(\mathrm{III})$，以及 $(\mathrm{II})\Leftrightarrow(\mathrm{IV})$。
+
+- $(\mathrm{II})\Rightarrow(\mathrm{I})$：矩母函数在 $0$ 处的泰勒是 $1+\lambda^2\mathbb E[X^2]/2+o(\lambda^2)$，与 $e^{\sigma^2\lambda^2/2}$ 比较，只要 $\sigma^2>\mathbb E[X^2]$，在某个 $1/b$ 邻域内就有 (2.13)。
+- $(\mathrm{I})\Rightarrow(\mathrm{II})$：显然。
+- $(\mathrm{III})\Rightarrow(\mathrm{II})$：把 $\mathbb E[e^{a\lvert X\rvert}]$ 写成尾积分，指数尾在 $a<c_2$ 时把积分收住。
+- $(\mathrm{II})\Rightarrow(\mathrm{III})$：切尔诺夫取 $\lambda=c_0/2$。
+- $(\mathrm{II})\Leftrightarrow(\mathrm{IV})$：$\gamma$ 正是幂级数 $\sum\lambda^k\mathbb E[X^k]/k!$ 的收敛半径的倒数。
+
+# 2.6 Bibliographic details and background　文献与背景
+
+> 教材定位：§2.6，印刷页 49–50，PDF 页 68–69。文献条目指回教材。
+
+切尔诺夫方法的谱系是 Bernstein (1937) → Chernoff (1952)；霍夫丁 (1963) 同时处理独立有界和与 $U$-统计；Azuma (1967) 把条件次高斯增量写成一般鞅。次高斯/次指数的等价刻画来自 Buldygin–Kozachenko (2000)。Johnson–Lindenstrauss (1984) 原证用的是行正交的随机矩阵，这里改成标准高斯矩阵。有界差分的算法与随机图应用见 McDiarmid (1989) 与 Boucheron–Lugosi–Massart (2013)。Theorem 2.26 的短证来自 Milman–Schechtman (1986)。Hanson–Wright、Orlicz 范数、Rosenthal 矩、Bernoulli 率失真、SK 自旋玻璃分别是 Exercise 2.17–2.22 的出处。
+
+# 常见错误
+
+1. **错误做法：** 把次高斯参数 $\sigma$ 当成标准差，或把霍夫丁的 $(b-a)/2$ 当成最优。  
+   **为什么错：** Exercise 2.5 只保证 $\mathrm{var}(X)\le\sigma^2$；Bernoulli($p$) 在 $p$ 很小时方差 $\approx p$，霍夫丁仍用 $\sigma=1/2$。  
+   **正确判断：** $\sigma$ 是矩母函数上界里的参数。方差更小时改用伯恩斯坦。
+
+2. **错误做法：** 对 $Z^2$ 或 $\chi^2$ 直接套霍夫丁。  
+   **为什么错：** Example 2.8：$\mathbb E[e^{\lambda Z^2}]$ 在 $\lambda=1/2$ 炸掉，不是次高斯。正确对象是次指数，尾在 $t>\nu^2/\alpha$ 后变成 $e^{-t/(2\alpha)}$。  
+   **正确判断：** 先看矩母函数的定义域；有限邻域对应次指数，整个实轴对应次高斯。
+
+3. **错误做法：** 有界差分里把 $L_k$ 写成“函数的全局利普希茨常数”，却忘了除以坐标个数。  
+   **为什么错：** $U$-统计里改一个样本只动 $4b/n$，不是 $4b$。错用 $L=4b$ 会让指数少一个 $n$。  
+   **正确判断：** $L_k$ 是**只改第 $k$ 个坐标**时的振幅。
+
+4. **错误做法：** 把 Theorem 2.26 用到拉德马赫向量或一般次高斯坐标上，并声称参数仍是 $L$。  
+   **为什么错：** 证明用了高斯旋转不变性；任意次高斯坐标上存在利普希茨反例（§2.6 引 Ledoux）。  
+   **正确判断：** 高斯（或对数凹 / 球面）可以维数无关；一般乘积测度需要凸性或改用有界差分，而有界差分的代理随 $\sqrt n$ 走。
+
+5. **错误做法：** 把 Proposition 2.9 的两段在分界 $t=\nu^2/\alpha$ 处接错，或把 (2.18) 的 $n$ 次方算丢。  
+   **为什么错：** 分界两边指数在 $t=\nu^2/\alpha$ 处相等；对平均值，$S=\sum(X_i-\mu_i)$ 的偏差是 $nt$，二次段是 $e^{-n t^2/(2\nu^2)}$ 而不是 $e^{-t^2/(2\nu^2)}$。  
+   **正确判断：** 先对和写尾，再换成平均值。
+
+# 轻量自测
+
+1. 用一句话说明：为何每个次高斯变量都是次指数，而 $Z^2$（$Z\sim N(0,1)$）只是后者？
+2. 从 (2.8) 推导 (2.9) 的上尾；指出 $\lambda$ 的最优取值。
+3. 设 $X_i\in[0,1]$ i.i.d.、均值 $\mu$、方差 $\sigma^2=1/n$（随 $n$ 变小）。比较霍夫丁 (2.11) 与伯恩斯坦 (2.17b) 在 $t=2\sigma$ 处的指数。哪一个更锐？
+4. 有界差分：若改第 $k$ 个坐标使 $f$ 最多变 $L_k$，写出 $\mathbb P[\lvert f-\mathbb E f\rvert\ge t]$ 的 McDiarmid 界，并说明独立坐标用在证明的哪一步。
+5. Theorem 2.26 的次高斯参数为什么不随 $n$ 变坏？把这一点与 (2.35) 的 $nL^2$ 对照。
+
+<details>
+<summary>查看参考答案</summary>
+
+1. 次高斯的矩母函数对一切 $\lambda$ 都有高斯型上界，这正是 $\alpha=0$ 的次指数。$Z^2$ 的矩母函数只在 $\lambda<1/2$ 有限（Example 2.8），所以它满足 (2.13) 但不满足 (2.8)。
+2. $\mathbb P[X-\mu\ge t]\le e^{-\lambda t}\mathbb E[e^{\lambda(X-\mu)}]\le\exp(-\lambda t+\sigma^2\lambda^2/2)$。对 $\lambda\ge 0$ 最小化，临界点 $\lambda=t/\sigma^2$，指数等于 $-t^2/(2\sigma^2)$。下尾对 $-X$ 同样，两尾乘 2 得 (2.9)。
+3. (2.11) 用 $b-a=1$，指数 $-2t^2/n$。$t=2\sigma=2/\sqrt n$ 时是 $-8/n^2$，随 $n$ 消失——完全没有用。伯恩斯坦指数 $-t^2/(2(\sigma^2+t))$ 在 $t=2\sigma$ 时是 $-4\sigma^2/(2(\sigma^2+2\sigma))\asymp -2\sigma$ 当 $\sigma$ 小（更精确：$\sigma^2=1/n$，$t=2n^{-1/2}$，分母 $2(n^{-1}+2n^{-1/2})\approx 4 n^{-1/2}$，指数 $\approx -n^{-1}/(2n^{-1/2})=-1/(2\sqrt n)$ 仍趋于 0，但比霍夫丁的 $1/n^2$ 慢得多）。若把 $t$ 固定而 $\sigma\to 0$，伯恩斯坦变成 $\approx e^{-t/(2b)}$ 的线性尾，霍夫丁仍是 $e^{-2t^2/n}\to 1$。方差小时应选伯恩斯坦。
+4. (2.33)：$2\exp(-2t^2/\sum L_k^2)$。独立性用在把 $\mathbb E[f\mid x_1,\ldots,x_k]$ 写成对 $X_{k+1}^n$ 的普通期望，从而 $B_k-A_k\le L_k$。
+5. 高斯利普希茨的参数是 $L$ 本身，(2.39) 的指数里没有 $n$。汉明利普希茨 (2.35) 的分母是 $nL^2$，因为有界差分把每个坐标的振幅平方再相加；坐标数增加会使代理变大（集中变弱），除非每个 $L_k$ 按 $n^{-1/2}$ 缩小。
+
+</details>
+
+# 本章小结
+
+- 切尔诺夫把尾界换成矩母函数的勒让德变换；按矩母函数的定义域与增长速度，随机变量分成次高斯（整轴、二次）与次指数（邻域、二次加线性）；
+- 霍夫丁是独立次高斯和的切尔诺夫；有界变量的锐参数是 $(b-a)/2$（Exercise 2.4）。伯恩斯坦把方差写进分母，有界但低方差时严格更锐；
+- 函数不是独立和时，杜布鞅把它写成鞅差；条件次指数给出 Theorem 2.19，有界增量给出阿祖马–霍夫丁与 McDiarmid；
+- 标准高斯向量的欧氏利普希茨函数是参数 $L$ 的次高斯，**与维数无关**；这一条不能随意搬到任意次高斯坐标上。
+
+## 术语对照
+
+| 中文 | English | 备注 |
+|---|---|---|
+| 尾界 | tail bound | 单侧偏差 |
+| 集中不等式 | concentration inequality | 靠近均值或中位数 |
+| 马尔可夫不等式 | Markov's inequality | (2.1)；陈希孺同名 |
+| 切比雪夫不等式 | Chebyshev's inequality | (2.2)；陈希孺同名 |
+| 切尔诺夫界 | Chernoff bound | (2.5) |
+| 矩母函数 | moment generating function | $\mathbb E[e^{\lambda X}]$ |
+| 次高斯 | sub-Gaussian | Definition 2.2；(2.8) |
+| 次高斯参数 | sub-Gaussian parameter | (2.8) 中的 $\sigma$ |
+| 次指数 | sub-exponential | Definition 2.7；(2.13) |
+| 霍夫丁不等式 | Hoeffding inequality | Proposition 2.5 |
+| 伯恩斯坦不等式 | Bernstein inequality | Proposition 2.10；(2.17b) |
+| 伯恩斯坦条件 | Bernstein's condition | (2.15) |
+| 贝内特不等式 | Bennett's inequality | Exercise 2.7 |
+| 拉德马赫变量 | Rademacher variable | Example 2.3；等概率 $\pm 1$ |
+| 对称化 | symmetrization | Example 2.4 |
+| 米尔斯比 | Mills ratio | Exercise 2.2；(2.59) |
+| 约翰逊–林登施特劳斯引理 | Johnson–Lindenstrauss lemma | Example 2.12 |
+| 鞅 | martingale | Definition 2.15 |
+| 过滤 | filtration | 嵌套 $\sigma$-域 |
+| 杜布鞅 | Doob martingale | (2.24)；Example 2.17 |
+| 鞅差 | martingale difference | (2.26) |
+| 阿祖马–霍夫丁不等式 | Azuma–Hoeffding inequality | Corollary 2.20 |
+| 有界差分不等式 | bounded differences inequality | Corollary 2.21；亦称 McDiarmid |
+| 拉德马赫复杂度 | Rademacher complexity | Example 2.25；(2.37) |
+| 高斯复杂度 | Gaussian complexity | Example 2.30；(2.46) |
+| 利普希茨函数 | Lipschitz function | (2.38) |
+| 次序统计量 | order statistic | Example 2.29；(2.45) |
+| 奥利茨范数 | Orlicz norm | Exercise 2.18；(2.72) |
+
+: 本章术语（中文从名词委；英文从教材或国际通行用法）
+
+## 来源定位
+
+- 教材：第 2 章 §§2.1–2.6，印刷页 21–50，PDF 页 40–69。
+- 习题：§2.7 Exercises 2.1–2.22，印刷页 50–57，PDF 页 69–76；解答见 [Solutions](../solutions/ch02-solutions.qmd)。
+- 页码关系：**PDF 页 = 印刷页 + 19**（印刷页 21 = PDF 页 40）。

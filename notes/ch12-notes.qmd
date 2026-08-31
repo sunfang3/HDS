@@ -1,0 +1,778 @@
+---
+title: "第 12 章　再生核希尔伯特空间"
+subtitle: "Wainwright, High-Dimensional Statistics 伴读 Notes"
+description: "面向已学陈希孺本科概率统计的读者：把函数空间上的优化写成再生核希尔伯特空间，并用核矩阵把无穷维问题降成 n 维线性代数"
+execute:
+  enabled: false
+lang: zh-CN
+---
+
+# 本章导览
+
+第 1 章已经把可加模型的每个分量放到再生核希尔伯特空间里；第 13、14 章会在这个空间上做非参数最小二乘与密度估计。本章不讲那些估计的误差率，只把**空间本身**钉死：它从哪来、范数怎么算、优化为什么能降到 $n$ 维。
+
+陈希孺里的欧氏内积、正交投影、格拉姆矩阵，这里全部还在，只是函数代替了向量。关键新机制是**再生性质**：点值 $f(x)$ 等于与核截面 $\mathcal K(\cdot,x)$ 的内积。于是求值是有界线性泛函，里斯表示给出核；核矩阵把插值与核岭回归变成 $n\times n$ 线性代数——这就是核技巧与表示定理。
+
+本章阅读主线：
+
+$$
+\text{正半定核}
+\longrightarrow
+\text{再生性质 / 求值有界}
+\longrightarrow
+\text{默塞尔特征映射与椭球}
+\longrightarrow
+\text{核的和与张量积}
+\longrightarrow
+\text{表示定理（插值 / 核岭回归 / KMD）}.
+$$
+
+> 教材定位：第 12 章 §§12.1–12.7，印刷页 383–412，PDF 页 402–431。习题 §12.8 印刷页 412–415，PDF 页 431–434，不进入 Notes。页码关系：**PDF 页 = 印刷页 + 19**。
+
+## 学习目标
+
+学完本章后，你应能：
+
+- **陈述** 正半定核（Definition 12.6）与再生性质 (12.3)，并由特征映射解释核技巧；
+- **互推** 两条定义：由核构造 RKHS（Theorem 12.11）与求值泛函点点有界（Definition 12.12 / Theorem 12.13）；
+- **写出** 默塞尔展开 (12.13) 及 RKHS 作为加权 $\ell^2$ 椭球 (12.17)–(12.18)，并对比索伯列夫 $\mu_j\asymp j^{-2}$ 与高斯 $\mu_j\asymp e^{-c j\log j}$；
+- **把** 极小范数插值与核岭回归化成核矩阵上的线性代数，写出 (12.29)–(12.30)；
+- **由** 再生性推出核均值差异的闭式 (12.32)，并指出线性核只看到均值。
+
+# 必要先修
+
+欧氏内积、正交分解、对称正半定矩阵的谱分解，本章直接当工具用。下面只补三处本科课里不一定钉死的接口。
+
+::: {.callout-note title="为什么现在需要完备性"}
+$\mathbb R^d$ 自动完备。函数空间里，柯西列不一定逐点收敛到同一个 $L^2$ 类里的代表。希尔伯特空间把“内积 $+$ 柯西列必收敛”写成公理，后面才能对无穷维优化取极限。
+:::
+
+::: {.callout-note title="作者解释：$L^2$ 的点值没有定义"}
+$L^2[0,1]$ 把几乎处处相等的函数看成同一个元，所以“$f(x)$”对单个 $x$ 没有意义。统计里观测的却正是 $f(x_i)$。RKHS 用求值泛函有界把点值重新变成连续运算；(12.6) 说范数收敛蕴含逐点收敛。这是 $L^2$ 做不到的。
+:::
+
+::: {.callout-note title="作者解释：核矩阵带 $1/n$"}
+§12.5 把 $\mathbf K_{ij}=\mathcal K(x_i,x_j)/n$，表示式里再乘 $n^{-1/2}$。这是为后文非渐近界准备的归一化，不是另定义一个核。计算时先写清 $\mathbf K$ 的刻度，再套 (12.30)。
+:::
+
+# 12 Reproducing kernel Hilbert spaces　再生核希尔伯特空间
+
+> 教材定位：章首，印刷页 383，PDF 页 402。
+
+插值、回归、密度估计，以及非参数的降维与检验，都是在函数类上优化。希尔伯特空间提供与欧氏空间同型的几何；由再生核定义的那一类——**再生核希尔伯特空间**（reproducing kernel Hilbert space, RKHS）——在计算与统计两边都好用。第 13 章（非参数最小二乘）与第 14 章（密度估计）会调用本章的框架。
+
+# 12.1 Basics of Hilbert spaces　希尔伯特空间基础
+
+> 教材定位：§12.1，印刷页 383–385，PDF 页 402–404。
+
+希尔伯特空间是带内积的向量空间，并且对内积诱导的度量完备。
+
+::: {.callout-important title="Definition 12.1　内积"}
+向量空间 $\mathbb V$ 上的内积是映射 $\langle\cdot,\cdot\rangle_{\mathbb V}:\mathbb V\times\mathbb V\to\mathbb R$，满足
+$$
+\langle f,g\rangle_{\mathbb V}=\langle g,f\rangle_{\mathbb V},
+\tag{12.1a}
+$$
+$$
+\langle f,f\rangle_{\mathbb V}\ge 0
+\quad\text{等号当且仅当 }f=0,
+\tag{12.1b}
+$$
+$$
+\langle f+\alpha g,h\rangle_{\mathbb V}
+=\langle f,h\rangle_{\mathbb V}+\alpha\langle g,h\rangle_{\mathbb V}.
+\tag{12.1c}
+$$
+:::
+
+带内积的向量空间叫做内积空间。内积诱导范数 $\|f\|_{\mathbb V}:=\sqrt{\langle f,f\rangle_{\mathbb V}}$。序列 $(f_n)_{n=1}^\infty$ 是柯西列，若对每个 $\epsilon>0$ 存在 $N(\epsilon)$，使得 $n,m\ge N(\epsilon)$ 时 $\|f_n-f_m\|_{\mathbb V}<\epsilon$。
+
+::: {.callout-important title="Definition 12.2　希尔伯特空间"}
+希尔伯特空间 $\mathbb H$ 是内积空间 $(\langle\cdot,\cdot\rangle_{\mathbb H},\mathbb H)$，其中每个柯西列都收敛到 $\mathbb H$ 中的某个元 $f^\ast$。
+:::
+
+完备的度量空间就是每个柯西列都收敛；所以希尔伯特空间 $=$ 完备内积空间。
+
+## 例：序列空间与 $L^2$
+
+**Example 12.3（$\ell^2(\mathbb N)$）。** 平方可和实序列
+$$
+\ell^2(\mathbb N)
+:=\Bigl\{(\theta_j)_{j=1}^\infty\Bigm|\sum_{j=1}^\infty\theta_j^2<\infty\Bigr\},
+$$
+配上 $\langle\theta,\gamma\rangle_{\ell^2}=\sum_j\theta_j\gamma_j$，是经典希尔伯特空间。后面 RKHS 的特征函数展开就落在这里。有限维 $\mathbb R^m$ 同构于“切片” $\{\theta\in\ell^2(\mathbb N):\theta_j=0\text{ 对一切 }j\ge m+1\}$。
+
+**Example 12.4（$L^2[0,1]$）。** 平方勒贝格可积的 $f:[0,1]\to\mathbb R$，范数 $\|f\|_{L^2[0,1]}^2=\int_0^1 f^2(x)\,dx<\infty$。几乎处处相等的函数视为同一元。内积 $\langle f,g\rangle_{L^2}=\int_0^1 f(x)g(x)\,dx$。取完备标准正交基 $(\phi_j)_{j=1}^\infty$，则 $f=\sum_j a_j\phi_j$、$a_j=\langle f,\phi_j\rangle$，帕塞瓦尔给出 $\|f\|_{L^2}^2=\sum_j a_j^2$。对应 $f\leftrightarrow(a_j)$ 是 $L^2[0,1]$ 与 $\ell^2(\mathbb N)$ 的同构。
+
+以上都是**可分**希尔伯特空间：有可数稠密子集，因而有可数标准正交基，每个 $f$ 写成 $\sum_j a_j\phi_j$，系数在 $\ell^2(\mathbb N)$。本章主要讨论可分情形。
+
+线性泛函 $L:\mathbb H\to\mathbb R$ 满足 $L(f+\alpha g)=L(f)+\alpha L(g)$。它**有界**是指存在 $M<\infty$ 使 $|L(f)|\le M\|f\|_{\mathbb H}$ 对一切 $f$ 成立。每个 $g\in\mathbb H$ 给出有界线性泛函 $f\mapsto\langle f,g\rangle_{\mathbb H}$，因为柯西–施瓦茨给出 $M=\|g\|_{\mathbb H}$。里斯表示定理说反过来也对。
+
+::: {.callout-important title="Theorem 12.5　里斯表示定理"}
+有界线性泛函 $L$ 必有唯一的表示元 $g\in\mathbb H$，使得 $L(f)=\langle f,g\rangle_{\mathbb H}$ 对一切 $f\in\mathbb H$ 成立。
+:::
+
+证明梗概：零空间 $\mathbb N(L)$ 由有界性是闭的（Exercise 12.1）。闭子空间给出直和 $\mathbb H=\mathbb N(L)+[\mathbb N(L)]^\perp$（Exercise 12.3）。若零空间不是全空间，取 $g\in[\mathbb N(L)]^\perp$ 使 $\|g\|_{\mathbb H}=L(g)>0$，令 $h:=L(f)g-L(g)f$，则 $h\in\mathbb N(L)$，正交推出 $L(f)=\langle g,f\rangle_{\mathbb H}$。唯一性：两个表示元之差与一切 $f$ 正交，取其自身即得范数为 $0$。
+
+# 12.2 Reproducing kernel Hilbert spaces　再生核希尔伯特空间
+
+> 教材定位：§12.2，印刷页 385–394，PDF 页 404–413。
+
+RKHS 是定义域 $\mathcal X$、取值 $\mathbb R$ 的函数希尔伯特空间。两条等价路：从正半定核出发，显式造出空间并得到再生性质；或者从求值泛函有界出发，用里斯表示把核找回来。核正是求值泛函的表示元。
+
+## 12.2.1 Positive semidefinite kernel functions　正半定核函数
+
+> 教材定位：§12.2.1，印刷页 386–387，PDF 页 405–406。
+
+::: {.callout-important title="Definition 12.6　正半定核"}
+对称二元函数 $\mathcal K:\mathcal X\times\mathcal X\to\mathbb R$ 是正半定（positive semidefinite, PSD）的，若对一切整数 $n\ge 1$ 与点集 $\{x_i\}_{i=1}^n\subset\mathcal X$，矩阵 $\mathbf K_{ij}:=\mathcal K(x_i,x_j)$ 正半定。
+:::
+
+**Example 12.7（线性核）。** $\mathcal X=\mathbb R^d$，$\mathcal K(x,x'):=\langle x,x'\rangle$。对任意 $\alpha\in\mathbb R^n$，
+$$
+\alpha^T\mathbf K\alpha
+=\sum_{i,j}\alpha_i\alpha_j\langle x_i,x_j\rangle
+=\Bigl\|\sum_{i=1}^n\alpha_i x_i\Bigr\|_2^2
+\ge 0.
+$$
+原页同一行把 $\alpha_i$ 写成了 $a_i$；按 $\alpha_i$ 读。
+
+**Example 12.8（多项式核）。** 齐次多项式核 $\mathcal K(x,z)=(\langle x,z\rangle)^m$。$m=2$ 时
+$$
+\mathcal K(x,z)
+=\Bigl(\sum_{j=1}^d x_j z_j\Bigr)^2
+=\sum_{j=1}^d x_j^2 z_j^2
++2\sum_{i<j}x_i x_j(z_i z_j).
+$$
+令 $D=d+\binom{d}{2}$，特征映射
+$$
+\Phi(x)
+=
+\begin{bmatrix}
+x_j^2,& j=1,\ldots,d\\
+\sqrt{2}\,x_i x_j,& i<j
+\end{bmatrix}
+\tag{12.2}
+$$
+满足 $\mathcal K(x,z)=\langle\Phi(x),\Phi(z)\rangle_{\mathbb R^D}$，因而是 PSD。非齐次多项式核 $\mathcal K(x,z)=(1+\langle x,z\rangle)^m$ 用次数 $\le m$ 的全部单项式，同样 PSD。
+
+**Example 12.9（高斯核）。** 紧集 $\mathcal X\subseteq\mathbb R^d$ 上
+$$
+\mathcal K(x,z)
+=\exp\Bigl(-\frac{1}{2\sigma^2}\|x-z\|_2^2\Bigr).
+$$
+正半定性不明显，由线性核与多项式核搭起来（Exercise 12.19）。这是实践中最常用的核之一。
+
+## 12.2.2 Feature maps in $\ell^2(\mathbb N)$　$\ell^2(\mathbb N)$ 中的特征映射
+
+> 教材定位：§12.2.2，印刷页 387–388，PDF 页 406–407。
+
+$\Phi:\mathcal X\to\ell^2(\mathbb N)$ 把原始点嵌进平方可和序列。任意这样的映射给出对称核 $\mathcal K(x,z)=\langle\Phi(x),\Phi(z)\rangle_{\ell^2}$。核常常有 $(x,z)$ 的闭式，于是**不必真正走进高维空间就能算嵌入后的内积**——口语里叫**核技巧**（kernel trick）。$m$ 次多项式核在 $\mathbb R^d$ 上求值是 $O(d)$ 次运算，嵌入维数却大约 $d^m$（Exercise 12.11）。高斯核则隐式嵌进无穷维空间。
+
+**Example 12.10（由基展开构造 PSD 核）。** 取 $\phi_j(x)=\sin\bigl((2j-1)\pi x/2\bigr)$，它们在 $L^2[0,1]$ 标准正交。对非负可和权重 $\sum_j\mu_j<\infty$，令
+$$
+\Phi(x)
+:=\bigl(\sqrt{\mu_1}\phi_1(x),\,\sqrt{\mu_2}\phi_2(x),\,\ldots\bigr).
+$$
+因为 $|\phi_j|\le 1$，有 $\|\Phi(x)\|_{\ell^2}^2=\sum_j\mu_j\phi_j^2(x)\le\sum_j\mu_j<\infty$。对应的核
+$$
+\mathcal K(x,z)
+=\sum_{j=1}^\infty\mu_j\phi_j(x)\phi_j(z)
+$$
+正半定。默塞尔定理将说明：相当广的一类 PSD 核都长这样。
+
+## 12.2.3 Constructing an RKHS from a kernel　由核构造 RKHS
+
+> 教材定位：§12.2.3，印刷页 388–390，PDF 页 407–409。
+
+::: {.callout-important title="再生性质 (12.3)"}
+对每个 $x\in\mathcal X$，函数 $\mathcal K(\cdot,x)$ 属于 $\mathbb H$，且
+$$
+\langle f,\,\mathcal K(\cdot,x)\rangle_{\mathbb H}
+=f(x)
+\qquad\text{对一切 }f\in\mathbb H.
+\tag{12.3}
+$$
+:::
+
+特别地 $\langle\mathcal K(\cdot,x),\mathcal K(\cdot,z)\rangle_{\mathbb H}=\mathcal K(x,z)$：核自身就是 $\mathcal X\to\mathbb H$ 的特征映射。这与先前 $\Phi:\mathcal X\to\ell^2(\mathbb N)$ 的视角略有不同；默塞尔定理用 (12.14) 把两者接起来。
+
+构造：先取有限线性组合的向量空间 $\widetilde{\mathbb H}$，元的形状是 $f(\cdot)=\sum_{j=1}^n\alpha_j\mathcal K(\cdot,x_j)$。对
+$f=\sum_j\alpha_j\mathcal K(\cdot,x_j)$、$\widetilde f=\sum_k\widetilde\alpha_k\mathcal K(\cdot,\bar x_k)$，定义
+$$
+\langle f,\widetilde f\rangle_{\widetilde{\mathbb H}}
+:=\sum_{j,k}\alpha_j\widetilde\alpha_k\mathcal K(x_j,\bar x_k).
+\tag{12.4}
+$$
+这个数不依赖于表示的选择，并且立刻给出再生性：$\langle f,\mathcal K(\cdot,x)\rangle_{\widetilde{\mathbb H}}=\sum_j\alpha_j\mathcal K(x_j,x)=f(x)$。对称与线性显然；正定性用核的 PSD：若 $\langle f,f\rangle=0$，则对任意 $(a,x)$，
+$$
+0
+\le
+\bigl\|a\mathcal K(\cdot,x)+f\bigr\|_{\widetilde{\mathbb H}}^2
+=a^2\mathcal K(x,x)+2a f(x),
+$$
+$a$ 任意且 $\mathcal K(x,x)\ge 0$，迫使 $f(x)=0$。
+
+::: {.callout-important title="Theorem 12.11　每个 PSD 核对应唯一 RKHS"}
+给定正半定核 $\mathcal K$，存在唯一的希尔伯特空间 $\mathbb H$，使核满足再生性质 (12.3)。它称为与 $\mathcal K$ 相伴的再生核希尔伯特空间。
+:::
+
+完备化：$\widetilde{\mathbb H}$ 中的柯西列在每个 $x$ 处是 $\mathbb R$ 的柯西列，逐点极限定义 $f(x):=\lim_n f_n(x)$，范数 $\|f\|_{\mathbb H}:=\lim_n\|f_n\|_{\widetilde{\mathbb H}}$。需要核验：若柯西列逐点趋于 $0$，则范数也趋于 $0$。否则沿子列 $\|g_n\|^2\to 2\epsilon>0$，再生性给出 $\langle g_m,g_n\rangle_{\widetilde{\mathbb H}}\to 0$，平方展开
+$$
+\|g_n-g_m\|_{\widetilde{\mathbb H}}^2
+=\|g_n\|^2+\|g_m\|^2-2\langle g_n,g_m\rangle
+$$
+对大的 $n,m$ 至少约 $2\epsilon$，与柯西矛盾。原页把左边写成了不带平方的范数，并把极化恒等式印成 $\tfrac12\{\|f+g\|^2-\|f\|^2+\|g\|^2\}$；极化应对 $\|g\|^2$ 取减号，
+$$
+\langle f,g\rangle_{\mathbb H}
+=\tfrac12\bigl(\|f+g\|_{\mathbb H}^2-\|f\|_{\mathbb H}^2-\|g\|_{\mathbb H}^2\bigr).
+$$
+
+唯一性：若 $\mathbb G$ 也以 $\mathcal K$ 为再生核，则 $\mathbb H\subseteq\mathbb G$。写成 $\mathbb G=\mathbb H\oplus\mathbb H^\perp$。对 $g\in\mathbb H^\perp$，有 $0=\langle\mathcal K(\cdot,x),g\rangle_{\mathbb G}=g(x)$，故 $\mathbb H^\perp=\{0\}$。
+
+## 12.2.4 A more abstract viewpoint and further examples　抽象定义与更多例子
+
+> 教材定位：§12.2.4，印刷页 390–394，PDF 页 409–413。
+
+再生性质等于：$\mathcal K(\cdot,x)$ 是求值泛函 $L_x:f\mapsto f(x)$ 的表示元。因而 RKHS 上每个求值泛函都有界。反过来，求值有界的希尔伯特函数空间恰好就是 RKHS。
+
+::: {.callout-important title="Definition 12.12　由求值有界定义 RKHS"}
+再生核希尔伯特空间 $\mathbb H$ 是 $\mathcal X$ 上实值函数的希尔伯特空间，使得对每个 $x\in\mathcal X$，求值泛函 $L_x:\mathbb H\to\mathbb R$ 有界：存在 $M<\infty$ 使 $|L_x(f)|\le M\|f\|_{\mathbb H}$ 对一切 $f$ 成立。
+:::
+
+::: {.callout-important title="Theorem 12.13　求值有界给出唯一 PSD 再生核"}
+若希尔伯特空间上所有求值泛函都有界，则存在唯一的 PSD 核满足再生性质 (12.3)。
+:::
+
+由里斯表示，存在 $R_x\in\mathbb H$ 使
+$$
+f(x)=L_x(f)=\langle f,R_x\rangle_{\mathbb H}.
+\tag{12.5}
+$$
+定义 $\mathcal K(x,z):=\langle R_x,R_z\rangle_{\mathbb H}$。对任意有限点集，
+$$
+\alpha^T\mathbf K\alpha
+=\Bigl\|\sum_j\alpha_j R_{x_j}\Bigr\|_{\mathbb H}^2
+\ge 0.
+$$
+又 $\mathcal K(y,x)=\langle R_y,R_x\rangle_{\mathbb H}=R_x(y)$，故 $\mathcal K(\cdot,x)=R_x$，再生性成立。核的唯一性见 Exercise 12.4。
+
+求值有界的一个直接推论：RKHS 范数收敛蕴含逐点收敛。若 $f_n\to f^\ast$，则
+$$
+\bigl|f_n(x)-f^\ast(x)\bigr|
+=\bigl|\langle R_x,f_n-f^\ast\rangle_{\mathbb H}\bigr|
+\le\|R_x\|_{\mathbb H}\,\|f_n-f^\ast\|_{\mathbb H}
+\to 0.
+\tag{12.6}
+$$
+
+**Example 12.14（$\mathbb R^d$ 上的线性函数）。** 线性核 $\mathcal K(x,z)=\langle x,z\rangle$ 生成的预希尔伯特元是 $z\mapsto\langle z,\sum_i\alpha_i x_i\rangle$，因而 RKHS 是全部线性函数 $f_\beta(\cdot)=\langle\cdot,\beta\rangle$。原页把 $\beta$ 写成属于 $\mathbb R^m$；定义域是 $\mathbb R^d$，应取 $\beta\in\mathbb R^d$。内积 $\langle f_\beta,f_{\widetilde\beta}\rangle_{\mathbb H}=\langle\beta,\widetilde\beta\rangle$，再生性即 $\langle\beta,z\rangle=f_\beta(z)$。
+
+**Example 12.15（$L^2[0,1]$ 不是 RKHS）。** 取 $f_n(x)=x^n$。则 $\int_0^1 f_n^2=1/(2n+1)\to 0$，但 $f_n(1)=1$ 不趋于 $0$，与 (12.6) 矛盾。等价地说，求值的表示元会是 $\delta_x$，它不在 $L^2[0,1]$ 里。
+
+要得到 RKHS，需要对函数及其导数加约束。索伯列夫空间是标准例子。
+
+**Example 12.16（一阶索伯列夫）。** 绝对连续是指 $f'$ 几乎处处存在且可积，并且 $f(x)=f(0)+\int_0^x f'(z)\,dz$。令
+$$
+\mathbb H^1[0,1]
+:=\bigl\{f:[0,1]\to\mathbb R\bigm| f(0)=0,\;f\text{ 绝对连续},\;f'\in L^2[0,1]\bigr\},
+\tag{12.7}
+$$
+内积 $\langle f,g\rangle_{\mathbb H^1}:=\int_0^1 f'(z)g'(z)\,dz$。取 $R_x(z)=\min\{x,z\}$。则 $R_x'(z)=\mathbb I_{[0,x]}(z)$，且
+$$
+\min\{x,z\}=\int_0^z\mathbb I_{[0,x]}(u)\,du,
+\tag{12.8}
+$$
+故 $R_x\in\mathbb H^1[0,1]$。再生性：
+$$
+\langle f,R_x\rangle_{\mathbb H^1}
+=\int_0^1 f'(z)R_x'(z)\,dz
+=\int_0^x f'(z)\,dz
+=f(x).
+$$
+核 $\mathcal K(x,z)=\min\{x,z\}$ 还有格拉姆表示 $\mathcal K(x,z)=\langle\mathbb I_{[0,x]},\mathbb I_{[0,z]}\rangle_{L^2}$，因此 PSD。这是该空间的唯一再生核。
+
+**Example 12.17（高阶索伯列夫与光滑样条）。** 对整数 $\alpha\ge 1$，令 $\mathbb H^\alpha[0,1]$ 为 $\alpha$ 次可微、且 $f(0)=f^{(1)}(0)=\cdots=f^{(\alpha-1)}(0)=0$ 的函数，内积
+$$
+\langle f,g\rangle_{\mathbb H}
+:=\int_0^1 f^{(\alpha)}(z)g^{(\alpha)}(z)\,dz.
+\tag{12.9}
+$$
+核为
+$$
+\mathcal K(x,y)
+=\int_0^1\frac{(x-z)_+^{\alpha-1}}{(\alpha-1)!}\,\frac{(y-z)_+^{\alpha-1}}{(\alpha-1)!}\,dz,
+\qquad
+(t)_+:=\max\{0,t\}.
+$$
+$R_x=\mathcal K(\cdot,x)$ 满足 $R_x^{(\alpha)}(y)=(x-y)_+^{\alpha-1}/(\alpha-1)!$。带积分余项的泰勒公式
+$$
+f(x)
+=\sum_{\ell=0}^{\alpha-1}f^{(\ell)}(0)\frac{x^\ell}{\ell!}
++\int_0^1 f^{(\alpha)}(z)\frac{(x-z)_+^{\alpha-1}}{(\alpha-1)!}\,dz
+\tag{12.10}
+$$
+在边界条件 $f^{(\ell)}(0)=0$ 下把内积还原成 $f(x)$。去掉边界条件的扩张见 Example 12.29。
+
+# 12.3 Mercer's theorem and its consequences　默塞尔定理及其推论
+
+> 教材定位：§12.3，印刷页 394–400，PDF 页 413–419。
+
+PSD 矩阵有非负特征值与标准正交特征向量。默塞尔定理把这件事搬到连续核上。
+
+设 $\mathbb P$ 是紧度量空间 $\mathcal X$ 上的非负测度，$L^2(\mathcal X;\mathbb P)$ 的平方范数为 $\int_{\mathcal X}f^2\,d\mathbb P$。连续对称 PSD 核诱导积分算子
+$$
+T_{\mathcal K}(f)(x)
+:=\int_{\mathcal X}\mathcal K(x,z)f(z)\,d\mathbb P(z),
+\tag{12.11a}
+$$
+并假定希尔伯特–施密特条件
+$$
+\int_{\mathcal X\times\mathcal X}\mathcal K^2(x,z)\,d\mathbb P(x)\,d\mathbb P(z)
+<\infty.
+\tag{12.11b}
+$$
+柯西–施瓦茨给出 $\|T_{\mathcal K}(f)\|_{L^2}^2\le\|f\|_{L^2}^2\int\mathcal K^2$，因而 $T_{\mathcal K}$ 是 $L^2$ 上的有界算子——希尔伯特–施密特算子。
+
+**Example 12.18（PSD 矩阵）。** $\mathcal X=[d]=\{1,\ldots,d\}$，计数测度。核就是对称矩阵，$T_{\mathcal K}$ 就是矩阵乘向量，谱分解
+$$
+\mathbf K=\sum_{j=1}^d\mu_j v_j v_j^T,
+\qquad
+\mu_1\ge\cdots\ge\mu_d\ge 0.
+\tag{12.12}
+$$
+
+**Example 12.19（一阶索伯列夫核）。** $\mathcal X=[0,1]$，勒贝格测度，$\mathcal K(x,z)=\min\{x,z\}$：
+$$
+T_{\mathcal K}(f)(x)
+=\int_0^x z f(z)\,dz
++\int_x^1 x f(z)\,dz.
+$$
+特征系统在 Example 12.23 算完。
+
+::: {.callout-important title="Theorem 12.20　默塞尔定理"}
+设 $\mathcal X$ 紧，核连续、正半定，且满足 (12.11b)。则存在 $L^2(\mathcal X;\mathbb P)$ 的标准正交基 $(\phi_j)_{j=1}^\infty$ 与非负特征值 $(\mu_j)_{j=1}^\infty$，使得
+$$
+T_{\mathcal K}(\phi_j)=\mu_j\phi_j,
+\tag{12.13a}
+$$
+并且
+$$
+\mathcal K(x,z)=\sum_{j=1}^\infty\mu_j\phi_j(x)\phi_j(z),
+\tag{12.13b}
+$$
+级数绝对一致收敛。
+:::
+
+默塞尔原先对 $L^2[a,b]$ 陈述；这里的抽象形式来自紧算子的谱理论。一个直接后果是特征映射
+$$
+x\mapsto\Phi(x)
+:=\bigl(\sqrt{\mu_1}\phi_1(x),\,\sqrt{\mu_2}\phi_2(x),\,\ldots\bigr)\in\ell^2(\mathbb N).
+\tag{12.14}
+$$
+由 (12.13b)，$\|\Phi(x)\|_{\ell^2}^2=\mathcal K(x,x)<\infty$，且 $\langle\Phi(x),\Phi(z)\rangle_{\ell^2}=\mathcal K(x,z)$。
+
+**Example 12.21。** 有限 PSD 矩阵的“特征函数”就是特征向量，(12.13b) 退回 (12.12)。
+
+**Example 12.22（二次多项式核）。** $\mathcal K(x,z)=(1+xz)^2$ 在 $[-1,1]$ 上（勒贝格）。积分算子把 $f$ 送到次数 $\le 2$ 的多项式，特征问题化成
+$$
+\begin{bmatrix}
+2 & 0 & 2/3\\
+0 & 4/3 & 0\\
+2/3 & 0 & 2/5
+\end{bmatrix}
+\begin{bmatrix}a_0\\a_1\\a_2\end{bmatrix}
+=\mu
+\begin{bmatrix}a_0\\a_1\\a_2\end{bmatrix}.
+$$
+三对特征对（教材印刷到四位小数）：
+$$
+\begin{aligned}
+\phi_1(x)&=-0.9403-0.3404 x^2,&\mu_1&=2.2414,\\
+\phi_2(x)&=x,&\mu_2&=1.3333,\\
+\phi_3(x)&=-0.3404+0.9403 x^2,&\mu_3&=0.1586.
+\end{aligned}
+$$
+
+**Example 12.23（一阶索伯列夫的特征系统）。** $T_{\mathcal K}(\phi)=\mu\phi$ 对 $x$ 求导两次得 $\mu\phi''+\phi=0$。边条件 $\phi(0)=0$ 给出 $\phi(x)=\sin(x/\sqrt{\mu})$；再代入 $\int_0^1 z\phi(z)\,dz=\mu\phi(1)$，得到
+$$
+\phi_j(t)=\sin\frac{(2j-1)\pi t}{2},
+\qquad
+\mu_j=\Bigl(\frac{2}{(2j-1)\pi}\Bigr)^2,
+\qquad j=1,2,\ldots.
+$$
+因而 $\mu_j\asymp j^{-2}$。
+
+**Example 12.24（平移不变核）。** 偶函数 $\psi:[-1,1]\to\mathbb R$ 周期延拓后，令 $\mathcal K(x,z)=\psi(x-z)$。积分算子是卷积。余弦 $\phi_j(x)=\cos(\pi j x)$（$j=0,1,2,\ldots$）是特征函数。换元 $u=z-x$ 之后，原页一度写成 $\cos(2\pi j(x+u))$，随后恒等式又用 $\cos(\pi j(x+u))$。特征函数是 $\cos(\pi j x)$，应全程用 $\pi j$。偶性消灭正弦积分，特征值就是余弦系数 $c_j=\int_{-1}^1\psi(u)\cos(\pi j u)\,du$。正弦 $\widetilde\phi_j(x)=\sin(j\pi x)$ 共享同一批 $c_j$。默塞尔展开变成
+$$
+\mathcal K(x,z)
+=\sum_{j=0}^\infty c_j\cos\bigl(\pi j(x-z)\bigr),
+$$
+因而核 PSD 当且仅当全部 $c_j\ge 0$。这是博赫纳定理在周期区间上的样子。
+
+**Example 12.25（高斯核的特征值）。** 一元、$\mathcal X=[-1,1]$ 时，
+$$
+\int_{-1}^1 e^{-(x-z)^2/(2\sigma^2)}\phi_j(z)\,dz
+=\mu_j\phi_j(x).
+\tag{12.15}
+$$
+这不是周期延拓，不能直接套 Example 12.24。更一般地，偶的可积 $\Psi\ge 0$ 的傅里叶变换 $\psi$ 给出平移核 $\mathcal K(x,z)=\psi(x-z)$，积分方程为 (12.16)。若 $\log\Psi(\omega)\asymp -\omega^\alpha$（$\alpha>1$），则 $\mu_j\asymp e^{-c j\log j}$。高斯对应 $\Psi(\omega)=\exp(-\sigma^2\omega^2/2)$、$\psi(u)=\exp(-u^2/(2\sigma^2))$，因此高斯 RKHS 相对“小”：特征值指数衰减，对比一阶索伯列夫的 $j^{-2}$。
+
+::: {.callout-important title="Corollary 12.26　默塞尔核的 RKHS 是加权 $\ell^2$ 椭球"}
+在默塞尔条件下，
+$$
+\mathbb H
+=\Bigl\{
+f=\sum_{j=1}^\infty\beta_j\phi_j
+\Bigm|
+(\beta_j)\in\ell^2(\mathbb N),\;
+\sum_{j=1}^\infty\frac{\beta_j^2}{\mu_j}<\infty
+\Bigr\},
+\tag{12.17a}
+$$
+内积
+$$
+\langle f,g\rangle_{\mathbb H}
+=\sum_{j=1}^\infty\frac{\langle f,\phi_j\rangle\langle g,\phi_j\rangle}{\mu_j},
+\tag{12.17b}
+$$
+其中 $\langle\cdot,\cdot\rangle$ 是 $L^2(\mathcal X;\mathbb P)$ 内积。零特征值的指标从求和里去掉。
+:::
+
+单位球对应椭球
+$$
+\mathcal E
+=\Bigl\{
+(\beta_j)\in\ell^2(\mathbb N)
+\Bigm|
+\sum_{j=1}^\infty\frac{\beta_j^2}{\mu_j}\le 1
+\Bigr\}.
+\tag{12.18}
+$$
+$\mu_j$ 衰减越快，椭球越扁，函数类越光滑、越小。第 13、14 章会把熵与估计速率写成这个椭球的几何。
+
+证明要点：$\mathcal K(\cdot,x)=\sum_j\mu_j\phi_j(x)\phi_j(\cdot)$，系数平方和 $\sum_j\mu_j\phi_j^2(x)=\mathcal K(x,x)<\infty$，故截面在 $\mathbb H$ 里。又 $\langle\mathcal K(\cdot,x),\phi_j\rangle=\mu_j\phi_j(x)$，代入 (12.17b) 即得再生性。唯一性援引 Theorem 12.11。
+
+# 12.4 Operations on reproducing kernel Hilbert spaces　再生核希尔伯特空间上的运算
+
+> 教材定位：§12.4，印刷页 400–404，PDF 页 419–423。
+
+## 12.4.1 Sums of reproducing kernels　再生核之和
+
+> 教材定位：§12.4.1，印刷页 400–403，PDF 页 419–422。
+
+::: {.callout-important title="Proposition 12.27　核之和"}
+若 $\mathbb H_1,\mathbb H_2$ 分别以 $\mathcal K_1,\mathcal K_2$ 为核，则 $\mathbb H=\mathbb H_1+\mathbb H_2$ 配上
+$$
+\|f\|_{\mathbb H}^2
+:=\min_{f=f_1+f_2}\bigl(\|f_1\|_{\mathbb H_1}^2+\|f_2\|_{\mathbb H_2}^2\bigr)
+\tag{12.19}
+$$
+是以 $\mathcal K=\mathcal K_1+\mathcal K_2$ 为核的 RKHS。
+:::
+
+若 $\mathbb H_1\cap\mathbb H_2=\{0\}$，分解唯一，范数平方直接相加。
+
+**Example 12.28。** $\mathcal K_1\equiv 1$ 生成常数，$\mathcal K_2=\min\{x,z\}$ 生成 $\mathbb H^1[0,1]$（带 $f(0)=0$）。交是 $\{0\}$，故 $1+\min\{x,z\}$ 生成全部绝对连续、$f'\in L^2$ 的函数，范数平方 $f(0)^2+\int_0^1(f')^2$。
+
+**Example 12.29（高阶索伯列夫的多项式直和）。**
+$$
+\mathcal K_1(x,z)=\sum_{\ell=0}^{\alpha-1}\frac{x^\ell}{\ell!}\frac{z^\ell}{\ell!},
+\qquad
+\mathcal K_2(x,z)=\int_0^1\frac{(x-y)_+^{\alpha-1}}{(\alpha-1)!}\frac{(z-y)_+^{\alpha-1}}{(\alpha-1)!}\,dy.
+$$
+$\mathcal K_1$ 生成次数 $\le\alpha-1$ 的多项式，$\mathcal K_2$ 生成带边界条件的 $\mathbb H^\alpha[0,1]$，交为 $\{0\}$。和核
+$$
+\mathcal K(x,z)
+=\sum_{\ell=0}^{\alpha-1}\frac{x^\ell z^\ell}{(\ell!)^2}
++\int_0^1\frac{(x-y)_+^{\alpha-1}(z-y)_+^{\alpha-1}}{\bigl((\alpha-1)!\bigr)^2}\,dy
+\tag{12.20}
+$$
+生成无边界约束的 $\overline{\mathbb H}^\alpha[0,1]$。Exercise 12.15 验证范数
+$$
+\|f\|_{\mathbb H}^2
+=\sum_{\ell=0}^{\alpha-1}\bigl(f^{(\ell)}(0)\bigr)^2
++\int_0^1\bigl(f^{(\alpha)}(z)\bigr)^2\,dz.
+\tag{12.21}
+$$
+
+**Example 12.30（可加模型与函数 ANOVA）。** 各坐标一个 RKHS 时，$f(x)=\sum_{j=1}^d f_j(x_j)$ 的核是 $\sum_j\mathcal K_j$，且 $j\neq k$ 时交为 $\{0\}$，故 $\|f\|_{\mathbb H}^2=\sum_j\|f_j\|_{\mathbb H_j}^2$。再叠上二阶交互 $f_{jk}(x_j,x_k)$ 并保持正交，就是函数 ANOVA。第 13、14 章的 Exercise 13.9 与 Example 14.11 会用到。
+
+证明梗概：在直和 $\mathbb F=\mathbb H_1\oplus\mathbb H_2$ 上令
+$$
+\|(f_1,f_2)\|_{\mathbb F}^2
+:=\|f_1\|_{\mathbb H_1}^2+\|f_2\|_{\mathbb H_2}^2,
+\tag{12.22}
+$$
+$L:(f_1,f_2)\mapsto f_1+f_2$。零空间闭（逐点极限），限制 $L_\perp$ 是 $\mathbb N(L)^\perp$ 到 $\mathbb H$ 的双射，用它拉回内积。$\mathcal K(\cdot,x)=\mathcal K_1(\cdot,x)+\mathcal K_2(\cdot,x)$ 落在 $\mathbb H$ 里；正交性给出
+$$
+\langle f_1,\mathcal K_1(\cdot,x)\rangle_{\mathbb H_1}
++\langle f_2,\mathcal K_2(\cdot,x)\rangle_{\mathbb H_2}
+=\langle f,\mathcal K(\cdot,x)\rangle_{\mathbb H}.
+$$
+原页两内积之间缺加号。左边等于 $f_1(x)+f_2(x)=f(x)$。范数 (12.19) 是毕达哥拉斯：任意分解比正交分解多出零空间里的一块。
+
+## 12.4.2 Tensor products　张量积
+
+> 教材定位：§12.4.2，印刷页 403–404，PDF 页 422–423。
+
+可分希尔伯特空间 $\mathbb H_1,\mathbb H_2$ 的张量积由有限和 $h=\sum_{j=1}^n f_j g_j$ 张成，内积
+$$
+\langle h,\widetilde h\rangle_{\mathbb H}
+:=\sum_{j,k}\langle f_j,\widetilde f_k\rangle_{\mathbb H_1}\langle g_j,\widetilde g_k\rangle_{\mathbb H_2}.
+\tag{12.23}
+$$
+它不依赖表示。正定性：把因子转到两组有限标准正交基上，$h=\sum_{j,k}\alpha_{jk}\phi_j\psi_k$，则 $\|h\|^2=\sum_{j,k}\alpha_{jk}^2$。
+
+::: {.callout-important title="Proposition 12.31　核的乘积"}
+若 $\mathbb H_j$ 以 $\mathcal K_j$ 为核，则张量积 $\mathbb H_1\otimes\mathbb H_2$ 是 $\mathcal X_1\times\mathcal X_2$ 上的 RKHS，核为
+$$
+\mathcal K\bigl((x_1,x_2),(x_1',x_2')\bigr)
+=\mathcal K_1(x_1,x_1')\,\mathcal K_2(x_2,x_2').
+\tag{12.24}
+$$
+:::
+
+PSD 由 Hadamard 积（Exercise 12.16）保证。再生性是两边再生性的乘积。
+
+# 12.5 Interpolation and fitting　插值与拟合
+
+> 教材定位：§12.5，印刷页 405–409，PDF 页 424–428。
+
+表示定理把 RKHS 上的许多优化降成核矩阵上的凸问题。
+
+## 12.5.1 Function interpolation　函数插值
+
+> 教材定位：§12.5.1，印刷页 405–406，PDF 页 424–425。
+
+无噪观测 $y_i=f^\ast(x_i)$。在能插值的函数里选 RKHS 范数最小的一个：
+$$
+\widehat f
+\in
+\arg\min_{f\in\mathbb H}\|f\|_{\mathbb H}
+\quad\text{s.t.}\quad
+f(x_i)=y_i,\;i=1,\ldots,n.
+\tag{12.25}
+$$
+Figure 12.1：$n=11$ 个等距样本，(a) 多项式核 $\mathcal K(x,z)=(1+xz)^{12}$ 给出光滑振荡插值；(b) 一阶索伯列夫核 $1+\min\{x,z\}$ 给出分段近线性的样条插值。
+
+核矩阵取 $\mathbf K_{ij}=\mathcal K(x_i,x_j)/n$。
+
+::: {.callout-important title="Proposition 12.32　极小范数插值"}
+凸问题 (12.25) 可行当且仅当 $y\in\mathrm{range}(\mathbf K)$；任一最优解可写成
+$$
+\widehat f(\cdot)
+=\frac1{\sqrt n}\sum_{i=1}^n\widehat\alpha_i\mathcal K(\cdot,x_i),
+\qquad
+\mathbf K\widehat\alpha=y/\sqrt n.
+$$
+:::
+
+$n^{-1/2}$ 是为后文理论方便。证明：有限维子空间 $\mathbb L=\{f_\alpha\}$ 闭，直和分解 $f=f_\alpha+f_\perp$（Exercise 12.3）。再生性推出 $f(x_j)=f_\alpha(x_j)$，$f_\perp$ 不参与插值；正交性迫使最优解取 $f_\perp=0$。$f_\alpha(x_j)=\sqrt n\,(\mathbf K\alpha)_j$，故插值 $\Leftrightarrow\mathbf K\alpha=y/\sqrt n$。
+
+## 12.5.2 Fitting via kernel ridge regression　核岭回归拟合
+
+> 教材定位：§12.5.2，印刷页 407–409，PDF 页 426–428。
+
+有噪模型 $y_i=f^\ast(x_i)+w_i$。用拟合与范数的权衡代替硬插值约束：
+$$
+\min_{f\in\mathbb H}\|f\|_{\mathbb H}
+\quad\text{s.t.}\quad
+\frac1{2n}\sum_{i=1}^n\bigl(y_i-f(x_i)\bigr)^2\le\delta^2,
+\tag{12.26}
+$$
+$$
+\min_{f\in\mathbb H}\frac1{2n}\sum_{i=1}^n\bigl(y_i-f(x_i)\bigr)^2
+\quad\text{s.t.}\quad
+\|f\|_{\mathbb H}\le R,
+\tag{12.27}
+$$
+拉格朗日对偶写成惩罚形式
+$$
+\widehat f
+=\arg\min_{f\in\mathbb H}
+\Bigl\{
+\frac1{2n}\sum_{i=1}^n\bigl(y_i-f(x_i)\bigr)^2
++\lambda_n\|f\|_{\mathbb H}^2
+\Bigr\}.
+\tag{12.28}
+$$
+这就是**核岭回归**（kernel ridge regression, KRR）。
+
+::: {.callout-important title="Proposition 12.33　KRR 的表示定理"}
+对一切 $\lambda_n>0$，
+$$
+\widehat f(\cdot)
+=\frac1{\sqrt n}\sum_{i=1}^n\widehat\alpha_i\mathcal K(\cdot,x_i),
+\tag{12.29}
+$$
+$$
+\widehat\alpha
+=(\mathbf K+\lambda_n I_n)^{-1}y/\sqrt n.
+\tag{12.30}
+$$
+:::
+
+$\lambda_n=0$ 且 $\mathbf K$ 可逆时退回 Proposition 12.32。求 $\widehat\alpha$ 至多 $O(n^3)$，填核矩阵另需 $O(n^2)$。Figure 12.2：$n=11$、$\lambda_n=0.10$，二次多项式核与一阶索伯列夫核在噪声下的平滑拟合。
+
+证明仍用 $f=f_\alpha+f_\perp$：$f_\perp(x_i)=0$，最小二乘项看不见它，最优必取 (12.29)。代入 $f(x_j)=\sqrt n\,e_j^T\mathbf K\alpha$、$\|f\|_{\mathbb H}^2=\alpha^T\mathbf K\alpha$。原页 (12.28) 的数据项系数是 $1/(2n)$，但证明把目标展开成
+$$
+\frac1n\|y-\sqrt n\,\mathbf K\alpha\|_2^2+\lambda\,\alpha^T\mathbf K\alpha
+=\frac1n\|y\|_2^2
++\alpha^T(\mathbf K^2+\lambda\mathbf K)\alpha
+-\frac2{\sqrt n} y^T\mathbf K\alpha,
+$$
+驻点
+$$
+\mathbf K(\mathbf K+\lambda I_n)\alpha
+=\mathbf K\,y/\sqrt n
+$$
+才与 (12.30) 一致。下面按证明使用 $1/n$；印刷的 $1/(2n)$ 与驻点不匹配，待教师核对后再改公式。$\mathbf K\beta=0$ 的方向不影响最优值。
+
+统计性质留到第 13 章。
+
+# 12.6 Distances between probability measures　概率测度之间的距离
+
+> 教材定位：§12.6，印刷页 409–411，PDF 页 428–430。
+
+用函数类上的均值差定义
+$$
+\rho_{\mathcal F}(\mathbb P,\mathbb Q)
+:=\sup_{f\in\mathcal F}\Bigl|\int f\,d(\mathbb P-\mathbb Q)\Bigr|
+=\sup_{f\in\mathcal F}\bigl|\mathbb E_{\mathbb P}[f(X)]-\mathbb E_{\mathbb Q}[f(Z)]\bigr|.
+\tag{12.31}
+$$
+它永远是伪度量；$\mathcal F$ 足够丰富时成为度量，称为**积分概率度量**（integral probability metric, IPM）。
+
+**Example 12.34（科尔莫戈罗夫距离）。** $\mathcal F=\{\mathbb I_{(-\infty,t]}:t\in\mathbb R\}$ 给出 $\rho_{\mathcal F}=\|F_{\mathbb P}-F_{\mathbb Q}\|_\infty$。
+
+**Example 12.35（全变差）。** $\mathcal F=\{f:\|f\|_\infty\le 1\}$ 给出两倍全变差（Exercise 12.17）
+$$
+\|\mathbb P-\mathbb Q\|_1
+=\sup_{A\subset\mathcal X}\bigl|\mathbb P(A)-\mathbb Q(A)\bigr|.
+$$
+
+取 $\mathcal F$ 为 RKHS 单位球，再生性给出闭式（Exercise 12.18）
+$$
+\rho_{\mathbb H}^2(\mathbb P,\mathbb Q)
+=\mathbb E\bigl[\mathcal K(X,X')+\mathcal K(Z,Z')-2\mathcal K(X,Z)\bigr],
+\tag{12.32}
+$$
+其中 $X,X'\sim\mathbb P$、$Z,Z'\sim\mathbb Q$ 相互独立。这就是**核均值差异**（kernel means discrepancy, KMD）。
+
+**Example 12.36。** 线性核：$\rho_{\mathbb H}(\mathbb P,\mathbb Q)=\|\mu_p-\mu_q\|_2$，只看见均值，是伪度量。二次齐次核 $\mathcal K(x,z)=\langle x,z\rangle^2$ 给出二阶矩矩阵的弗罗贝尼乌斯距离 $\rho_{\mathbb H}^2=\|\Gamma_p-\Gamma_q\|_F^2$。
+
+**Example 12.37。** $\min\{x,z\}$ 的 KMD 就是 $\mathbb E[\min\{X,X'\}+\min\{Z,Z'\}-2\min\{X,Z\}]$。
+
+# 12.7 Bibliographic details and background　文献与背景
+
+> 教材定位：§12.7，印刷页 411–412，PDF 页 430–431。文献条目指回教材。
+
+Aronszajn (1950) 从第一原理发展了核与希尔伯特结构，包括 Theorem 12.11 与 Propositions 12.27、12.31。核技巧可追到 Aizerman et al. (1964)，支撑了 Boser et al. (1992) 的支持向量机（Exercise 12.20）。表示定理属于 Kimeldorf–Wahba (1971)：无穷维优化变成 $n$ 维凸问题。博赫纳定理把平移核的 PSD 写成傅里叶系数非负；高斯特征值的渐近来自 Widom (1963, 1964)。逼近误差
+$$
+A(f^\ast;R)
+:=\inf_{\|f\|_{\mathbb H}\le R}\|f-f^\ast\|_p
+\tag{12.33}
+$$
+刻画增大希尔伯特半径时 $L^p$ 逼近的速度；$L^p$-universal 是指对每个 $f^\ast\in L^p$ 有 $\lim_{R\to\infty}A(f^\ast;R)=0$。RKHS 型 IPM 用于评分规则与两样本检验。
+
+# 常见错误
+
+1. **错误做法：** 把 $L^2[0,1]$ 当成 RKHS，对 $f(x_i)$ 直接做内积。  
+   **为什么错：** $L^2$ 的元是等价类，点值无定义；Example 12.15 的 $x^n$ 范数趋于 $0$ 但 $f_n(1)=1$。  
+   **正确判断：** 先确认求值有界，或直接使用再生核。
+
+2. **错误做法：** 以为同一组函数只能配一个核。  
+   **为什么错：** 唯一性是“给定希尔伯特结构（内积），核唯一”，不是“给定向量空间，核唯一”。次数 $\le m$ 的多项式可以配 $(1+xz)^m$，也可以配 $\sum_{\ell}x^\ell z^\ell/(\ell!)^2$，范数不同（Exercise 12.7）。  
+   **正确判断：** 核 $=$ 内积；换核就是换正则。
+
+3. **错误做法：** 把默塞尔特征值 $\mu_j$ 当成“越大约好”。  
+   **为什么错：** (12.17a) 里 $\beta_j^2/\mu_j$ 可和才进 RKHS。$\mu_j$ 大的方向正则罚得轻，函数更自由；高斯核 $\mu_j$ 指数衰减，空间比索伯列夫更小。  
+   **正确判断：** $\mu_j$ 衰减 $=$ 空间变小、变光滑。
+
+4. **错误做法：** 把 (12.30) 里的 $\mathbf K$ 写成 $\mathcal K(x_i,x_j)$ 而不是 $\mathcal K(x_i,x_j)/n$。  
+   **为什么错：** 教材的 $\mathbf K$ 带 $1/n$，表示式带 $n^{-1/2}$。漏掉刻度会让 $\lambda_n$ 的含义错位。  
+   **正确判断：** 先写清 $\mathbf K_{ij}=\mathcal K(x_i,x_j)/n$，再套 $(\mathbf K+\lambda_n I)^{-1}y/\sqrt n$。
+
+5. **错误做法：** 认为任何核的 KMD 都能分辨一切 $\mathbb P\neq\mathbb Q$。  
+   **为什么错：** 线性核只看到均值（Example 12.36）。IPM 成为度量需要函数类足够丰富（特征性 /  Universal 核）。  
+   **正确判断：** 先问核是否特征性，再谈“距离”。
+
+# 轻量自测
+
+1. 用 (12.6) 说明：为什么 $f_n(x)=x^n$ 能证明 $L^2[0,1]$ 不是 RKHS？
+2. 从 $\mathcal K(x,z)=\min\{x,z\}$ 出发，验证 $R_x(z)=\min\{x,z\}$ 是 $\mathbb H^1[0,1]$ 的求值表示元。
+3. 默塞尔单位球是椭球 (12.18)。若 $\mu_j\asymp j^{-2}$（一阶索伯列夫）与 $\mu_j\asymp e^{-c j\log j}$（高斯），哪一个空间更小？对估计意味着什么？
+4. 写出 KRR 的表示式 (12.29)–(12.30)，并说明 $\lambda_n=0$ 时与插值 (Proposition 12.32) 的关系。
+5. 线性核的 KMD 等于什么？给出一对 $\mathbb P\neq\mathbb Q$ 使 KMD 为零。
+
+<details>
+<summary>查看参考答案</summary>
+
+1. $\int_0^1 x^{2n}\,dx=1/(2n+1)\to 0$，故 $\|f_n\|_{L^2}\to 0$。若 $L^2$ 是 RKHS，(12.6) 会迫使 $f_n(x)\to 0$ 对每个 $x$ 成立，但 $f_n(1)=1$。矛盾。
+2. $R_x'(z)=\mathbb I_{[0,x]}(z)$，$R_x(0)=0$，且 (12.8) 给出绝对连续。$\langle f,R_x\rangle_{\mathbb H^1}=\int_0^x f'=f(x)$（$f(0)=0$）。
+3. 高斯特征值衰减快得多，(12.17a) 对高频系数罚得更狠，单位球更小、函数更光滑。估计时偏差项（逼近误差）可能更大，方差项（有效维数）更小；第 13 章用椭球的度量熵把这句定量化。
+4. $\widehat f=n^{-1/2}\sum_i\widehat\alpha_i\mathcal K(\cdot,x_i)$，$\widehat\alpha=(\mathbf K+\lambda_n I)^{-1}y/\sqrt n$。$\lambda_n=0$ 且 $\mathbf K$ 可逆时，$\mathbf K\widehat\alpha=y/\sqrt n$，即 Proposition 12.32。
+5. $\rho_{\mathbb H}(\mathbb P,\mathbb Q)=\|\mu_p-\mu_q\|_2$。任意两个同均值、不同协方差的高斯（例如 $N(0,1)$ 与 $N(0,2)$）给出 $\rho=0$。
+
+</details>
+
+# 本章小结
+
+- 正半定核通过有限组合 $+$ 完备化生成唯一 RKHS，再生性质把点值写成内积；求值有界是同一件事的抽象说法；
+- 默塞尔定理给出特征映射 $x\mapsto(\sqrt{\mu_j}\phi_j(x))$，RKHS 是加权 $\ell^2$ 椭球，特征值衰减决定空间大小；
+- 核的和对应函数空间的和（范数取最小分解），核的乘积对应张量积；可加模型与 ANOVA 是直和的统计用法；
+- 表示定理把插值与核岭回归降到 $n\times n$ 核矩阵；(12.30) 与证明中的 $1/n$ 刻度一致；
+- RKHS 单位球上的 IPM 就是 KMD，有核的闭式；线性核只看见均值，不是度量。
+
+## 术语对照
+
+| 中文 | English | 备注 |
+|---|---|---|
+| 再生核希尔伯特空间 | reproducing kernel Hilbert space | 名词委：再生核希尔伯特空间；RKHS |
+| 希尔伯特空间 | Hilbert space | Definition 12.2 |
+| 内积 | inner product | (12.1a)–(12.1c) |
+| 内积空间 | inner product space | |
+| 柯西列 | Cauchy sequence | |
+| 完备 | complete | |
+| 可分 | separable | 可数标准正交基 |
+| 有界线性泛函 | bounded linear functional | |
+| 里斯表示定理 | Riesz representation theorem | Theorem 12.5 |
+| 表示元 | representer | |
+| 正半定核 | positive semidefinite kernel | Definition 12.6；PSD |
+| 线性核 | linear kernel | Example 12.7 |
+| 齐次多项式核 | homogeneous polynomial kernel | Example 12.8 |
+| 非齐次多项式核 | inhomogeneous polynomial kernel | $(1+\langle x,z\rangle)^m$ |
+| 高斯核 | Gaussian kernel | Example 12.9 |
+| 特征映射 | feature map | (12.2)、(12.14) |
+| 核技巧 | kernel trick | |
+| 再生性质 | reproducing property | (12.3) |
+| 求值泛函 | evaluation functional | Definition 12.12；亦称赋值泛函 |
+| 极化恒等式 | polarization identity | |
+| 索伯列夫空间 | Sobolev space | Examples 12.16–12.17 |
+| 绝对连续 | absolutely continuous | |
+| 光滑样条 | smoothing spline | Example 12.17 |
+| 默塞尔定理 | Mercer's theorem | Theorem 12.20 |
+| 希尔伯特–施密特算子 | Hilbert–Schmidt operator | (12.11) |
+| 积分算子 | integral operator | (12.11a) |
+| 平移不变核 | translation-invariant kernel | Example 12.24 |
+| 博赫纳定理 | Bochner's theorem | |
+| 直和 | direct sum | (12.22) |
+| 张量积 | tensor product | §12.4.2 |
+| 函数 ANOVA | functional ANOVA | Example 12.30 |
+| 极小范数插值 | minimal-norm interpolation | (12.25) |
+| 表示定理 | representer theorem | Kimeldorf–Wahba |
+| 核岭回归 | kernel ridge regression | KRR；(12.28) |
+| 积分概率度量 | integral probability metric | IPM；(12.31) |
+| 科尔莫戈罗夫距离 | Kolmogorov distance | Example 12.34 |
+| 全变差 | total variation | Example 12.35 |
+| 核均值差异 | kernel means discrepancy | KMD；(12.32) |
+| 支持向量机 | support vector machine | Exercise 12.20 |
+
+: 本章术语（中文从名词委；英文从教材或国际通行用法）
+
+## 来源定位
+
+- 教材：第 12 章 §§12.1–12.7，印刷页 383–412，PDF 页 402–431。
+- 习题：§12.8 Exercises 12.1–12.20，印刷页 412–415，PDF 页 431–434；解答见 [Solutions](../solutions/ch12-solutions.qmd)。
+- 页码关系：**PDF 页 = 印刷页 + 19**（印刷页 383 = PDF 页 402）。

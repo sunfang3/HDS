@@ -1,0 +1,1031 @@
+---
+title: "第 6 章　随机矩阵与协方差估计"
+subtitle: "Wainwright, High-Dimensional Statistics 伴读 Notes"
+description: "面向已学陈希孺本科概率统计、并读过第 1 章样本协方差与算子范数的读者：从维希特矩阵的奇异值偏差，到次高斯系综、矩阵切尔诺夫 / 霍夫丁 / 伯恩斯坦，再到稀疏协方差的阈值估计"
+execute:
+  enabled: false
+lang: zh-CN
+---
+
+# 本章导览
+
+第 1 章已经把问题钉死：样本协方差 $\widehat\Sigma$ 无偏，但 $d/n\to\alpha>0$ 时算子范数不相合，马尔琴科–帕斯图尔定律把谱铺开；非渐近上尾是 (1.11)。本章把那条尾界做成定理，并沿三条轴加宽：
+
+- **分布：** 高斯（维希特）$\to$ 行向量子高斯 $\to$ 只控制矩阵矩母函数的一般尾；
+- **结构：** 无结构时标度是 $\sqrt{d/n}$；迹约束把 $d$ 换成有效维数；未知稀疏用硬阈值，标度变成 $\lVert A\rVert_{\mathrm{op}}\sqrt{(\log d)/n}$；
+- **工具：** 第 2 章的利普希茨集中、第 4 章的对称化、第 5 章的覆盖与高斯比较，再加上本章新的矩阵切尔诺夫（Ahlswede–Winter / Tropp）。
+
+阅读时抓住一件事：$\lVert\widehat\Sigma-\Sigma\rVert_{\mathrm{op}}\le\varepsilon$ 就是球面上二次型 $x\mapsto\langle x,v\rangle^2$ 的**一致**大数定律。逐元相合永远不够。
+
+本章阅读主线：
+
+$$
+\text{算子范数 = 球面一致 LLN}
+\longrightarrow
+\text{维希特 / 次高斯（}\sqrt{d/n}\text{）}
+\longrightarrow
+\text{矩阵霍夫丁 / 伯恩斯坦}
+\longrightarrow
+\text{硬阈值（}\lVert A\rVert_{\mathrm{op}}\sqrt{(\log d)/n}\text{）}.
+$$
+
+> 教材定位：第 6 章 §§6.1–6.7，印刷页 159–189，PDF 页 178–208。习题 §6.8 印刷页 189–193，PDF 页 208–212，不进入 Notes。页码关系：**PDF 页 = 印刷页 + 19**。教材把 $\ell_2$-算子范数写成三竖线；Notes 一律写 $\lVert\cdot\rVert_{\mathrm{op}}$。
+
+## 学习目标
+
+学完本章后，你应能：
+
+- **把** $\lVert\widehat\Sigma-\Sigma\rVert_{\mathrm{op}}\le\varepsilon$ **改写成** 球面二次型的一致大数定律 (6.6)，并写出 Weyl 推论 (6.7)；
+- **陈述** Theorem 6.1 的奇异值上下偏差，并由 (6.11)–(6.12) **推出** $d/n\to 0$ 时相对误差趋于 0；
+- **写出** 行向量子高斯的矩母函数界 (6.19a) 与尾界 (6.19b)，并指出覆盖数 $N\le 17^d$ 从哪里进入指数；
+- **应用** 矩阵霍夫丁 (6.38) 与矩阵伯恩斯坦 (6.42)：指出 $\sigma^2$ 是方差矩阵的算子范数、前置因子是秩（或维数）；
+- **选择** 阈值 $\lambda_n/\sigma^2=8\sqrt{(\log d)/n}+\delta$，并比较 (6.53) 的 $\lVert A\rVert_{\mathrm{op}}$ 与 (6.55) 的行稀疏度 $s$。
+
+# 必要先修
+
+陈希孺里的协方差、多元正态、样本二阶矩，加上第 1 章的 (1.8)–(1.11)，本章直接当语言用。下面只补三处本科课不一定钉死、但读定理会卡住的接口。
+
+::: {.callout-note title="为什么现在需要算子范数而不是逐元"}
+$\widehat\Sigma$ 无偏只保证 $\mathbb E[\widehat\Sigma]=\Sigma$。高维里会垮的是 $\ell_2$-算子范数：它等于最大奇异值，对对称矩阵等于谱半径。$\lVert\widehat\Sigma-\Sigma\rVert_{\mathrm{op}}\le\varepsilon$ 意味着每个方向的二次型偏差都不超过 $\varepsilon$，特征值也整体被 (6.7) 钉住。Frobenius 或逐元 $\ell_\infty$ 相合推不出这件事。
+:::
+
+::: {.callout-note title="作者解释：瑞利商就是最大 / 最小特征值"}
+对称矩阵 $Q$ 的 $\gamma_{\max}(Q)=\max_{\lVert v\rVert_2=1}v^T Qv$。这不是新定理，是谱分解的直接改写。本章几乎所有算子范数证明都先写成“球面上的二次型”，再对球面做覆盖或高斯比较。
+:::
+
+::: {.callout-note title="作者解释：矩阵矩母函数不交换"}
+标量切尔诺夫用 $\mathbb E[e^{\lambda\sum X_i}]=\prod\mathbb E[e^{\lambda X_i}]$。矩阵指数不交换，乘积公式不再是等式。Lieb 凹性给出不等式 $\mathrm{tr}(\Psi_{S_n}(\lambda))\le\mathrm{tr}(\exp(\sum_i\log\Psi_{Q_i}(\lambda)))$，这是 §6.4 能把霍夫丁 / 伯恩斯坦搬到矩阵上的全部理由。
+:::
+
+# 6 Random matrices and covariance estimation　随机矩阵与协方差估计
+
+> 教材定位：章首，印刷页 159，PDF 页 178。
+
+协方差估计与随机矩阵是同一对象的两面：$\widehat\Sigma=n^{-1}X^T X$ 的特征值是 $X/\sqrt n$ 的奇异值平方。经典框架让 $n\to\infty$、$d$ 固定；高维里 $d\asymp n$ 甚至 $d\gg n$。渐近侧有维格纳半圆律与马尔琴科–帕斯图尔定律；**本章做非渐近**：对一切有限 $(n,d)$ 给出显式偏差不等式。路线是高斯系综，再到次高斯，再到更弱的尾。工具来自第 2–5 章，并在 §6.4 引入矩阵尾界。
+
+# 6.1 Some preliminaries　预备
+
+> 教材定位：§6.1，印刷页 159–161，PDF 页 178–180。
+
+先固定符号，再把协方差估计写成球面一致定律。
+
+## 6.1.1 Notation and basic facts　符号与基本事实
+
+> 教材定位：§6.1.1，印刷页 159–160，PDF 页 178–179。
+
+矩形矩阵 $A\in\mathbb R^{n\times m}$（$n\ge m$）的有序奇异值写成 $\sigma_{\max}(A)=\sigma_1(A)\ge\cdots\ge\sigma_m(A)=\sigma_{\min}(A)\ge 0$。变分刻画是
+
+$$
+\sigma_{\max}(A)
+=
+\max_{v\in\mathbb S^{m-1}}\lVert Av\rVert_2,
+\qquad
+\sigma_{\min}(A)
+=
+\min_{v\in\mathbb S^{m-1}}\lVert Av\rVert_2.
+\tag{6.1}
+$$
+
+欧氏单位球面 $\mathbb S^{d-1}:=\{v\in\mathbb R^d:\lVert v\rVert_2=1\}$。$\ell_2$-算子范数就是最大奇异值：$\lVert A\rVert_{\mathrm{op}}=\sigma_{\max}(A)$（教材三竖线 $\vert\!\vert\!\vert A\vert\!\vert\!\vert_2$）。
+
+对称矩阵记 $\mathcal S^{d\times d}:=\{Q\in\mathbb R^{d\times d}:Q=Q^T\}$，半正定锥为
+
+$$
+\mathcal S_+^{d\times d}
+:=
+\{Q\in\mathcal S^{d\times d}:Q\succeq 0\}.
+\tag{6.2}
+$$
+
+对称矩阵可正交对角化，特征值记 $\gamma_{\max}(Q)=\gamma_1(Q)\ge\cdots\ge\gamma_d(Q)=\gamma_{\min}(Q)$。$Q\succeq 0$ 当且仅当 $\gamma_{\min}(Q)\ge 0$。瑞利–里茨（Rayleigh–Ritz）给出
+
+$$
+\gamma_{\max}(Q)
+=
+\max_{v\in\mathbb S^{d-1}}v^T Qv,
+\qquad
+\gamma_{\min}(Q)
+=
+\min_{v\in\mathbb S^{d-1}}v^T Qv.
+\tag{6.3}
+$$
+
+因而对称矩阵的算子范数有两种写法：
+
+$$
+\lVert Q\rVert_{\mathrm{op}}
+=
+\max\bigl\{\gamma_{\max}(Q),\,\lvert\gamma_{\min}(Q)\rvert\bigr\},
+\tag{6.4a}
+$$
+
+$$
+\lVert Q\rVert_{\mathrm{op}}
+=
+\max_{v\in\mathbb S^{d-1}}\lvert v^T Qv\rvert.
+\tag{6.4b}
+$$
+
+矩形情形：令 $R:=A^T A\in\mathcal S^{m\times m}$，则 $\gamma_j(R)=(\sigma_j(A))^2$。
+
+## 6.1.2 Set-up of covariance estimation　协方差估计的设定
+
+> 教材定位：§6.1.2，印刷页 160–161，PDF 页 179–180。
+
+$\{x_1,\ldots,x_n\}$ 为 $\mathbb R^d$ 上零均值 i.i.d. 样本，$\Sigma=\mathrm{cov}(x_1)\in\mathcal S_+^{d\times d}$。样本协方差
+
+$$
+\widehat\Sigma
+:=
+\frac1n\sum_{i=1}^n x_i x_i^T
+\tag{6.5}
+$$
+
+无偏：$\mathbb E[x_i x_i^T]=\Sigma$。误差矩阵 $\widehat\Sigma-\Sigma$ 零均值，目标是控制 $\lVert\widehat\Sigma-\Sigma\rVert_{\mathrm{op}}$。由 (6.4b)，$\lVert\widehat\Sigma-\Sigma\rVert_{\mathrm{op}}\le\varepsilon$ 等价于
+
+$$
+\max_{v\in\mathbb S^{d-1}}
+\Biggl\lvert
+\frac1n\sum_{i=1}^n\langle x_i,v\rangle^2
+-
+v^T\Sigma v
+\Biggr\rvert
+\le\varepsilon.
+\tag{6.6}
+$$
+
+这正是函数类 $x\mapsto\langle x,v\rangle^2$（指标集 $\mathbb S^{d-1}$）上的一致大数定律，一般理论见第 4 章。
+
+算子范数还控制全部特征值。Weyl 定理的推论给出
+
+$$
+\max_{j=1,\ldots,d}
+\lvert\gamma_j(\widehat\Sigma)-\gamma_j(\Sigma)\rvert
+\le
+\lVert\widehat\Sigma-\Sigma\rVert_{\mathrm{op}}.
+\tag{6.7}
+$$
+
+特征向量要额外的特征值间隙，第 8 章主成分分析再谈。把样本排成 $X\in\mathbb R^{n\times d}$（第 $i$ 行是 $x_i^T$），则 $\widehat\Sigma=n^{-1}X^T X$，故 $\widehat\Sigma$ 的特征值是 $X/\sqrt n$ 的奇异值平方。
+
+::: {.callout-note title="作者解释：本章的 $x$ 是向量"}
+脚注（印刷页 160）：本章用小写 $x$ 表示随机向量，以便和随机矩阵 $X,Q$ 区分。第 1 章的 $X_i$ 与这里的 $x_i$ 是同一类对象。
+:::
+
+# 6.2 Wishart matrices and their behavior　维希特矩阵
+
+> 教材定位：§6.2，印刷页 161–165，PDF 页 180–184。
+
+每个 $x_i\sim N(0,\Sigma)$ 独立时，称 $X$ 来自 **$\Sigma$-高斯系综**（$\Sigma$-Gaussian ensemble），$\widehat\Sigma=n^{-1}X^T X$ 服从多元维希特分布（Wishart distribution）。
+
+::: {.callout-important title="Theorem 6.1　高斯系综的奇异值偏差"}
+设 $X\in\mathbb R^{n\times d}$ 来自 $\Sigma$-高斯系综。对一切 $\delta>0$，
+
+$$
+\mathbb P
+\Biggl[
+\frac{\sigma_{\max}(X)}{\sqrt n}
+\ge
+\gamma_{\max}(\sqrt\Sigma)\,(1+\delta)
++
+\sqrt{\frac{\mathrm{tr}(\Sigma)}{n}}
+\Biggr]
+\le
+e^{-n\delta^2/2}.
+\tag{6.8}
+$$
+
+若再有 $n\ge d$，最小奇异值有对称的下偏差
+
+$$
+\mathbb P
+\Biggl[
+\frac{\sigma_{\min}(X)}{\sqrt n}
+\le
+\gamma_{\min}(\sqrt\Sigma)\,(1-\delta)
+-
+\sqrt{\frac{\mathrm{tr}(\Sigma)}{n}}
+\Biggr]
+\le
+e^{-n\delta^2/2}.
+\tag{6.9}
+$$
+:::
+
+**Example 6.2（标准高斯系综）。** $W\in\mathbb R^{n\times d}$ 的条目 i.i.d. $N(0,1)$，即 $\Sigma=I_d$。$n\ge d$ 时，以至少 $1-2e^{-n\delta^2/2}$ 的概率，
+
+$$
+\frac{\sigma_{\max}(W)}{\sqrt n}
+\le
+1+\delta+\sqrt{\frac d n},
+\qquad
+\frac{\sigma_{\min}(W)}{\sqrt n}
+\ge
+1-\delta-\sqrt{\frac d n}.
+\tag{6.10}
+$$
+
+因而
+
+$$
+\Biggl\lVert
+\frac1n W^T W-I_d
+\Biggr\rVert_{\mathrm{op}}
+\le
+2\varepsilon+\varepsilon^2,
+\qquad
+\varepsilon=\sqrt{\frac d n}+\delta.
+\tag{6.11}
+$$
+
+只要 $d/n\to 0$，$\widehat\Sigma=n^{-1}W^T W$ 在算子范数下相合于 $I_d$。同一条界在第 7 章会变成限制等距性质（restricted isometry property）的输入。
+
+**Example 6.3（高斯协方差的相对误差）。** $X=W\sqrt\Sigma$。共轭给出
+
+$$
+\Biggl\lVert\frac1n X^T X-\Sigma\Biggr\rVert_{\mathrm{op}}
+\le
+\lVert\Sigma\rVert_{\mathrm{op}}
+\Biggl\lVert\frac1n W^T W-I_d\Biggr\rVert_{\mathrm{op}},
+$$
+
+再套 (6.11)，以至少 $1-2e^{-n\delta^2/2}$ 的概率
+
+$$
+\frac{\lVert\widehat\Sigma-\Sigma\rVert_{\mathrm{op}}}{\lVert\Sigma\rVert_{\mathrm{op}}}
+\le
+2\sqrt{\frac d n}+2\delta+\Biggl(\sqrt{\frac d n}+\delta\Biggr)^2.
+\tag{6.12}
+$$
+
+相对误差趋于 0 的充分条件仍是 $d/n\to 0$。
+
+**Example 6.4（迹约束下的更快速率）。** 若非零协方差满足
+
+$$
+\frac{\mathrm{tr}(\Sigma)}{\lVert\Sigma\rVert_{\mathrm{op}}}
+=
+\frac{\sum_{j=1}^d\gamma_j(\Sigma)}{\gamma_1(\Sigma)}
+\le C,
+\tag{6.13}
+$$
+
+则 $C$ 是粗的秩上界：总可以取 $C=\mathrm{rank}(\Sigma)$。更有意思的是满秩但特征值速降的矩阵，典型成员是沙滕（Schatten）$q$-“球”
+
+$$
+\mathbb B_q(R_q)
+:=
+\Biggl\{
+\Sigma\in\mathcal S^{d\times d}
+:
+\sum_{j=1}^d\lvert\gamma_j(\Sigma)\rvert^q
+\le R_q
+\Biggr\},
+\tag{6.14}
+$$
+
+$q\in[0,1]$。限制特征值在 $[-1,1]$ 时这些集合嵌套：$q=0$ 是秩至多 $R_0$，$q=1$ 是迹约束。任一非零 $\Sigma\in\mathbb B_q(R_q)$ 满足 (6.13)，参数 $C=R_q/(\gamma_1(\Sigma))^q$。代入 Theorem 6.1，高概率有
+
+$$
+\frac{\sigma_{\max}(X)}{\sqrt n}
+\le
+\gamma_{\max}(\sqrt\Sigma)
+\Biggl(1+\delta+\sqrt{\frac C n}\Biggr).
+\tag{6.15}
+$$
+
+与 (6.10) 相比，$C$ 扮演**有效维数**（effective dimension）。
+
+## 关键推导（Theorem 6.1 的上界）
+
+记 $\bar\sigma_{\max}=\gamma_{\max}(\sqrt\Sigma)$。两条腿：先用高斯利普希茨集中把 $\sigma_{\max}(X)$ 钉在期望附近，再用高斯比较控制期望。
+
+$X=W\sqrt\Sigma$，$W$ 的条目 i.i.d. $N(0,1)$。映射 $W\mapsto\sigma_{\max}(W\sqrt\Sigma)/\sqrt n$ 对欧氏范数的利普希茨常数至多 $\bar\sigma_{\max}/\sqrt n$（Example 2.32）。Theorem 2.26 给出
+
+$$
+\mathbb P\bigl[\sigma_{\max}(X)\ge\mathbb E[\sigma_{\max}(X)]+\sqrt n\,\bar\sigma_{\max}\,\delta\bigr]
+\le
+e^{-n\delta^2/2}.
+$$
+
+于是只需
+
+$$
+\mathbb E[\sigma_{\max}(X)]
+\le
+\sqrt n\,\bar\sigma_{\max}+\sqrt{\mathrm{tr}(\Sigma)}.
+\tag{6.16}
+$$
+
+变分：$\sigma_{\max}(X)=\max_{v'\in\mathbb S^{d-1}}\lVert X v'\rVert_2$。令 $v=\sqrt\Sigma\,v'$，指标集变成椭圆 $\mathbb S^{d-1}(\Sigma^{-1}):=\{v:\lVert\Sigma^{-1/2}v\rVert_2=1\}$，
+
+$$
+\sigma_{\max}(X)
+=
+\max_{u\in\mathbb S^{n-1}}\max_{v\in\mathbb S^{d-1}(\Sigma^{-1})}
+\underbrace{u^T W v}_{Z_{u,v}}.
+$$
+
+$\{Z_{u,v}\}$ 是零均值高斯过程，指标 $\mathbb T=\mathbb S^{n-1}\times\mathbb S^{d-1}(\Sigma^{-1})$。比较过程取 $Y_{u,v}=\bar\sigma_{\max}\langle g,u\rangle+\langle h,v\rangle$（$g\in\mathbb R^n$、$h\in\mathbb R^d$ 独立标准高斯）。Frobenius 计算给出：若 $\lVert v\rVert_2\le\lVert\widetilde v\rVert_2$，则
+
+$$
+\mathbb E[(Z_{u,v}-Z_{\widetilde u,\widetilde v})^2]
+=
+\lVert uv^T-\widetilde u\widetilde v^T\rVert_F^2
+\le
+\bar\sigma_{\max}^2\lVert u-\widetilde u\rVert_2^2+\lVert v-\widetilde v\rVert_2^2
+=
+\mathbb E[(Y_{u,v}-Y_{\widetilde u,\widetilde v})^2].
+$$
+
+交叉项 $(\lVert u\rVert_2^2-\langle u,\widetilde u\rangle)(\langle v,\widetilde v\rangle-\lVert\widetilde v\rVert_2^2)\le 0$，因为前一个因子非负（$\lVert u\rVert_2=\lVert\widetilde u\rVert_2=1$），后一个因子由柯西–施瓦茨与 $\lVert v\rVert_2\le\lVert\widetilde v\rVert_2$ 非正。Sudakov–Fernique（Theorem 5.27）于是给出
+
+$$
+\mathbb E[\sigma_{\max}(X)]
+=
+\mathbb E\bigl[\max_{(u,v)\in\mathbb T}Z_{u,v}\bigr]
+\le
+\mathbb E\bigl[\max_{(u,v)\in\mathbb T}Y_{u,v}\bigr].
+\tag{6.17}
+$$
+
+右端拆成 $\bar\sigma_{\max}\mathbb E[\lVert g\rVert_2]+\mathbb E[\lVert\sqrt\Sigma\, h\rVert_2]$。詹森：$\mathbb E[\lVert g\rVert_2]\le\sqrt n$，且 $\mathbb E[\lVert\sqrt\Sigma\, h\rVert_2]\le\sqrt{\mathbb E[h^T\Sigma h]}=\sqrt{\mathrm{tr}(\Sigma)}$，即 (6.16)。
+
+::: {.callout-warning title="适用边界"}
+(6.9) 的下界需要 $n\ge d$，并且 $\Sigma$ 严格正定（否则 $\sigma_{\min}=0$，下界无内容）。证明改用戈登不等式（Gordon's inequality），把 $\min$–$\max$ 高斯过程与一个可计算的比较过程对齐；细节在 §6.6，Notes 不逐行转写。
+:::
+
+# 6.3 Covariance matrices from sub-Gaussian ensembles　次高斯系综
+
+> 教材定位：§6.3，印刷页 165–168，PDF 页 184–187。
+
+高斯比较用到旋转不变性。一般次高斯改走**离散化 + 标量尾界**，常数变差，标度相同。
+
+零均值向量 $x_i\in\mathbb R^d$ 称为参数至多 $\sigma$ 的次高斯，若对每个固定 $v\in\mathbb S^{d-1}$，
+
+$$
+\mathbb E\bigl[e^{\lambda\langle v,x_i\rangle}\bigr]
+\le
+e^{\lambda^2\sigma^2/2}
+\qquad\text{对一切 }\lambda\in\mathbb R.
+\tag{6.18}
+$$
+
+例子：(a) $X$ 的条目 i.i.d.、零均值、参数 $1$ 的次高斯（标准高斯、拉德马赫、或支在 $[-1,1]$ 上的零均值变量）时，线性组合 $\langle v,x_i\rangle$ 仍是参数 $\le 1$ 的次高斯；(b) $x_i\sim N(0,\Sigma)$ 时 $v^T\Sigma v\le\lVert\Sigma\rVert_{\mathrm{op}}$，故可取 $\sigma^2=\lVert\Sigma\rVert_{\mathrm{op}}$。行 i.i.d. 抽自这种分布时，称 $X$ 来自行向 $\sigma$-次高斯系综（row-wise $\sigma$-sub-Gaussian ensemble）。
+
+::: {.callout-important title="Theorem 6.5　行向次高斯的样本协方差"}
+存在万有常数 $\{c_j\}_{j=0}^3$，使得任一行向 $\sigma$-次高斯矩阵 $X\in\mathbb R^{n\times d}$ 的样本协方差满足
+
+$$
+\mathbb E\bigl[e^{\lambda\lVert\widehat\Sigma-\Sigma\rVert_{\mathrm{op}}}\bigr]
+\le
+\exp\Bigl(c_0\frac{\lambda^2\sigma^4}{n}+4d\Bigr)
+\qquad\text{对一切 }\lvert\lambda\rvert<\frac{n}{64e^2\sigma^2},
+\tag{6.19a}
+$$
+
+从而对一切 $\delta\ge 0$，
+
+$$
+\mathbb P
+\Biggl[
+\frac{\lVert\widehat\Sigma-\Sigma\rVert_{\mathrm{op}}}{\sigma^2}
+\ge
+c_1\Biggl\{\sqrt{\frac d n}+\frac d n\Biggr\}+\delta
+\Biggr]
+\le
+c_2\exp\bigl(-c_3 n\min\{\delta,\delta^2\}\bigr).
+\tag{6.19b}
+$$
+:::
+
+(6.19a) 加切尔诺夫即得 (6.19b)（Proposition 2.9 的两段尾）。$\Sigma=I_d$、$\sigma=1$ 时，高概率 $\lVert\widehat\Sigma-I_d\rVert_{\mathrm{op}}\lesssim\sqrt{d/n}+d/n$。$n\ge d$ 时奇异值夹心为
+
+$$
+1-c'\sqrt{\frac d n}
+\le
+\frac{\sigma_{\min}(X)}{\sqrt n}
+\le
+\frac{\sigma_{\max}(X)}{\sqrt n}
+\le
+1+c'\sqrt{\frac d n},
+\tag{6.20}
+$$
+
+某万有常数 $c'>1$。与 (6.10) 同形，只是常数大于 $1$。
+
+## 关键推导
+
+记 $Q:=\widehat\Sigma-\Sigma$。由 (6.4b)，$\lVert Q\rVert_{\mathrm{op}}=\max_{v\in\mathbb S^{d-1}}\lvert\langle v,Qv\rangle\rvert$。取球面的 $1/8$-覆盖 $\{v^1,\ldots,v^N\}$，Example 5.8 保证存在 $N\le 17^d$ 的覆盖。对任意 $v=v^j+\Delta$、$\lVert\Delta\rVert_2\le 1/8$，
+
+$$
+\lvert\langle v,Qv\rangle\rvert
+\le
+\lvert\langle v^j,Qv^j\rangle\rvert
++\tfrac14\lVert Q\rVert_{\mathrm{op}}
++\tfrac1{64}\lVert Q\rVert_{\mathrm{op}}
+\le
+\lvert\langle v^j,Qv^j\rangle\rvert
++\tfrac12\lVert Q\rVert_{\mathrm{op}}.
+$$
+
+取上确界：$\lVert Q\rVert_{\mathrm{op}}\le 2\max_j\lvert\langle v^j,Qv^j\rangle\rvert$。指数矩于是被有限个方向控制：
+
+$$
+\mathbb E\bigl[e^{\lambda\lVert Q\rVert_{\mathrm{op}}}\bigr]
+\le
+\sum_{j=1}^N
+\Bigl(
+\mathbb E\bigl[e^{2\lambda\langle v^j,Qv^j\rangle}\bigr]
++
+\mathbb E\bigl[e^{-2\lambda\langle v^j,Qv^j\rangle}\bigr]
+\Bigr).
+\tag{6.21}
+$$
+
+对固定单位向量 $u$，声称
+
+$$
+\mathbb E\bigl[e^{t\langle u,Qu\rangle}\bigr]
+\le
+\exp\Bigl(512\,\frac{t^2}{n}e^4\sigma^4\Bigr)
+\qquad\text{对一切 }\lvert t\rvert\le\frac{n}{32e^2\sigma^2}.
+\tag{6.22}
+$$
+
+代入 $t=\pm 2\lambda$，并用 $2\cdot 17^d\le e^{4d}$，得到 (6.19a)，定义域变成 $\lvert\lambda\rvert<n/(64e^2\sigma^2)$。
+
+(6.22) 的证明：独立性把矩母函数写成单样本的 $n$ 次方，
+
+$$
+\mathbb E\bigl[e^{t\langle u,Qu\rangle}\bigr]
+=
+\Biggl(
+\mathbb E\Bigl[
+\exp\Bigl(\tfrac t n\bigl\{\langle x_1,u\rangle^2-\langle u,\Sigma u\rangle\bigr\}\Bigr)
+\Bigr]
+\Biggr)^n.
+\tag{6.23}
+$$
+
+命题 4.11 的对称化换成拉德马赫 $\varepsilon$；奇次矩消失后，Theorem 2.6(III) 给出 $\mathbb E[\langle x_1,u\rangle^{4\ell}]\le(4\ell)!(\sqrt{8e}\sigma)^{4\ell}/(2^{2\ell}(2\ell)!)$。几何级数在 $f(t):=(16t/n)e^2\sigma^2<1/2$ 时收敛，得到 (6.22)。
+
+::: {.callout-note title="作者解释：$4d$ 从哪里来"}
+覆盖数 $N\le 17^d$ 在指数矩里变成 $\log N\le d\log 17$。教材用 $2\cdot 17^d\le e^{4d}$ 把对数覆盖写进 (6.19a) 的线性项。切尔诺夫优化 $\lambda$ 之后，这一项变成尾界里的 $\sqrt{d/n}+d/n$，与高斯情形 (6.11) 同阶。
+:::
+
+# 6.4 Bounds for general matrices　一般随机矩阵的界
+
+> 教材定位：§6.4，印刷页 168–180，PDF 页 187–199。
+
+样本协方差之外，许多估计量是独立随机矩阵之和。本节给出矩阵版霍夫丁（Theorem 6.15）与伯恩斯坦（Theorem 6.17）。
+
+## 6.4.1 Background on matrix analysis　矩阵分析背景
+
+> 教材定位：§6.4.1，印刷页 168–169，PDF 页 187–188。
+
+函数 $f:\mathbb R\to\mathbb R$ 通过谱函数演算扩到 $\mathcal S^{d\times d}$：若 $Q=U^T\Gamma U$，则 $f(Q):=U^T\mathrm{diag}(f(\gamma_1(Q)),\ldots,f(\gamma_d(Q)))U$。该扩张酉不变。谱映射性质（spectral mapping property）是
+
+$$
+\gamma\bigl(f(Q)\bigr)
+=
+\bigl\{f(\gamma_j(Q)):j=1,\ldots,d\bigr\}.
+\tag{6.24}
+$$
+
+矩阵指数 $e^Q=\sum_{k\ge 0}Q^k/k!$ 的特征值恒正，故 $e^Q$ 总是正定。在严格正定锥上，矩阵对数是矩阵指数的逆。
+
+$f$ 称为**矩阵单调**（matrix monotone），若 $Q\preceq R$ 推出 $f(Q)\preceq f(R)$。对数是矩阵单调的——这是勒夫纳–海因茨定理（Löwner–Heinz theorem）。指数**不是**矩阵单调（Exercise 6.5）。标量意义下连续非降的 $f$，在 $Q\preceq R$ 时仍有迹单调
+
+$$
+\mathrm{tr}\bigl(f(Q)\bigr)
+\le
+\mathrm{tr}\bigl(f(R)\bigr).
+\tag{6.25}
+$$
+
+## 6.4.2 Tail conditions for matrices　矩阵的尾条件
+
+> 教材定位：§6.4.2，印刷页 169–171，PDF 页 188–190。
+
+对称随机矩阵 $Q$ 的多项式矩是矩阵 $\mathbb E[Q^j]$。方差 $\mathrm{var}(Q):=\mathbb E[Q^2]-(\mathbb E[Q])^2$ 半正定（Exercise 6.6）。矩阵矩母函数是
+
+$$
+\Psi_Q(\lambda)
+:=
+\mathbb E[e^{\lambda Q}]
+=
+\sum_{k=0}^\infty\frac{\lambda^k}{k!}\mathbb E[Q^k].
+\tag{6.26}
+$$
+
+::: {.callout-important title="Definition 6.6　矩阵次高斯"}
+零均值对称随机矩阵 $Q\in\mathcal S^{d\times d}$ 称为以矩阵参数 $V\in\mathcal S_+^{d\times d}$ 次高斯，若
+
+$$
+\Psi_Q(\lambda)
+\preceq
+e^{\lambda^2 V/2}
+\qquad\text{对一切 }\lambda\in\mathbb R.
+\tag{6.27}
+$$
+:::
+
+**Example 6.7。** $Q=\varepsilon B$，$\varepsilon$ 拉德马赫，$B$ 固定对称。奇次矩为零，偶次矩 $B^{2k}$，且 $(2k)!\ge 2^k k!$，故 $\Psi_Q(\lambda)\preceq e^{\lambda^2 B^2/2}$，$V=B^2=\mathrm{var}(Q)$。更一般地，$Q=gB$、$g$ 对称的 $\sigma$-次高斯，则 $V=c^2\sigma^2 B^2$（Exercise 6.7）。
+
+**Example 6.8。** $Q=\varepsilon C$，$C$ 随机、与 $\varepsilon$ 独立，且 $\lVert C\rVert_{\mathrm{op}}\le b$。先对 $\varepsilon$ 取期望得到 $e^{\lambda^2 C^2/2}$，再由 $C^2\preceq b^2 I_d$ 得到 $V=b^2 I_d$。
+
+::: {.callout-important title="Definition 6.9　矩阵次指数"}
+零均值随机矩阵称为以参数 $(V,\alpha)$ 次指数，若
+
+$$
+\Psi_Q(\lambda)
+\preceq
+e^{\lambda^2 V/2}
+\qquad\text{对一切 }\lvert\lambda\rvert<\frac1\alpha.
+\tag{6.28}
+$$
+:::
+
+次高斯是 $\alpha=0$ 的次指数。反例：$M=\varepsilon g^2 B$，$g\sim N(0,1)$ 与拉德马赫独立——矩阵版的 $\chi^2$。
+
+::: {.callout-important title="Definition 6.10　矩阵伯恩斯坦条件"}
+零均值对称 $Q$ 满足参数 $b>0$ 的伯恩斯坦条件，若
+
+$$
+\mathbb E[Q^j]
+\preceq
+\tfrac12\,j!\,b^{j-2}\,\mathrm{var}(Q)
+\qquad j=3,4,\ldots.
+\tag{6.29}
+$$
+
+若 $\lVert Q\rVert_{\mathrm{op}}\le b$ 几乎必然，则有更强的
+
+$$
+\mathbb E[Q^j]
+\preceq
+b^{j-2}\,\mathrm{var}(Q)
+\qquad j=3,4,\ldots
+\tag{6.30}
+$$
+
+（Exercise 6.9）。无界但仍满足 (6.29) 的例子见 Exercise 6.11。
+:::
+
+::: {.callout-important title="Lemma 6.11　伯恩斯坦推出矩母函数界"}
+若 (6.29) 成立，则
+
+$$
+\Psi_Q(\lambda)
+\preceq
+\exp\Biggl(\frac{\lambda^2\mathrm{var}(Q)}{2(1-b\lvert\lambda\rvert)}\Biggr)
+\qquad\text{对一切 }\lvert\lambda\rvert<\frac1b.
+\tag{6.31}
+$$
+:::
+
+证明：$\mathbb E[Q]=0$ 时把指数展开到二阶，余项用 (6.29) 收成几何级数，最后用 $I+A\preceq e^A$（Exercise 6.4）。
+
+## 6.4.3 Matrix Chernoff approach and independent decompositions　矩阵切尔诺夫与独立分解
+
+> 教材定位：§6.4.3，印刷页 172–174，PDF 页 191–193。
+
+::: {.callout-important title="Lemma 6.12　矩阵切尔诺夫"}
+设零均值对称 $Q$ 的矩母函数在 $(-a,a)$ 存在。对一切 $\delta>0$ 与 $\lambda\in[0,a)$，
+
+$$
+\mathbb P[\gamma_{\max}(Q)\ge\delta]
+\le
+\mathrm{tr}\bigl(\Psi_Q(\lambda)\bigr)\,e^{-\lambda\delta},
+\tag{6.32}
+$$
+
+$$
+\mathbb P[\lVert Q\rVert_{\mathrm{op}}\ge\delta]
+\le
+2\,\mathrm{tr}\bigl(\Psi_Q(\lambda)\bigr)\,e^{-\lambda\delta}.
+\tag{6.33}
+$$
+:::
+
+谱映射把 $\{\gamma_{\max}(Q)\ge\delta\}$ 写成 $\{\gamma_{\max}(e^{\lambda Q})\ge e^{\lambda\delta}\}$；马尔可夫再用 $\gamma_{\max}(e^{\lambda Q})\le\mathrm{tr}(e^{\lambda Q})$（因为 $e^{\lambda Q}$ 正定）。迹与期望交换。对 $-Q$ 重复，合并成 (6.33)。
+
+独立矩阵的矩母函数不再是乘积。替代品是 Lieb 凹性：$A\mapsto\mathrm{tr}(e^{H+\log A})$ 在正定锥上对固定 $H$ 凹。逐项剥掉 $Q_n,Q_{n-1},\ldots$ 并用詹森，得到：
+
+::: {.callout-important title="Lemma 6.13　独立和的迹上界"}
+设 $Q_1,\ldots,Q_n$ 独立对称，矩母函数在区间 $I$ 上存在，$S_n:=\sum_{i=1}^n Q_i$。则对一切 $\lambda\in I$，
+
+$$
+\mathrm{tr}\bigl(\Psi_{S_n}(\lambda)\bigr)
+\le
+\mathrm{tr}\Biggl(
+\exp\Biggl(\sum_{i=1}^n\log\Psi_{Q_i}(\lambda)\Biggr)
+\Biggr).
+\tag{6.36}
+$$
+:::
+
+对平均值 $S_n/n$ 套 (6.33)，得到
+
+$$
+\mathbb P\Biggl[\Biggl\lVert\frac1n\sum_{i=1}^n Q_i\Biggr\rVert_{\mathrm{op}}\ge\delta\Biggr]
+\le
+2\,\mathrm{tr}\Biggl(
+\exp\Biggl(\sum_{i=1}^n\log\Psi_{Q_i}(\lambda)\Biggr)
+\Biggr)
+e^{-\lambda n\delta},
+\qquad\lambda\in[0,a).
+\tag{6.37}
+$$
+
+**Example 6.14（矩阵拉德马赫对称化）。** 控制 $\gamma_{\max}(\sum_i(A_i-\mathbb E[A_i]))$ 时，命题 4.11(b) 把问题换成 $\widetilde Q_i=\varepsilon_i A_i$，只多一个因子 $2$。此后可不妨假设矩阵分布关于零对称。
+
+## 6.4.4 Upper tail bounds for random matrices　随机矩阵的上尾
+
+> 教材定位：§6.4.4，印刷页 174–179，PDF 页 193–198。
+
+::: {.callout-important title="Theorem 6.15　矩阵霍夫丁"}
+设 $\{Q_i\}_{i=1}^n$ 为零均值独立对称矩阵，分别以参数 $\{V_i\}$ 次高斯。对一切 $\delta>0$，
+
+$$
+\mathbb P\Biggl[\Biggl\lVert\frac1n\sum_{i=1}^n Q_i\Biggr\rVert_{\mathrm{op}}\ge\delta\Biggr]
+\le
+2\,\mathrm{rank}\Biggl(\sum_{i=1}^n V_i\Biggr)
+\exp\Biggl(-\frac{n\delta^2}{2\sigma^2}\Biggr)
+\le
+2d\exp\Biggl(-\frac{n\delta^2}{2\sigma^2}\Biggr),
+\tag{6.38}
+$$
+
+其中 $\sigma^2=\bigl\lVert n^{-1}\sum_{i=1}^n V_i\bigr\rVert_{\mathrm{op}}$。
+:::
+
+证明：对数矩阵单调把 $\sum\log\Psi_{Q_i}(\lambda)\preceq(\lambda^2/2)\sum V_i$ 送进 (6.25)，再 $\mathrm{tr}(e^R)\le d\,e^{\lVert R\rVert_{\mathrm{op}}}$。优化 $\lambda=\delta/\sigma^2$。若 $\sum V_i$ 的秩为 $r<d$，把随机性投影到 $r$ 维，前置因子换成 $r$。
+
+非方阵 / 非对称：$A_i\in\mathbb R^{d_1\times d_2}$ 零均值时，用**对称膨胀**（symmetric dilation）
+
+$$
+Q_i
+:=
+\begin{pmatrix}
+0_{d_1\times d_1} & A_i \\
+A_i^T & 0_{d_2\times d_2}
+\end{pmatrix}
+\in
+\mathcal S^{(d_1+d_2)\times(d_1+d_2)}.
+\tag{6.39}
+$$
+
+$\lVert Q_i\rVert_{\mathrm{op}}=\lVert A_i\rVert_{\mathrm{op}}$，维数变成 $d_1+d_2$。细节见 Exercise 6.10。
+
+::: {.callout-warning title="前置因子 $d$ 或 $\mathrm{rank}$ 不能一律丢掉"}
+**Example 6.16。** $n=d$，$E_i$ 为第 $(i,i)$ 位置 $1$ 的对角矩阵，$Q_i=y_i E_i$，$y_i$ 为 $1$-次高斯。此时 $\sigma^2=1/d$，(6.38) 给出 $\lVert d^{-1}\sum Q_i\rVert_{\mathrm{op}}\lesssim\sqrt{2\log(2d)}/d$。但精确式是 $\max_i\lvert y_i\rvert/d$。拉德马赫时左端 $=1/d$，界多一个 $\sqrt{\log d}$；高斯时 $\max\lvert g_i\rvert\simeq\sqrt{2\log d}$，界不可改进。
+:::
+
+::: {.callout-important title="Theorem 6.17　矩阵伯恩斯坦"}
+设 $\{Q_i\}_{i=1}^n$ 独立、零均值、对称，满足参数 $b>0$ 的 (6.29)。对一切 $\delta\ge 0$，
+
+$$
+\mathbb P\Biggl[\Biggl\lVert\frac1n\sum_{i=1}^n Q_i\Biggr\rVert_{\mathrm{op}}\ge\delta\Biggr]
+\le
+2\,\mathrm{rank}\Biggl(\sum_{i=1}^n\mathrm{var}(Q_i)\Biggr)
+\exp\Biggl(
+-\frac{n\delta^2}{2(\sigma^2+b\delta)}
+\Biggr),
+\tag{6.42}
+$$
+
+其中 $\sigma^2:=n^{-1}\bigl\lVert\sum_{j=1}^n\mathrm{var}(Q_j)\bigr\rVert_{\mathrm{op}}$。
+:::
+
+把 Lemma 6.11 送进 Lemma 6.13，取 $\lambda=\delta/(\sigma^2+b\delta)\in(0,1/b)$。尾是次指数型：$\delta$ 小于 $\sigma^2/b$ 时二次，大于时线性，与标量伯恩斯坦同形。
+
+非对称有界 $\lVert A_i\rVert_{\mathrm{op}}\le b$ 时，膨胀矩阵满足伯恩斯坦条件，方差参数换成
+
+$$
+\sigma^2
+:=
+\max\Biggl\{
+\Biggl\lVert\frac1n\sum_{i=1}^n\mathbb E[A_i A_i^T]\Biggr\rVert_{\mathrm{op}},
+\
+\Biggl\lVert\frac1n\sum_{i=1}^n\mathbb E[A_i^T A_i]\Biggr\rVert_{\mathrm{op}}
+\Biggr\}.
+\tag{6.43}
+$$
+
+**Example 6.18（矩阵补全的掩膜）。** $A_i=\xi_i X_i\in\mathbb R^{d\times d}$，$\xi_i$ 零均值、方差 $\nu^2$、伯恩斯坦参数 $b$；$X_i$ 在均匀随机位置放一个 $d$、其余为零。$\mathbb E[\langle\langle A_i,\Theta\rangle\rangle^2]=\nu^2\lVert\Theta\rVert_F^2$。膨胀到 $2d$ 维后 $\mathrm{var}(Q_i)=\nu^2 d\,I_{2d}$，伯恩斯坦参数变成 $bd$，$\sigma^2\le\nu^2 d$，因而
+
+$$
+\mathbb P\Biggl[\Biggl\lVert\frac1n\sum_{i=1}^n A_i\Biggr\rVert_{\mathrm{op}}\ge\delta\Biggr]
+\le
+4d\exp\Biggl(-\frac{n\delta^2}{2d(\nu^2+b\delta)}\Biggr).
+\tag{6.45}
+$$
+
+第 10 章会用这条界。
+
+**Example 6.19（用迹比替换秩）。** $\lVert Q_i\rVert_{\mathrm{op}}\le 1$ 时，令 $\varphi(\lambda)=e^\lambda-\lambda-1$，可把前置因子从 $\mathrm{rank}(\bar V)$ 换成更小的 $\mathrm{tr}(\bar V)/\lVert\bar V\rVert_{\mathrm{op}}$（总不超过秩）。证明细节是 Exercise 6.12；向量和的维数无关因子 $2$ 是 Exercise 6.13。
+
+## 6.4.5 Consequences for covariance matrices　对协方差的推论
+
+> 教材定位：§6.4.5，印刷页 179–180，PDF 页 198–199。
+
+::: {.callout-important title="Corollary 6.20　有界样本的协方差伯恩斯坦尾"}
+设 $x_1,\ldots,x_n$ 零均值 i.i.d.，协方差 $\Sigma$，且 $\lVert x_j\rVert_2\le\sqrt b$ 几乎必然。则对一切 $\delta>0$，
+
+$$
+\mathbb P\bigl[\lVert\widehat\Sigma-\Sigma\rVert_{\mathrm{op}}\ge\delta\bigr]
+\le
+2d\exp\Biggl(
+-\frac{n\delta^2}{2b\bigl(\lVert\Sigma\rVert_{\mathrm{op}}+\delta\bigr)}
+\Biggr).
+\tag{6.49}
+$$
+:::
+
+证明把 Theorem 6.17 用在 $Q_i=x_i x_i^T-\Sigma$ 上。三角不等式给出 $\lVert Q_i\rVert_{\mathrm{op}}\le\lVert x_i\rVert_2^2+\lVert\Sigma\rVert_{\mathrm{op}}\le b+\lVert\Sigma\rVert_{\mathrm{op}}$；又 $\lVert\Sigma\rVert_{\mathrm{op}}=\max_v\mathbb E[\langle v,x_i\rangle^2]\le b$，故 $\lVert Q_i\rVert_{\mathrm{op}}\le 2b$。方差 $\mathrm{var}(Q_i)\preceq b\Sigma$，因而 $\sigma^2\le b\lVert\Sigma\rVert_{\mathrm{op}}$。把这些参数送进 (6.42) 即得印刷的 (6.49)。（证明里伯恩斯坦参数取到 $2b$，分母若机械代入应多一个 $2$；教材把常数吸收进 (6.49) 的写法。Notes 保留印刷式。）
+
+**Example 6.21（球面均匀）。** $x_i$ 均匀分布于 $\mathbb S^{d-1}(\sqrt d)$，则 $\lVert x_i\rVert_2=\sqrt d$，$\Sigma=I_d$。代入 (6.49) 得
+
+$$
+\mathbb P\bigl[\lVert\widehat\Sigma-I_d\rVert_{\mathrm{op}}\ge\delta\bigr]
+\le
+2d\exp\Biggl(-\frac{n\delta^2}{2d+2d\delta}\Biggr),
+\tag{6.50}
+$$
+
+高概率
+
+$$
+\lVert\widehat\Sigma-I_d\rVert_{\mathrm{op}}
+\lesssim
+\sqrt{\frac{d\log d}{n}}+\frac{d\log d}{n}.
+\tag{6.51}
+$$
+
+相合条件是 $d\log d/n\to 0$。这里对数是多余的：球面向量次高斯，Theorem 6.5 能去掉它。
+
+**Example 6.22（尖峰向量）。** $x_i=\sqrt d\, e_{a(i)}$，$a(i)$ 在 $\{1,\ldots,d\}$ 上均匀。同样 $\lVert x_i\rVert_2=\sqrt d$、$\Sigma=I_d$，(6.50) 适用；但这一次 (6.51) 的对数因子**不能**去掉——稀疏尖峰让维数因子成为必要，与 Example 6.16 的高斯对角是同一现象。
+
+# 6.5 Bounds for structured covariance matrices　有结构的协方差
+
+> 教材定位：§6.5，印刷页 180–185，PDF 页 199–204。
+
+无结构时算子范数要 $d/n\to 0$。若协方差带稀疏或图结构，应换估计量。位置已知时只需在已知支撑上保留样本协方差：对角情形 $\widehat D=\mathrm{diag}(\widehat\Sigma)$ 对次高斯能做到 $\sqrt{(\log d)/n}$（Exercise 6.15），而不是 $\sqrt{d/n}$。
+
+## 6.5.1 Unknown sparsity and thresholding　未知稀疏与阈值
+
+> 教材定位：§6.5.1，印刷页 180–183，PDF 页 199–202。
+
+位置未知时用硬阈值。参数 $\lambda>0$ 的硬阈值算子（hard-thresholding operator）为
+
+$$
+T_\lambda(u)
+:=
+u\,\mathbb I[\lvert u\rvert>\lambda]
+=
+\begin{cases}
+u & \text{若 }\lvert u\rvert>\lambda,\\
+0 & \text{否则.}
+\end{cases}
+\tag{6.52}
+$$
+
+对矩阵逐元作用，记 $T_\lambda(M)$。估计量是 $T_{\lambda_n}(\widehat\Sigma)$。
+
+稀疏用邻接矩阵（adjacency matrix）$A_{j\ell}=\mathbb I[\Sigma_{j\ell}\ne 0]$ 度量，对应无向图 $G$（含自环 $(j,j)$）。$\lVert A\rVert_{\mathrm{op}}\le d$，完全图取等号。每行至多 $s$ 个非零（最大度至多 $s-1$）时 $\lVert A\rVert_{\mathrm{op}}\le s$（Exercise 6.2）。
+
+::: {.callout-important title="Theorem 6.23　阈值协方差估计"}
+设 $\{x_i\}_{i=1}^n$ 零均值 i.i.d.，协方差 $\Sigma$，每个坐标 $x_{ij}$ 为参数至多 $\sigma$ 的次高斯。若 $n>\log d$，则对 $\lambda_n/\sigma^2=8\sqrt{(\log d)/n}+\delta$，
+
+$$
+\mathbb P\bigl[\lVert T_{\lambda_n}(\widehat\Sigma)-\Sigma\rVert_{\mathrm{op}}\ge 2\lVert A\rVert_{\mathrm{op}}\lambda_n\bigr]
+\le
+8\exp\bigl(-\tfrac n{16}\min\{\delta,\delta^2\}\bigr).
+\tag{6.53}
+$$
+:::
+
+确定性内核：只要 $\lVert\widehat\Sigma-\Sigma\rVert_{\max}\le\lambda_n$，就有
+
+$$
+\lVert T_{\lambda_n}(\widehat\Sigma)-\Sigma\rVert_{\mathrm{op}}
+\le
+2\lVert A\rVert_{\mathrm{op}}\lambda_n.
+\tag{6.54}
+$$
+
+理由：$\Sigma_{j\ell}=0$ 的位置被阈值清零；非零位置 $\lvert T_{\lambda_n}(\widehat\Sigma_{j\ell})-\Sigma_{j\ell}\rvert\le 2\lambda_n$。元素绝对值矩阵 $B:=\lvert T_{\lambda_n}(\widehat\Sigma)-\Sigma\rvert$ 满足 $0\le B\le 2\lambda_n A$ 逐元，非负对称矩阵的算子范数单调（Exercise 6.3），故 $\lVert B\rVert_{\mathrm{op}}\le 2\lambda_n\lVert A\rVert_{\mathrm{op}}$。
+
+::: {.callout-important title="Corollary 6.24　行稀疏"}
+若每行至多 $s$ 个非零，同一 $\lambda_n$ 下
+
+$$
+\mathbb P\bigl[\lVert T_{\lambda_n}(\widehat\Sigma)-\Sigma\rVert_{\mathrm{op}}\ge 2s\lambda_n\bigr]
+\le
+8\exp\bigl(-\tfrac n{16}\min\{\delta,\delta^2\}\bigr).
+\tag{6.55}
+$$
+:::
+
+因为 $\lVert A\rVert_{\mathrm{op}}\le s$。
+
+**Example 6.25 / Figure 6.1。** 含 $s$-团且最大度为 $s-1$ 的图满足 $\lVert A\rVert_{\mathrm{op}}=s$（Exercise 6.16），(6.53) 与 (6.55) 重合；Figure 6.1(a) 是 $d=9$、$s=5$ 的团。星–辐图（hub-and-spoke）：中心连接到其余 $s$ 个结点，Figure 6.1(b) 取最大度 $s=5$。印刷给出 $\lVert A\rVert_{\mathrm{op}}=1+\sqrt{s-1}$，从而高概率 $\lVert T_{\lambda_n}(\widehat\Sigma)-\Sigma\rVert_{\mathrm{op}}\lesssim\sqrt{s\log d/n}$，比 (6.55) 锐一个 $\sqrt s$ 因子。图注也说两界相差 $\sqrt s$。
+
+::: {.callout-note title="作者解释：星–辐的两种读法"}
+无自环、辐条数为 $k$ 的星图，邻接谱半径是 $\sqrt k$；本章的 $A$ 含对角 $1$（协方差对角非零），谱半径变成 $1+\sqrt k$。正文写“连接到其余 $s$ 个结点”对应 $k=s$、谱半径 $1+\sqrt s$，与图注的 $\sqrt s$ 因子一致；印刷公式写的是 $1+\sqrt{s-1}$（若把最大度读成 $s-1$ 则 $k=s-1$）。Notes 保留印刷式，两种读法都给出 $\sqrt s$ 量级的改进。
+:::
+
+剩下只需逐元 $\ell_\infty$ 尾。
+
+::: {.callout-important title="Lemma 6.26　逐元 $\ell_\infty$ 尾"}
+在 Theorem 6.23 的条件下，
+
+$$
+\mathbb P\bigl[\lVert\widehat\Delta\rVert_{\max}/\sigma^2\ge t\bigr]
+\le
+8\exp\bigl(-\tfrac n{16}\min\{t,t^2\}+2\log d\bigr)
+\qquad t>0,
+\tag{6.56}
+$$
+
+其中 $\widehat\Delta:=\widehat\Sigma-\Sigma$。
+:::
+
+取 $t=\lambda_n/\sigma^2$ 且 $n>\log d$，即得 $\mathbb P[\lVert\widehat\Delta\rVert_{\max}\ge\lambda_n]\le 8e^{-n\min\{\delta,\delta^2\}/16}$。对角用 Exercise 6.15(a) 的次指数尾；非对角写成 $(x_{ij}+x_{i\ell})^2$ 减对角，和的次高斯参数至多 $2\sqrt 2\sigma$（Exercise 2.13(c)）。$d^2$ 个条目做并，对数变成 $2\log d$。
+
+## 6.5.2 Approximate sparsity　近似稀疏
+
+> 教材定位：§6.5.2，印刷页 183–185，PDF 页 202–204。
+
+完全稠密时 $A$ 是全 $1$ 矩阵，$\lVert A\rVert_{\mathrm{op}}=d$，(6.53) 退化。许多“近零”条目应当被看成近似稀疏。用行 $\ell_q$-“范数”：对 $q\in[0,1]$、半径 $R_q$，
+
+$$
+\max_{j=1,\ldots,d}\sum_{\ell=1}^d\lvert\Sigma_{j\ell}\rvert^q
+\le R_q.
+\tag{6.58}
+$$
+
+$q=0$ 就是每行至多 $R_0$ 个非零；$q\in(0,1]$ 允许许多非零，但绝对值必须较快衰减。
+
+::: {.callout-important title="Theorem 6.27　$\ell_q$-稀疏下的阈值估计"}
+若 $\Sigma$ 满足 (6.58)，且 $\lVert\widehat\Sigma-\Sigma\rVert_{\max}\le\lambda_n/2$，则
+
+$$
+\lVert T_{\lambda_n}(\widehat\Sigma)-\Sigma\rVert_{\mathrm{op}}
+\le
+4 R_q\lambda_n^{1-q}.
+\tag{6.59a}
+$$
+
+次高斯坐标、$\lambda_n/\sigma^2=8\sqrt{(\log d)/n}+\delta$ 时，
+
+$$
+\mathbb P\bigl[\lVert T_{\lambda_n}(\widehat\Sigma)-\Sigma\rVert_{\mathrm{op}}\ge 4 R_q\lambda_n^{1-q}\bigr]
+\le
+8\exp\bigl(-\tfrac n{16}\min\{\delta,\delta^2\}\bigr).
+\tag{6.59b}
+$$
+:::
+
+算子范数被行 $\ell_1$ 控制（Exercise 6.2）。把每行拆成 $S_j(\lambda_n/2)=\{\ell:\lvert\Sigma_{j\ell}\rvert>\lambda_n/2\}$ 及其补集：大坐标每项偏差 $\le 3\lambda_n/2$，小坐标被阈值清零、误差等于 $\lvert\Sigma_{j\ell}\rvert$。补集的 $\ell_1$ 用 $q$-范数与 $\lvert\Sigma_{j\ell}\rvert\le\lambda_n/2$ 收成 $R_q\lambda_n^{1-q}$；大集合的基数 $\lvert S_j\rvert\le 2^q R_q\lambda_n^{-q}$。合起来每行 $\ell_1$ 不超过 $4 R_q\lambda_n^{1-q}$。
+
+# 6.6 Appendix: Proof of Theorem 6.1　附录：最小奇异值
+
+> 教材定位：§6.6，印刷页 185–188，PDF 页 204–207。完整比较论证指回教材。
+
+下界 (6.9) 的骨架与上界相同：利普希茨集中加高斯比较，但比较不等式必须能处理 $\min_v\lVert Xv\rVert_2$，因此改用戈登不等式而不是 Sudakov–Fernique。
+
+假定 $\Sigma\succ 0$（否则 $\sigma_{\min}=0$）。记 $\bar\sigma_{\min}=\sigma_{\min}(\sqrt\Sigma)$、$R=1/\bar\sigma_{\min}$，以及
+
+$$
+\mathcal V(R)
+:=
+\bigl\{z\in\mathbb R^d:\lVert\sqrt\Sigma\, z\rVert_2=1,\,\lVert z\rVert_2\le R\bigr\}.
+\tag{6.61}
+$$
+
+只需证明：以概率至少 $1-e^{-n\delta^2/2}$，
+
+$$
+\min_{z\in\mathcal V(R)}\frac{\lVert Xz\rVert_2}{\sqrt n}
+\ge
+1-\delta-R\sqrt{\frac{\mathrm{tr}(\Sigma)}{n}}.
+\tag{6.62}
+$$
+
+任意 $v'\in\mathbb S^{d-1}$ 的重标定 $z=v'/\lVert\sqrt\Sigma\, v'\rVert_2$ 落在 $\mathcal V(R)$ 里，再取最小即回到 (6.9)。集中步的利普希茨常数是 $1/\sqrt n$（椭圆上 $\lVert\sqrt\Sigma\, v\rVert_2=1$）。期望下界
+
+$$
+\mathbb E\Biggl[\min_{v\in\mathcal V(R)}\frac{\lVert Xv\rVert_2}{\sqrt n}\Biggr]
+\ge
+1-R\sqrt{\frac{\mathrm{tr}(\Sigma)}{n}}
+\tag{6.63}
+$$
+
+来自戈登：若两个高斯过程的增量满足 (6.64)，并且当 $v=\widetilde v$ 时取等号，则
+
+$$
+\mathbb E\bigl[\max_v\min_u Z_{u,v}\bigr]
+\le
+\mathbb E\bigl[\max_v\min_u Y_{u,v}\bigr].
+\tag{6.65}
+$$
+
+比较过程 $Y_{u,v}=\langle g,u\rangle+\langle h,v\rangle$ 在 $n\ge d$ 时算出 $-\sqrt n+\sqrt{\mathrm{tr}(\Sigma)}/\bar\sigma_{\min}$，即 (6.62)。中间用到椭圆上的比较 (6.67)：$\mathbb E[\lVert\sqrt\Sigma\, h\rVert_2]/\sqrt{\mathrm{tr}(\Sigma)}\le\mathbb E[\lVert h\rVert_2]/\sqrt d$，由高斯旋转不变性与凹函数在概率单纯形上的最大值在均匀向量处取到。
+
+# 6.7 Bibliographic details and background　文献与背景
+
+> 教材定位：§6.7，印刷页 188–189，PDF 页 207–208。文献条目指回教材。
+
+线性代数与 Weyl 推论见 Horn–Johnson；迹不等式 (6.25) 见 Carlen。非渐近随机矩阵的入口是 Vershynin (2011)；高斯比较是 Sudakov–Fernique / 戈登–斯莱皮安（Slepian），Davidson–Szarek 对 $\Sigma=I_d$ 写过完整论证。Theorem 6.5 的离散化来自 Vershynin，是第 5 章链式方法的一步版。
+
+矩阵尾界的谱系：Rudolson 的非交换伯恩斯坦；Ahlswede–Winter (2002)（教材印刷作 Alhswede）用矩阵矩母函数加 Golden–Thompson；Tropp (2010) 用 Lieb 凹性（Lemma 6.13）把方差参数从 $\widetilde\sigma^2=n^{-1}\sum\lVert\mathrm{var}(Q_i)\rVert_{\mathrm{op}}$ 锐化成本章的 $\sigma^2=\lVert n^{-1}\sum\mathrm{var}(Q_i)\rVert_{\mathrm{op}}$。Example 6.19 的迹比前置因子属于 Minsker。协方差方面，Adamczak 等人去掉次指数情形 Corollary 6.20 的多余对数；阈值估计的高维分析由 Bickel–Levina（行 $\ell_q$-稀疏）与 El Karoui（邻接算子范数，即 Theorem 6.23）独立给出。星图是两种稀疏度量分道的标准例子。带状衰减模型见 Bickel–Levina (2008b) 与 Cai 等人的极小极大速率。
+
+# 常见错误
+
+1. **错误做法：** 因为 $\widehat\Sigma$ 无偏，就断言它在算子范数下相合。  
+   **为什么错：** 无偏是期望；$\lVert\widehat\Sigma-\Sigma\rVert_{\mathrm{op}}$ 是球面一致定律。(6.12) 要求 $d/n\to 0$；(6.51) 在只知 $\lVert x_i\rVert_2\le\sqrt d$ 时还要 $d\log d/n\to 0$。  
+   **正确判断：** 先指定范数，再谈相合。无结构默认问 (6.4b)。
+
+2. **错误做法：** 把 Theorem 6.1 的 $\sqrt{\mathrm{tr}(\Sigma)/n}$ 写成 $\sqrt{d/n}$，却忘了 $\Sigma$ 可能有快速特征值衰减。  
+   **为什么错：** 标准高斯才有 $\mathrm{tr}(I_d)=d$。迹约束 (6.13) 把 $d$ 换成有效维数 $C$，(6.15) 可以在 $d\gg n$ 时仍然有用。  
+   **正确判断：** 先算 $\mathrm{tr}(\Sigma)/\lVert\Sigma\rVert_{\mathrm{op}}$，再决定速率。
+
+3. **错误做法：** 把矩阵霍夫丁的前置因子 $d$ 或 $\mathrm{rank}(\sum V_i)$ 随手丢掉。  
+   **为什么错：** Example 6.16 的高斯对角：$d$ 个独立坐标的最大值贡献 $\sqrt{\log d}$，前置因子反映的正是并界。球面均匀（Example 6.21）里对数是松的，尖峰系综（Example 6.22）里它是锐的。  
+   **正确判断：** 能用次高斯行向量（Theorem 6.5）或 Minsker 迹比时再去掉；否则保留。
+
+4. **错误做法：** 非方阵直接套 (6.38)，维数仍写 $d$。  
+   **为什么错：** 对称膨胀 (6.39) 把 $A_i\in\mathbb R^{d_1\times d_2}$ 变成 $(d_1+d_2)$ 维对称矩阵。Exercise 6.10 印刷把零块写成 $0_{d_1\times d_2}$，那样拼不成方阵；正确零块是 $0_{d_1\times d_1}$ 与 $0_{d_2\times d_2}$。  
+   **正确判断：** 先膨胀，再把 $d$ 换成 $d_1+d_2$，方差用 (6.43)。
+
+5. **错误做法：** 未知稀疏时仍用原始 $\widehat\Sigma$，或阈值之后仍用 $s$ 代替 $\lVert A\rVert_{\mathrm{op}}$。  
+   **为什么错：** 无结构样本协方差看不到稀疏。阈值把误差变成 $2\lVert A\rVert_{\mathrm{op}}\lambda_n$；星–辐图的 $\lVert A\rVert_{\mathrm{op}}\asymp\sqrt s$，用 $s$ 会差一个平方根。  
+   **正确判断：** 位置未知先阈值；能算邻接谱半径就用 (6.53)，否则退回行稀疏 (6.55)。
+
+# 轻量自测
+
+1. 用一句话说明：为什么 $\lVert\widehat\Sigma-\Sigma\rVert_{\mathrm{op}}\le\varepsilon$ 比“每个条目的偏差 $\le\varepsilon$”更强？它保证特征值什么？
+2. 从 (6.11) 推出 (6.12) 的相对误差。指出用了矩阵范数的哪条性质。
+3. Theorem 6.5 的证明里，$1/8$-覆盖如何把 $\lVert Q\rVert_{\mathrm{op}}$ 变成 $2\max_j\lvert\langle v^j,Qv^j\rangle\rvert$？$N\le 17^d$ 出现在 (6.19a) 的哪一项？
+4. 矩阵切尔诺夫 (6.32) 为什么出现迹而不是 $\gamma_{\max}(\Psi_Q(\lambda))$？独立和为什么不能写成 $\prod\Psi_{Q_i}$？
+5. 星–辐图与含 $s$-团的图，(6.53) 与 (6.55) 何时重合、何时差一个 $\sqrt s$？
+
+<details>
+<summary>查看参考答案</summary>
+
+1. 算子范数是球面上 $\lvert v^T(\widehat\Sigma-\Sigma)v\rvert$ 的一致上确界，比逐元 $\ell_\infty$ 强（后者只控制坐标基）。Weyl 推论 (6.7) 把全部特征值的偏差钉在同一个 $\varepsilon$ 下。逐元小推不出谱半径小。
+2. $X=W\sqrt\Sigma$，故 $\widehat\Sigma-\Sigma=\sqrt\Sigma\,(n^{-1}W^T W-I_d)\,\sqrt\Sigma$。算子范数次可乘：$\lVert ABC\rVert_{\mathrm{op}}\le\lVert A\rVert_{\mathrm{op}}\lVert B\rVert_{\mathrm{op}}\lVert C\rVert_{\mathrm{op}}$，且 $\lVert\sqrt\Sigma\rVert_{\mathrm{op}}^2=\lVert\Sigma\rVert_{\mathrm{op}}$。再把 (6.11) 的 $2\varepsilon+\varepsilon^2$ 除以 $\lVert\Sigma\rVert_{\mathrm{op}}$ 即 (6.12)。
+3. $v=v^j+\Delta$、$\lVert\Delta\rVert_2\le 1/8$ 时交叉项 $\le 2\cdot(1/8)\lVert Q\rVert_{\mathrm{op}}$、二次项 $\le(1/8)^2\lVert Q\rVert_{\mathrm{op}}$，合起来 $\le\tfrac12\lVert Q\rVert_{\mathrm{op}}$。移项得 $\lVert Q\rVert_{\mathrm{op}}\le 2\max_j\lvert\langle v^j,Qv^j\rangle\rvert$。$N\le 17^d$ 通过 $2N\le e^{4d}$ 进入 (6.19a) 的 $4d$。
+4. $e^{\lambda Q}$ 正定，其最大特征值不超过迹（其余特征值也是正的）。独立矩阵不交换，不能把 $\mathbb E[e^{\lambda\sum Q_i}]$ 写成乘积；Lemma 6.13 用 Lieb 凹性给出迹的上界。
+5. 含 $s$-团且最大度 $s-1$ 时 $\lVert A\rVert_{\mathrm{op}}=s$，两界重合。星–辐的邻接谱半径是 $1+\sqrt{s-1}$（印刷）量级 $\sqrt s$，(6.53) 比每行 $s$ 个非零的 (6.55) 锐一个 $\sqrt s$。
+
+</details>
+
+# 本章小结
+
+- 协方差的算子范数误差是球面二次型的一致大数定律；Weyl 把特征值整体钉在同一尺度上；
+- 高斯维希特给出常数锐的 $\sqrt{d/n}$ 偏差，迹约束把 $d$ 换成有效维数 $C$；行向次高斯用覆盖得到同阶、常数较差的界；
+- 一般独立矩阵走矩阵切尔诺夫 + Lieb：霍夫丁的指数是 $-n\delta^2/(2\sigma^2)$，伯恩斯坦把 $b\delta$ 写进分母；前置因子是秩或维数，必要时用膨胀处理非对称；
+- 未知稀疏用硬阈值，误差 $2\lVert A\rVert_{\mathrm{op}}\lambda_n$，$\lambda_n\asymp\sigma^2\sqrt{(\log d)/n}$；邻接谱半径可以比行稀疏度 $s$ 小一个平方根；近似稀疏把 $\lambda_n$ 换成 $\lambda_n^{1-q}R_q$。
+
+## 术语对照
+
+| 中文 | English | 备注 |
+|---|---|---|
+| 随机矩阵 | random matrix | 本章与样本协方差同一对象 |
+| 协方差估计 | covariance estimation | |
+| 样本协方差矩阵 | sample covariance matrix | (6.5)；第 1 章 (1.8) |
+| 算子范数 | operator norm | 教材三竖线；Notes 写 $\lVert\cdot\rVert_{\mathrm{op}}$ |
+| 奇异值 | singular value | (6.1) |
+| 半正定锥 | positive semidefinite cone | (6.2) |
+| 瑞利–里茨变分 | Rayleigh–Ritz variational formula | (6.3) |
+| 维希特矩阵 | Wishart matrix | $\Sigma$-高斯系综的 $n^{-1}X^T X$ |
+| 高斯系综 | Gaussian ensemble | Theorem 6.1 |
+| 有效维数 | effective dimension | (6.13) 中的 $C$ |
+| 沙滕球 | Schatten ball | (6.14) |
+| 次高斯系综 | sub-Gaussian ensemble | (6.18)；行向 |
+| 矩阵矩母函数 | matrix moment generating function | (6.26) |
+| 矩阵次高斯 | matrix sub-Gaussian | Definition 6.6 |
+| 矩阵次指数 | matrix sub-exponential | Definition 6.9 |
+| 矩阵伯恩斯坦条件 | Bernstein condition for matrices | Definition 6.10 |
+| 谱映射 | spectral mapping | (6.24) |
+| 矩阵单调 | matrix monotone | 勒夫纳–海因茨 |
+| 矩阵切尔诺夫 | matrix Chernoff bound | Lemma 6.12 |
+| 对称膨胀 | symmetric dilation | (6.39) |
+| 矩阵霍夫丁不等式 | matrix Hoeffding inequality | Theorem 6.15 |
+| 矩阵伯恩斯坦不等式 | matrix Bernstein inequality | Theorem 6.17 |
+| 硬阈值 | hard-thresholding | (6.52)；第 1 章 (1.16) |
+| 邻接矩阵 | adjacency matrix | Theorem 6.23 的 $A$ |
+| 星–辐图 | hub-and-spoke graph | Example 6.25；Figure 6.1(b) |
+| 行 $\ell_q$-稀疏 | row-wise $\ell_q$-sparsity | (6.58) |
+
+: 本章术语（中文从名词委；英文从教材或国际通行用法）
+
+## 来源定位
+
+- 教材：第 6 章 §§6.1–6.7，印刷页 159–189，PDF 页 178–208。
+- 习题：§6.8 Exercises 6.1–6.16，印刷页 189–193，PDF 页 208–212；[Solutions](../solutions/ch06-solutions.qmd)。
+- 页码关系：**PDF 页 = 印刷页 + 19**（印刷页 159 = PDF 页 178）。

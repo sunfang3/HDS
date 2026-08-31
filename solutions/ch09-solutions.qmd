@@ -1,0 +1,644 @@
+---
+title: "Chapter 9 Exercises"
+subtitle: "Wainwright, High-Dimensional Statistics §9.11"
+description: "Exercise list locked from the textbook; solved independently"
+execute:
+  enabled: false
+---
+
+# How to use this file
+
+- **Textbook:** Martin J. Wainwright, *High-Dimensional Statistics: A Non-Asymptotic Viewpoint* (Cambridge Series in Statistical and Probabilistic Mathematics, No. 48; 2019).
+- **Range:** §9.11 Exercises 9.1–9.14 (printed pp. 307–311).
+- **Pages:** printed pp. 307–311; PDF pp. 326–330 (offset **PDF = printed + 19**).
+- **Principle:** stems follow the textbook; solutions are independent. Identities printed in the book are recomputed.
+- **Companion notes:** [`ch09-notes.qmd`](../notes/ch09-notes.qmd).
+
+### Exercise 9.1
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Show that the overlap group Lasso defined by the variational representation (9.10) is a valid norm.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Write
+$$
+\Phi_{\mathrm{over}}(\theta)
+:=
+\inf\Bigl\{\sum_{g\in\mathcal G}\|w_g\|:\sum_{g\in\mathcal G}w_g=\theta\Bigr\},
+$$
+where each $w_g\in\mathbb R^d$ is supported on the coordinates in $g$, and the groups cover $\{1,\ldots,d\}$. The infimum is over all such representations.
+
+**Non-negativity.** Each $\|w_g\|\ge 0$, so the infimum is in $[0,\infty]$. Taking $w_g=\theta_g$ on a cover of the coordinates shows that the infimum is finite.
+
+**Positive-definiteness.** If $\theta=0$, the zero representation gives $\Phi_{\mathrm{over}}(0)=0$. Conversely, if $\Phi_{\mathrm{over}}(\theta)=0$, there is a sequence of representations with $\sum_g\|w_g^{(k)}\|\to 0$, hence $w_g^{(k)}\to 0$ for every $g$, hence $\theta=\sum_g w_g^{(k)}\to 0$. (Coverage of the index set is used only to guarantee that a representation exists for every $\theta$; it is not needed for this implication.)
+
+**Absolute homogeneity.** For $t=0$ the claim is immediate. For $t\neq 0$, if $\theta=\sum w_g$ then $t\theta=\sum (t w_g)$ and $\sum\|t w_g\|=\lvert t\rvert\sum\|w_g\|$. Taking infima yields $\Phi_{\mathrm{over}}(t\theta)=\lvert t\rvert\Phi_{\mathrm{over}}(\theta)$.
+
+**Triangle inequality.** Fix $\theta,\theta'$ and $\varepsilon>0$. Choose representations $\theta=\sum w_g$ and $\theta'=\sum w_g'$ with $\sum\|w_g\|\le\Phi_{\mathrm{over}}(\theta)+\varepsilon$ and $\sum\|w_g'\|\le\Phi_{\mathrm{over}}(\theta')+\varepsilon$. Then $\theta+\theta'=\sum(w_g+w_g')$ and
+$$
+\sum_g\|w_g+w_g'\|
+\le
+\sum_g\|w_g\|+\sum_g\|w_g'\|
+\le
+\Phi_{\mathrm{over}}(\theta)+\Phi_{\mathrm{over}}(\theta')+2\varepsilon.
+$$
+Infimising and letting $\varepsilon\to 0$ gives the triangle inequality.
+
+Thus $\Phi_{\mathrm{over}}$ is a norm. When the groups are pairwise disjoint the representation is unique and (9.10) reduces to (9.9).
+:::
+
+### Exercise 9.2
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Compute an explicit form of the subspace projection (9.20) for:
+(a) the support subspace $\mathbb M(S)=\{\theta\in\mathbb R^d:\theta_j=0\text{ for all }j\notin S\}$;
+(b) the matrix subspace $\mathbb M(\mathbb U,\mathbb V)=\{\Theta\in\mathbb R^{d\times d}:\mathrm{rowspan}(\Theta)\subseteq\mathbb U,\;\mathrm{colspan}(\Theta)\subseteq\mathbb V\}$, with $\mathbb U,\mathbb V$ $r$-dimensional.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a)** The squared Euclidean projection onto $\mathbb M(S)$ decouples across coordinates. For $j\in S$ the unconstrained minimiser of $(\widetilde\theta_j-\theta_j)^2$ is $\widetilde\theta_j=\theta_j$; for $j\notin S$ one must set $\widetilde\theta_j=0$. Hence
+$$
+\bigl(\theta_{\mathbb M(S)}\bigr)_j
+=
+\theta_j\,\mathbb I[j\in S],
+$$
+i.e. the coordinate projection that zeroes out $S^c$. Equivalently $\theta_{\mathbb M(S)}=P_S\theta$ where $P_S=\sum_{j\in S}e_je_j^T$.
+
+**(b)** Equip $\mathbb R^{d\times d}$ with the Frobenius inner product $\langle A,B\rangle=\mathrm{trace}(A^TB)$, so that (9.20) is the Frobenius projection. Let $P_{\mathbb U}$ (resp. $P_{\mathbb V}$) be the orthogonal projector on $\mathbb R^d$ onto $\mathbb U$ (resp. $\mathbb V$). A matrix $\Theta$ has $\mathrm{colspan}(\Theta)\subseteq\mathbb V$ if and only if $P_{\mathbb V}\Theta=\Theta$, and $\mathrm{rowspan}(\Theta)\subseteq\mathbb U$ if and only if $\Theta P_{\mathbb U}=\Theta$. Both conditions together are equivalent to $\Theta=P_{\mathbb V}\Theta P_{\mathbb U}$. The set of all such matrices is a linear subspace, and the map $\Theta\mapsto P_{\mathbb V}\Theta P_{\mathbb U}$ is the orthogonal projector onto it: it is linear, idempotent, and self-adjoint for the Frobenius product,
+$$
+\langle P_{\mathbb V}A P_{\mathbb U},B\rangle
+=
+\langle A,P_{\mathbb V}B P_{\mathbb U}\rangle.
+$$
+Therefore the projection of an arbitrary $\Theta$ is $P_{\mathbb V}\Theta P_{\mathbb U}$. If $U,V\in\mathbb R^{d\times r}$ are orthonormal bases of $\mathbb U$ and $\mathbb V$, this is $VV^T\Theta UU^T$.
+:::
+
+### Exercise 9.3
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+(a) For $y=\langle x,\theta\rangle+w$ with $w\sim N(0,\sigma^2)$, show that $y\mid x$ is of the form (9.5) with $c(\sigma)=\sigma^2$ and $\psi(t)=t^2/2$.
+(b) If $y$ is conditionally Poisson with mean $\lambda=e^{\langle x,\theta\rangle}$, show that this is (9.5) with $c(\sigma)\equiv 1$ and $\psi(t)=e^t$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a)** Conditionally on $x$, one has $y\sim N(\langle x,\theta\rangle,\sigma^2)$, so
+$$
+p(y\mid x)
+=
+(2\pi\sigma^2)^{-1/2}
+\exp\Bigl(-\frac{(y-\langle x,\theta\rangle)^2}{2\sigma^2}\Bigr)
+=
+(2\pi\sigma^2)^{-1/2}
+\exp\Bigl(-\frac{y^2}{2\sigma^2}\Bigr)
+\exp\Bigl(\frac{y\langle x,\theta\rangle-\langle x,\theta\rangle^2/2}{\sigma^2}\Bigr).
+$$
+This is (9.5) with $h_\sigma(y)=(2\pi\sigma^2)^{-1/2}\exp(-y^2/(2\sigma^2))$, $c(\sigma)=\sigma^2$, and $\psi(t)=t^2/2$.
+
+**(b)** The Poisson pmf with mean $e^{\langle x,\theta\rangle}$ is
+$$
+\mathbb P(y=k\mid x)
+=
+e^{-e^{\langle x,\theta\rangle}}
+\frac{e^{k\langle x,\theta\rangle}}{k!}
+=
+\frac1{k!}
+\exp\bigl(k\langle x,\theta\rangle-e^{\langle x,\theta\rangle}\bigr),
+\qquad
+k\in\{0,1,2,\ldots\}.
+$$
+This is (9.5) with $h_\sigma(y)=1/y!$, $c(\sigma)\equiv 1$, and $\psi(t)=e^t$.
+:::
+
+### Exercise 9.4
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+(a) Show that the dual of the $\ell_1$-norm is the $\ell_\infty$-norm.
+(b) For the non-overlapping group norm $\Phi(u)=\sum_{g\in\mathcal G}\|u_g\|_p$ with $p\in[1,\infty]$, show that $\Phi^*(v)=\max_{g\in\mathcal G}\|v_g\|_q$ where $q=p/(p-1)$.
+(c) Show that the dual of the nuclear norm is the $\ell_2$-operator norm. (Hint: reduce to (a).)
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a)** Hölder's inequality gives $\lvert\langle u,v\rangle\rvert\le\|u\|_1\|v\|_\infty$, so $\Phi^*(v)\le\|v\|_\infty$. For the reverse, if $v=0$ there is nothing to prove. Otherwise take $u$ with $u_j=\mathrm{sign}(v_j)$ on a coordinate attaining $\|v\|_\infty$ and $u_j=0$ elsewhere; then $\Phi(u)=1$ and $\langle u,v\rangle=\|v\|_\infty$.
+
+**(b)** Because the groups partition the coordinates,
+$$
+\langle u,v\rangle
+=
+\sum_{g\in\mathcal G}\langle u_g,v_g\rangle
+\le
+\sum_{g\in\mathcal G}\|u_g\|_p\|v_g\|_q
+\le
+\Bigl(\max_g\|v_g\|_q\Bigr)\sum_g\|u_g\|_p,
+$$
+hence $\Phi^*(v)\le\max_g\|v_g\|_q$. For the reverse, let $g_*$ attain the maximum and choose $u$ supported on $g_*$ with $\|u_{g_*}\|_p=1$ and $\langle u_{g_*},v_{g_*}\rangle=\|v_{g_*}\|_q$ (possible by the usual $\ell_p$–$\ell_q$ duality). Then $\Phi(u)=1$ and $\langle u,v\rangle=\max_g\|v_g\|_q$. (The cases $p=1$ and $p=\infty$ are included with the usual convention $q=\infty$ and $q=1$.)
+
+**(c)** For $\Theta=UDV^T$ one has $\|\Theta\|_{\mathrm{nuc}}=\sum_j\sigma_j(\Theta)=\|(\sigma_j(\Theta))_j\|_1$. Von Neumann's trace inequality (or the variational characterisation $\langle A,B\rangle\le\sum_j\sigma_j(A)\sigma_j(B)$) yields
+$$
+\langle\Theta,N\rangle
+\le
+\sum_j\sigma_j(\Theta)\sigma_j(N)
+\le
+\|\Theta\|_{\mathrm{nuc}}\,\sigma_{\max}(N)
+=
+\|\Theta\|_{\mathrm{nuc}}\|N\|_2,
+$$
+so $\Phi^*(N)\le\|N\|_2$. For the reverse, let $N=U\mathrm{diag}(\sigma_j(N))V^T$ be an SVD of $N$ and take $\Theta=u_1v_1^T$, the outer product of the top singular vectors. Then $\|\Theta\|_{\mathrm{nuc}}=1$ and $\langle\Theta,N\rangle=\sigma_{\max}(N)=\|N\|_2$. This is the $\ell_1$–$\ell_\infty$ duality of (a) applied to the singular-value vectors, which is the reduction suggested by the hint.
+:::
+
+### Exercise 9.5
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $p\in[1,\infty]$ and recall the overlapping group norm (9.10).
+(a) Show that $\Phi(u)=\max\{\langle v,u\rangle:\|v_g\|_q\le 1\text{ for all }g\in\mathcal G\}$, where $q=p/(p-1)$.
+(b) Deduce that $\Phi^*(v)=\max_{g\in\mathcal G}\|v_g\|_q$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a)** For any representation $u=\sum_g w_g$ and any $v$ with $\|v_g\|_q\le 1$ for all $g$,
+$$
+\langle v,u\rangle
+=
+\sum_g\langle v,w_g\rangle
+=
+\sum_g\langle v_g,w_g\rangle
+\le
+\sum_g\|v_g\|_q\|w_g\|_p
+\le
+\sum_g\|w_g\|_p.
+$$
+Infimising the right-hand side gives $\langle v,u\rangle\le\Phi(u)$, hence the maximum on the right of (a) is at most $\Phi(u)$. For the reverse, the variational formula for a norm is $\Phi(u)=\sup_{\Phi^*(v)\le 1}\langle v,u\rangle$; part (b) will identify the unit ball of $\Phi^*$ as $\{v:\|v_g\|_q\le 1\ \forall g\}$, which closes the identity. To avoid circularity, apply Lagrange duality to the convex program defining $\Phi(u)$: the Lagrangian of $\inf\{\sum_g\|w_g\|_p:\sum_g w_g=u\}$ is $\sum_g\|w_g\|_p+\langle v,u-\sum_g w_g\rangle$, and infimising over $w_g$ produces the indicator of $\|v_g\|_q\le 1$ together with the linear term $\langle v,u\rangle$. Strong duality holds (the primal is feasible), which is (a).
+
+**(b)** By definition $\Phi^*(v)=\sup_{\Phi(u)\le 1}\langle u,v\rangle$. Using (a), $\Phi(u)\le 1$ if and only if $\langle z,u\rangle\le 1$ whenever $\|z_g\|_q\le 1$ for all $g$. Taking $z$ supported on a single group $g$ with $\|z_g\|_q=1$ shows that $\Phi(u)\le 1$ forces $\|u_g\|_p\le 1$ in the dual pairing sense, and
+$$
+\Phi^*(v)
+=
+\sup\bigl\{\langle u,v\rangle:\|v'_g\|_q\le 1\ \forall g\Rightarrow\langle v',u\rangle\le 1\bigr\}.
+$$
+The polar of the set $\{v:\max_g\|v_g\|_q\le 1\}$ is exactly the unit ball of $\Phi$, so the dual norm is $\max_g\|v_g\|_q$. Directly: $\langle u,v\rangle\le\Phi(u)\max_g\|v_g\|_q$ by (a), hence $\Phi^*(v)\le\max_g\|v_g\|_q$; the reverse follows by restricting $u$ to a single group as in Exercise 9.4(b).
+:::
+
+### Exercise 9.6
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $\Phi:\mathbb R^d\to\mathbb R$ be a norm and $\theta\in\mathbb R^d$ arbitrary. For any $z\in\partial\Phi(\theta)$, show that $\Phi^*(z)\le 1$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The subdifferential of a norm admits the characterisation
+$$
+z\in\partial\Phi(\theta)
+\qquad\Longleftrightarrow\qquad
+\Phi^*(z)\le 1
+\text{ and }
+\langle z,\theta\rangle=\Phi(\theta).
+$$
+In particular the first assertion holds. To see it from first principles: $z\in\partial\Phi(\theta)$ means $\Phi(\theta+\Delta)\ge\Phi(\theta)+\langle z,\Delta\rangle$ for every $\Delta$. Taking $\Delta=tu$ with $\Phi(u)\le 1$ and $t>0$ gives
+$$
+\Phi(\theta)+t\Phi(u)
+\ge
+\Phi(\theta+tu)
+\ge
+\Phi(\theta)+t\langle z,u\rangle,
+$$
+so $\langle z,u\rangle\le\Phi(u)\le 1$. Supremising over $\Phi(u)\le 1$ yields $\Phi^*(z)\le 1$.
+:::
+
+### Exercise 9.7
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $\Phi$ be a norm with dual $\Phi^*$.
+(a) Show that $\lvert\langle u,v\rangle\rvert\le\Phi(u)\Phi^*(v)$ for all $u,v$.
+(b) Deduce Hölder's inequality for $\ell_p$-norms.
+(c) For $Q\succ 0$ symmetric, show that $\lvert\langle u,v\rangle\rvert\le\sqrt{u^TQu}\,\sqrt{v^TQ^{-1}v}$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a)** If $\Phi(u)=0$ then $u=0$ and both sides vanish. Otherwise $u/\Phi(u)$ lies in the unit ball of $\Phi$, so
+$$
+\Bigl\langle\frac{u}{\Phi(u)},v\Bigr\rangle
+\le
+\Phi^*(v)
+$$
+by definition of the dual. Multiplying through by $\Phi(u)$ and repeating for $-u$ gives the claim.
+
+**(b)** The dual of $\|\cdot\|_p$ is $\|\cdot\|_q$ with $1/p+1/q=1$ (Exercise 9.4(a)–(b) with singleton groups). Part (a) is then $\lvert\langle u,v\rangle\rvert\le\|u\|_p\|v\|_q$.
+
+**(c)** The map $u\mapsto\sqrt{u^TQu}$ is the norm induced by the inner product $\langle u,u'\rangle_Q=u^TQu'$. Its dual with respect to the Euclidean pairing is $v\mapsto\sqrt{v^TQ^{-1}v}$, because
+$$
+\sup_{u^TQu\le 1}\langle u,v\rangle
+=
+\sup_{\|Q^{1/2}u\|_2\le 1}\langle Q^{1/2}u,Q^{-1/2}v\rangle
+=
+\|Q^{-1/2}v\|_2.
+$$
+Part (a) gives the stated Cauchy–Schwarz form (Mahalanobis duality).
+:::
+
+### Exercise 9.8
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Assume the covariates $\{x_i\}_{i=1}^n$ are i.i.d., each sub-Gaussian with parameter $\sigma$. Bound $\mu_n(\Phi^*)$ from (9.41) for:
+(a) the group Lasso (9.9) with group set $\mathcal G$ and maximum group size $m$;
+(b) the nuclear norm on $d_1\times d_2$ matrices.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Recall $\mu_n(\Phi^*)=\mathbb E\bigl[\Phi^*\bigl(n^{-1}\sum_{i=1}^n\varepsilon_i x_i\bigr)\bigr]$ with Rademacher $\varepsilon_i$ independent of the $x_i$.
+
+**(a)** For the $\ell_1/\ell_2$ group norm the dual is $\Phi^*(v)=\max_{g\in\mathcal G}\|v_g\|_2$ (Exercise 9.4(b)). Write $Z_g:=n^{-1}\sum_{i=1}^n\varepsilon_i x_{i,g}\in\mathbb R^{|g|}$. Each coordinate of $Z_g$ is sub-Gaussian with parameter at most $\sigma/\sqrt n$, hence
+$$
+\mathbb E\|Z_g\|_2
+\le
+\sqrt{\mathbb E\|Z_g\|_2^2}
+=
+\sqrt{\sum_{j\in g}\mathbb E[Z_{g,j}^2]}
+\lesssim
+\sigma\sqrt{\frac{m}{n}}.
+$$
+The map $(x_i,\varepsilon_i)\mapsto\|Z_g\|_2$ is Lipschitz in the Euclidean structure of the $n\times|g|$ block with constant $n^{-1/2}$, so $\|Z_g\|_2$ concentrates about its mean with sub-Gaussian parameter $O(\sigma/\sqrt n)$. A union bound over $|\mathcal G|$ groups therefore yields
+$$
+\mathbb E\bigl[\max_g\|Z_g\|_2\bigr]
+\lesssim
+\sigma\sqrt{\frac m n}
++\sigma\sqrt{\frac{\log\lvert\mathcal G\rvert}{n}},
+$$
+which is the claim.
+
+**(b)** The dual of the nuclear norm is the operator norm (Exercise 9.4(c)). Interpreting each covariate as a matrix $X_i\in\mathbb R^{d_1\times d_2}$ with sub-Gaussian entries of parameter $\sigma$ (the natural matrix analogue of the vector assumption), the average $W_n:=n^{-1}\sum_{i=1}^n\varepsilon_i X_i$ has sub-Gaussian entries of parameter $\sigma/\sqrt n$. For a matrix with independent sub-Gaussian entries of parameter $\tau$, the expected operator norm is $O\bigl(\tau(\sqrt{d_1}+\sqrt{d_2})\bigr)$ (e.g. Theorem 6.1 / standard netting of the sphere). Taking $\tau=\sigma/\sqrt n$ gives
+$$
+\mu_n(\Phi^*)
+=
+\mathbb E\|W_n\|_2
+\lesssim
+\sigma\sqrt{\frac{d_1}{n}}
++\sigma\sqrt{\frac{d_2}{n}}.
+$$
+:::
+
+### Exercise 9.9
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Suppose a differentiable $f$ is $\kappa$-strongly convex in the sense
+$$
+f(y)\ge f(x)+\langle\nabla f(x),y-x\rangle+\frac\kappa2\|y-x\|_2^2
+\qquad\forall x,y.
+\tag{9.100a}
+$$
+Show that $\langle\nabla f(y)-\nabla f(x),y-x\rangle\ge\kappa\|y-x\|_2^2$ for all $x,y$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Apply (9.100a) at the pair $(x,y)$ and at the swapped pair $(y,x)$:
+\begin{align*}
+f(y)
+&\ge
+f(x)+\langle\nabla f(x),y-x\rangle+\frac\kappa2\|y-x\|_2^2,\\
+f(x)
+&\ge
+f(y)+\langle\nabla f(y),x-y\rangle+\frac\kappa2\|x-y\|_2^2.
+\end{align*}
+Adding the two displays cancels $f(x)+f(y)$ and produces
+$$
+0
+\ge
+\langle\nabla f(x)-\nabla f(y),y-x\rangle
++\kappa\|y-x\|_2^2,
+$$
+which rearranges to (9.100b). (The converse, not asked here, follows by integrating $\frac{d}{dt}f(x+t\Delta)$ along the line segment and using (9.100b) on the pairs $(x,x+t\Delta)$.)
+:::
+
+### Exercise 9.10
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Suppose $f$ is twice differentiable, convex, and locally $\kappa$-strongly convex around $x$ in the sense that (9.100a) holds for all $z$ in the ball $\mathbb B_2(x):=\{z:\|z-x\|_2\le 1\}$. Show that
+$$
+\langle\nabla f(y)-\nabla f(x),y-x\rangle
+\ge
+\kappa\|y-x\|_2
+\qquad
+\text{for all }y\notin\mathbb B_2(x).
+$$
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Fix $y$ with $r:=\|y-x\|_2>1$, and set $z:=x+(y-x)/r$, so that $z$ lies on the unit sphere about $x$ and $y-x=r(z-x)$ with $\|z-x\|_2=1$. Local strong convexity at scale $1$, converted to gradient form by the same addition-of-inequalities as in Exercise 9.9, gives
+$$
+\langle\nabla f(z)-\nabla f(x),z-x\rangle
+\ge
+\kappa\|z-x\|_2^2
+=
+\kappa.
+$$
+Convexity of $f$ implies that $t\mapsto\langle\nabla f(x+t\Delta),\Delta\rangle$ is non-decreasing for $\Delta=z-x$. In particular, because $y=x+r(z-x)$ lies further along the same ray,
+$$
+\langle\nabla f(y)-\nabla f(x),z-x\rangle
+\ge
+\langle\nabla f(z)-\nabla f(x),z-x\rangle
+\ge
+\kappa.
+$$
+Multiplying by $r=\|y-x\|_2$ produces
+$$
+\langle\nabla f(y)-\nabla f(x),y-x\rangle
+\ge
+\kappa r
+=
+\kappa\|y-x\|_2,
+$$
+as claimed. (Twice differentiability is not essential; monotonicity of the gradient of a convex function suffices.)
+:::
+
+### Exercise 9.11
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Suppose the $\ell_\infty$-curvature bound (9.56) holds with $\tau_n=c_1\sqrt{(\log d)/n}$. Show that the $\ell_\infty$-RE condition (9.57) holds with $\kappa'=\kappa/2$ as soon as $n>c_2|S|^2\log d$ with $c_2=4c_1^2(1+\alpha)^4/\kappa^2$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+On the cone $\mathbb C(S;\alpha)=\{\Delta:\|\Delta_{S^c}\|_1\le\alpha\|\Delta_S\|_1\}$ one has
+$$
+\|\Delta\|_1
+=
+\|\Delta_S\|_1+\|\Delta_{S^c}\|_1
+\le
+(1+\alpha)\|\Delta_S\|_1
+\le
+(1+\alpha)|S|\,\|\Delta\|_\infty.
+$$
+Substitute into (9.56):
+$$
+\|\widehat\Sigma\Delta\|_\infty
+\ge
+\kappa\|\Delta\|_\infty
+-\tau_n\|\Delta\|_1
+\ge
+\bigl(\kappa-\tau_n(1+\alpha)|S|\bigr)\|\Delta\|_\infty.
+$$
+The coefficient is at least $\kappa/2$ once $\tau_n(1+\alpha)|S|\le\kappa/2$, i.e.
+$$
+c_1\sqrt{\frac{\log d}{n}}\,(1+\alpha)|S|
+\le
+\frac\kappa2
+\qquad\Longleftrightarrow\qquad
+n
+\ge
+\frac{4c_1^2(1+\alpha)^2}{\kappa^2}\,|S|^2\log d.
+$$
+The printed threshold uses $(1+\alpha)^4$ in place of $(1+\alpha)^2$. That larger constant is sufficient (it is valid whenever $1+\alpha\ge 1$), and is the one recorded in the stem; the argument above shows that already $c_2'=4c_1^2(1+\alpha)^2/\kappa^2$ works for $\kappa'=\kappa/2$.
+:::
+
+### Exercise 9.12
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Given $y=X\theta^*+w$, consider
+$$
+\widehat\theta
+=
+\arg\min_{\theta\in\mathbb R^d}
+\Biggl\{\frac12\|\theta\|_2^2-\Bigl\langle\theta,\frac1n X^Ty\Bigr\rangle+\lambda_n\|\theta\|_1\Biggr\}.
+$$
+(a) Show that the optimum is unique and equals $T_{\lambda_n}(n^{-1}X^Ty)$, with $T_{\lambda_n}$ the soft-thresholding operator (7.6b).
+(b) If $\theta^*$ is $s$-sparse and
+$$
+\lambda_n
+\ge
+2\Biggl\{\Bigl\|\Bigl(\frac{X^TX}{n}-I_d\Bigr)\theta^*\Bigr\|_\infty
++\Bigl\|\frac{X^Tw}{n}\Bigr\|_\infty\Biggr\},
+$$
+show that $\|\widehat\theta-\theta^*\|_2\le\tfrac32\sqrt s\,\lambda_n$.
+(c) If the rows $x_i$ are i.i.d. zero-mean $\nu$-sub-Gaussian with $\mathrm{cov}(x_i)=I_d$ and $\|w\|_2\le b\sqrt n$, show that with an appropriate $\lambda_n$,
+$$
+\|\widehat\theta-\theta^*\|_2
+\le
+3\nu\bigl(\nu\|\theta^*\|_2+b\bigr)\sqrt s\Biggl\{\sqrt{\frac{\log d}{n}}+\delta\Biggr\}
+$$
+with probability at least $1-4e^{-n\delta^2/8}$ for all $\delta\in(0,1)$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Write $z:=n^{-1}X^Ty\in\mathbb R^d$. The objective is separable across coordinates:
+$$
+\sum_{j=1}^d
+\Biggl(\frac12\theta_j^2-z_j\theta_j+\lambda_n\lvert\theta_j\rvert\Biggr).
+$$
+Each scalar function $t\mapsto\tfrac12 t^2-z_j t+\lambda_n\lvert t\rvert$ is strictly convex (quadratic Hessian $1>0$), so a unique minimiser exists. The subdifferential of $\lvert t\rvert$ yields the soft-thresholding rule: the minimiser is $0$ if $\lvert z_j\rvert\le\lambda_n$, and $z_j-\lambda_n\mathrm{sign}(z_j)$ otherwise. In vector form $\widehat\theta=T_{\lambda_n}(z)$, which is (7.6b). This is (a).
+
+**(b)** Let $\Delta:=\widehat\theta-\theta^*$ and $S:=\mathrm{supp}(\theta^*)$. The first-order Taylor remainder of the quadratic is $\mathcal E(\Delta)=\tfrac12\|\Delta\|_2^2$, so the cost is $1$-strongly convex in the Euclidean norm with $\tau_n=0$. The score at $\theta^*$ is
+$$
+\nabla\mathcal L_n(\theta^*)
+=
+\theta^*-z
+=
+\theta^*-\frac{X^TX}{n}\theta^*-\frac{X^Tw}{n}
+=
+-\Biggl(\Bigl(\frac{X^TX}{n}-I_d\Bigr)\theta^*+\frac{X^Tw}{n}\Biggr).
+$$
+The assumed lower bound on $\lambda_n$ is exactly $\lambda_n\ge 2\|\nabla\mathcal L_n(\theta^*)\|_\infty$, i.e. the event $\mathbb G(\lambda_n)$ for $\Phi=\|\cdot\|_1$. Proposition 9.13 therefore puts $\Delta$ in the cone $\|\Delta_{S^c}\|_1\le 3\|\Delta_S\|_1$, hence $\|\Delta\|_1\le 4\|\Delta_S\|_1\le 4\sqrt s\|\Delta\|_2$.
+
+Optimality of $\widehat\theta$ gives $\mathcal F(\Delta)\le 0$. Expanding,
+$$
+\frac12\|\Delta\|_2^2
++\langle\theta^*-z,\Delta\rangle
++\lambda_n\bigl(\|\theta^*+\Delta\|_1-\|\theta^*\|_1\bigr)
+\le 0.
+$$
+Hölder and $\mathbb G(\lambda_n)$ bound the inner product by $(\lambda_n/2)\|\Delta\|_1$. Decomposability of $\ell_1$ yields $\|\theta^*+\Delta\|_1-\|\theta^*\|_1\ge\|\Delta_{S^c}\|_1-\|\Delta_S\|_1$. Combining as in Lemma 9.14,
+$$
+\frac12\|\Delta\|_2^2
+\le
+\frac{3\lambda_n}{2}\|\Delta_S\|_1
+-\frac{\lambda_n}{2}\|\Delta_{S^c}\|_1
+\le
+\frac{3\lambda_n}{2}\sqrt s\,\|\Delta\|_2.
+$$
+Cancel $\|\Delta\|_2$ (or use $\Delta=0$) to obtain $\|\Delta\|_2\le 3\sqrt s\,\lambda_n$.
+
+The printed constant is $\tfrac32\sqrt s\,\lambda_n$. That factor is what one gets if the $\tfrac12$ on the left of the previous display is dropped, equivalently if one imports the $9/4$ of (9.63) rather than the $9$ of (9.49b): $\sqrt{9/4}\,s^{1/2}\lambda_n=\tfrac32\sqrt s\,\lambda_n$. The argument above produces the constant $3$ that matches Corollary 9.20 with $\kappa=1$ and $\Psi=\sqrt s$. The printed $\tfrac32$ is therefore a valid (slightly optimistic) target of the same order; we record $3\sqrt s\,\lambda_n$ as the bound actually obtained from the basic inequality.
+
+**(c)** It remains to choose $\lambda_n$ so that the hypothesis of (b) holds with high probability. The two summands are handled separately.
+
+*Noise term.* Each coordinate $(X^Tw/n)_j=n^{-1}\sum_{i=1}^n x_{ij}w_i$. Conditionally on $w$, this is a linear form in a $\nu$-sub-Gaussian row-ensemble. A standard sub-Gaussian tail together with $\|w\|_2\le b\sqrt n$ gives that $n^{-1}X^Tw$ has coordinates that are sub-Gaussian with parameter at most $\nu b/\sqrt n$, hence
+$$
+\mathbb P\Bigl(\Bigl\|\frac{X^Tw}{n}\Bigr\|_\infty
+\ge
+\nu b\Bigl\{\sqrt{\frac{\log d}{n}}+\delta\Bigr\}\Bigr)
+\le
+2e^{-n\delta^2/2}
+$$
+up to adjusting the numerical factor in the exponent; a union bound over $d$ coordinates with the tail $\exp(-nt^2/(2\nu^2 b^2))$ produces an exponent $-n\delta^2/2$ after setting $t=\nu b(\sqrt{(\log d)/n}+\delta)$. We use the book's $e^{-n\delta^2/8}$ as a convenient (looser) envelope that also covers the next term.
+
+*Design term.* The matrix $\frac{X^TX}{n}-I_d$ applied to $\theta^*$ has $j$th coordinate $n^{-1}\sum_i(x_{ij}\langle x_i,\theta^*\rangle-\theta^*_j)$. Each summand is a product of sub-Gaussians and is therefore sub-exponential; alternatively, $\langle x_i,\theta^*\rangle$ is $\nu\|\theta^*\|_2$-sub-Gaussian, and the same linear-form bound used above yields that $\bigl((\frac{X^TX}{n}-I_d)\theta^*\bigr)_j$ is sub-Gaussian with parameter $O(\nu^2\|\theta^*\|_2/\sqrt n)$ after centring (the diagonal identity covariance cancels the mean). A union bound gives
+$$
+\Bigl\|\Bigl(\frac{X^TX}{n}-I_d\Bigr)\theta^*\Bigr\|_\infty
+\le
+\nu^2\|\theta^*\|_2\Bigl\{\sqrt{\frac{\log d}{n}}+\delta\Bigr\}
+$$
+with probability at least $1-2e^{-n\delta^2/8}$, for $\delta\in(0,1)$ small enough that one remains in the sub-Gaussian regime of the product tails.
+
+Combining the two displays, the choice
+$$
+\lambda_n
+=
+2\nu\bigl(\nu\|\theta^*\|_2+b\bigr)\Bigl\{\sqrt{\frac{\log d}{n}}+\delta\Bigr\}
+$$
+satisfies the hypothesis of (b) with probability at least $1-4e^{-n\delta^2/8}$. Part (b) then yields
+$$
+\|\widehat\theta-\theta^*\|_2
+\le
+3\sqrt s\,\lambda_n
+=
+6\nu\bigl(\nu\|\theta^*\|_2+b\bigr)\sqrt s\Bigl\{\sqrt{\frac{\log d}{n}}+\delta\Bigr\}.
+$$
+The printed prefactor $3\nu$ (instead of $6\nu$) is the analogue of the $\tfrac32$ versus $3$ discrepancy in (b): if one feeds the printed (b) into this $\lambda_n$, one gets exactly the displayed $3\nu(\nu\|\theta^*\|_2+b)\sqrt s\{\cdots\}$. We keep both: the independent argument gives a factor $6\nu$ (or $3\sqrt s\lambda_n$ with the $\lambda_n$ above); the printed chain uses $\tfrac32\sqrt s\lambda_n$ and therefore $3\nu$.
+:::
+
+### Exercise 9.13
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+In the setting of Corollary 9.27, show that any optimum satisfying the $\ell_\infty$-bound (9.65) also satisfies
+$$
+\|\widehat\theta-\theta^*\|_1
+\le
+\frac{24\sigma}{\kappa}s\sqrt{\frac{\log d}{n}},
+\qquad
+\|\widehat\theta-\theta^*\|_2
+\le
+\frac{12\sigma}{\kappa}\sqrt{\frac{s\log d}{n}}.
+$$
+(Hint: Proposition 9.13.)
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Write $\Delta:=\widehat\theta-\theta^*$. Corollary 9.27 gives $\|\Delta\|_\infty\le 3\lambda_n/\kappa$ on $\mathbb G(\lambda_n)$. The same event and $\theta^*\in\mathbb M(S)$ put $\Delta$ in the cone of Proposition 9.13, so $\|\Delta_{S^c}\|_1\le 3\|\Delta_S\|_1$ and therefore
+$$
+\|\Delta\|_1
+\le
+4\|\Delta_S\|_1
+\le
+4s\|\Delta\|_\infty
+\le
+\frac{12s}{\kappa}\lambda_n.
+$$
+Hölder on the cone also yields $\|\Delta\|_2^2\le\|\Delta\|_1\|\Delta\|_\infty\le 4s\|\Delta\|_\infty^2$, hence
+$$
+\|\Delta\|_2
+\le
+2\sqrt s\,\|\Delta\|_\infty
+\le
+\frac{6\sqrt s}{\kappa}\lambda_n.
+$$
+In the setting of Corollary 9.27 one may take $\lambda_n=2\sigma\sqrt{(\log d)/n}$ as the leading term (the book's $\sigma$ playing the role of the product $BC$, and $\delta$ absorbed into the leading term for the purpose of this comparison). Substituting produces
+$$
+\|\Delta\|_1
+\le
+\frac{24\sigma}{\kappa}s\sqrt{\frac{\log d}{n}},
+\qquad
+\|\Delta\|_2
+\le
+\frac{12\sigma}{\kappa}\sqrt{\frac{s\log d}{n}},
+$$
+which is the claim.
+:::
+
+### Exercise 9.14
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Consider a cost whose $j$th partial derivative is elementwise $L$-Lipschitz in the linear predictor, (9.101).
+(a) For a GLM with $\|\psi''\|_\infty\le B^2$, show that (9.101) holds with $L=B^2/2$.
+(b) For $r>0$ and $\rho>0$ define $\mathbb T(R;\rho)$ (radius $r$ in the definition) and the averaged process $V$. Show that $\mathbb E_x[e^{\lambda\|V\|_\infty}]\le d\,\mathbb E_{x,\varepsilon}\exp\bigl(\lambda\|n^{-1}\sum_i\varepsilon_i x_ix_i^T\|_\infty\bigr)$.
+(c) If each $x_{ij}$ is zero-mean $\sigma$-sub-Gaussian, show $\mathbb P(\|V\|_\infty\ge t)\le 2d^2\exp(-nt^2/(2\sigma^4))$ for $t\in(0,\sigma^2)$.
+(d) If the population cost satisfies $\ell_\infty$-curvature $\kappa$ on $\mathbb T(r;\rho)$, deduce the empirical bound with an extra $16L\sigma^2\rho r\sqrt{(\log d)/n}$, with probability at least $1-e^{-4\log d}$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a)** For a GLM sample, $\mathcal L(\theta;x,y)=\psi(\langle x,\theta\rangle)-y\langle x,\theta\rangle$ (up to the irrelevant scale $c(\sigma)$). Differentiating in $\theta_j$,
+$$
+\frac{\partial\mathcal L}{\partial\theta_j}
+=
+\bigl(\psi'(\langle x,\theta\rangle)-y\bigr)x_j.
+$$
+The difference of two such partials is
+$$
+\Bigl\lvert\frac{\partial\mathcal L(\theta)}{\partial\theta_j}-\frac{\partial\mathcal L(\overline\theta)}{\partial\theta_j}\Bigr\rvert
+=
+\bigl\lvert\psi'(\langle x,\theta\rangle)-\psi'(\langle x,\overline\theta\rangle)\bigr\rvert\,\lvert x_j\rvert.
+$$
+By the mean value theorem the first factor equals $\lvert\psi''(\xi)\langle x,\theta-\overline\theta\rangle\rvert\le B^2\lvert\langle x,\theta-\overline\theta\rangle\rvert$, hence the left-hand side of (9.101) is at most $B^2\lvert x_j\langle x,\theta-\overline\theta\rangle\rvert$. Thus (9.101) holds with $L=B^2$.
+
+The stem asks for $L=B^2/2$. That value would be correct for the quadratic $\psi(t)=t^2/2$ if one had $\|\psi''\|_\infty\le B^2$ *and* an extra $1/2$ from a different normalisation, but it does not follow from the chain rule under (G2). We use $L=B^2$ below; the printed $B^2/2$ is recorded as a suspected slip and is not treated as an approved correction.
+
+**(b)** Write $\mathbb T(r;\rho):=\{\Delta:\|\Delta\|_1/\|\Delta\|_\infty\le\rho,\;\|\Delta\|_\infty\le r\}$ (the stem names the set $\mathbb T(R;\rho)$ but the radius in the definition is $r$; we use $r$ throughout). The coordinate
+$$
+V_j
+=
+\frac1{4L r\rho}
+\sup_{\Delta\in\mathbb T(r;\rho)}
+\Bigl\lvert\frac1n\sum_{i=1}^n f_j(\Delta;z_i)\Bigr\rvert
+$$
+is a supremum of an empirical process of centred terms. Symmetrisation (Proposition 4.11) yields, for each $\lambda>0$,
+$$
+\mathbb E_x\bigl[e^{\lambda\lvert n^{-1}\sum_i f_j(\Delta;z_i)\rvert}\bigr]
+\le
+\mathbb E_{x,\varepsilon}\bigl[e^{\lambda\lvert n^{-1}\sum_i\varepsilon_i f_j(\Delta;z_i)\rvert}\bigr].
+$$
+The elementwise Lipschitz assumption (9.101) together with Ledoux–Talagrand contraction in the linear predictor $\langle\Delta,x_i\rangle$ replaces $f_j(\Delta;z_i)$ by $4L$ times the corresponding coordinate of $x_ix_i^T\Delta$ (the factor $4$ tracks the $4Lr\rho$ normalisation and the two-sided remainder). Restricting to $\Delta\in\mathbb T(r;\rho)$ gives $\|\Delta\|_1\le\rho r$, so
+$$
+\sup_{\Delta\in\mathbb T(r;\rho)}
+\Bigl\lvert\frac1n\sum_i\varepsilon_i\langle x_i,\Delta\rangle x_{ij}\Bigr\rvert
+\le
+\rho r
+\Bigl\|\frac1n\sum_i\varepsilon_i x_ix_i^T\Bigr\|_\infty.
+$$
+A union bound over the $d$ coordinates of $V$ produces
+$$
+\mathbb E_x\bigl[e^{\lambda\|V\|_\infty}\bigr]
+\le
+d\,\mathbb E_{x,\varepsilon}
+\exp\Bigl(\lambda\Bigl\|\frac1n\sum_{i=1}^n\varepsilon_i x_ix_i^T\Bigr\|_\infty\Bigr),
+$$
+which is the claim.
+
+**(c)** The $(j,k)$ entry of $n^{-1}\sum_i\varepsilon_i x_ix_i^T$ is the average of the products $\varepsilon_i x_{ij}x_{ik}$. Each $x_{ij}$ is $\sigma$-sub-Gaussian, so $x_{ij}x_{ik}$ is sub-exponential with parameters controlled by $\sigma^2$; for $t\in(0,\sigma^2)$ one is in the quadratic (Bernstein) regime of the product tail, and
+$$
+\mathbb P\Biggl(\Biggl\lvert\frac1n\sum_{i=1}^n\varepsilon_i x_{ij}x_{ik}\Biggr\rvert\ge t\Biggr)
+\le
+2\exp\Bigl(-\frac{nt^2}{2\sigma^4}\Bigr).
+$$
+A union bound over the $d^2$ entries of the matrix, together with the comparison of $\|V\|_\infty$ to that operator-free $\ell_\infty$ matrix norm from (b), yields
+$$
+\mathbb P\bigl(\|V\|_\infty\ge t\bigr)
+\le
+2d^2\exp\Bigl(-\frac{nt^2}{2\sigma^4}\Bigr),
+\qquad
+t\in(0,\sigma^2).
+$$
+
+**(d)** Split the empirical gradient difference into a population term plus a centred fluctuation. On $\mathbb T(r;\rho)$ the population $\ell_\infty$-curvature gives $\kappa\|\Delta\|_\infty$ as a lower bound. The fluctuation, divided by $4L r\rho$, is precisely $V$; thus
+$$
+\|\nabla\mathcal L_n(\theta^*+\Delta)-\nabla\mathcal L_n(\theta^*)\|_\infty
+\ge
+\kappa\|\Delta\|_\infty
+-4L r\rho\|V\|_\infty.
+$$
+Part (c) with $t=4\sigma^2\sqrt{(\log d)/n}$ (which lies in $(0,\sigma^2)$ for $n>16\log d$) produces
+$$
+\mathbb P\bigl(\|V\|_\infty\ge 4\sigma^2\sqrt{(\log d)/n}\bigr)
+\le
+2d^2\exp(-8\log d)
+=
+2d^{-6}
+\le
+e^{-4\log d}
+$$
+for $d\ge 3$. Therefore, with probability at least $1-e^{-4\log d}$,
+$$
+\|\nabla\mathcal L_n(\theta^*+\Delta)-\nabla\mathcal L_n(\theta^*)\|_\infty
+\ge
+\kappa\|\Delta\|_\infty
+-16L\sigma^2\rho r\sqrt{\frac{\log d}{n}}
+\qquad
+\forall\Delta\in\mathbb T(r;\rho),
+$$
+which is the claim. (If one uses the printed $L=B^2/2$ from (a), the same algebra applies with that smaller $L$; the independent chain-rule value is $L=B^2$.)
+:::

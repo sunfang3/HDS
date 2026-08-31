@@ -1,0 +1,46 @@
+---
+title: "HDS Companion"
+subtitle: "Wainwright *High-Dimensional Statistics: A Non-Asymptotic Viewpoint*"
+execute:
+  enabled: false
+---
+
+伴读 **Notes**（汉语）与按章 **Solutions**（英语），面向已学陈希孺《概率论与数理统计》的读者。全书译名见 [术语对照](glossary.qmd)。
+
+| 项 | 说明 |
+|---|---|
+| 源格式 | **Quarto Markdown**（`.qmd`） |
+| 本地渲染 | `quarto preview` 或 `quarto render`（`_quarto.yml`） |
+| 部署 | 尚未启用；工作流已放在 `.github/workflows/pages.yml`，等你明确要求再创建仓库并 push |
+
+教材：Martin J. Wainwright, *High-Dimensional Statistics: A Non-Asymptotic Viewpoint*, Cambridge Series in Statistical and Probabilistic Mathematics, No. 48。2019 年第一版（ISBN 978-1-108-49802-9；DOI 10.1017/9781108627771）。本站**不包含**原书 PDF。
+
+页码约定：正文 **PDF 页 = 印刷页 + 19**（第 1 章印刷页 1 = PDF 页 20）。序言与目录为罗马页码，另计。PDF 第 19 页为空白页。
+
+## 目录
+
+| 章 | 印刷页 | Notes | Solutions |
+|---|---:|---|---|
+| 1 Introduction | 1–20 | [Notes](notes/ch01-notes.qmd) | [Solutions](solutions/ch01-solutions.qmd) |
+| 2 Basic tail and concentration bounds | 21–57 | [Notes](notes/ch02-notes.qmd) | 编写中 |
+| 3 Concentration of measure | 58–97 | 编写中 | 编写中 |
+| 4 Uniform laws of large numbers | 98–120 | 编写中 | 编写中 |
+| 5 Metric entropy and its uses | 121–158 | 编写中 | 编写中 |
+| 6 Random matrices and covariance estimation | 159–193 | 编写中 | 编写中 |
+| 7 Sparse linear models in high dimensions | 194–235 | 编写中 | 编写中 |
+| 8 Principal component analysis in high dimensions | 236–258 | 编写中 | 编写中 |
+| 9 Decomposability and restricted strong convexity | 259–311 | 编写中 | 编写中 |
+| 10 Matrix estimation with rank constraints | 312–346 | 编写中 | 编写中 |
+| 11 Graphical models for high-dimensional data | 347–382 | 编写中 | 编写中 |
+| 12 Reproducing kernel Hilbert spaces | 383–415 | 编写中 | 编写中 |
+| 13 Nonparametric least squares | 416–452 | 编写中 | 编写中 |
+| 14 Localization and uniform laws | 453–484 | 编写中 | 编写中 |
+| 15 Minimax lower bounds | 485–523 | 编写中 | 编写中 |
+
+## 怎么读
+
+第 2–5、12、14、15 章是工具（尾界、测度集中、一致大数定律、度量熵、再生核、局部化、极小极大下界）；第 6–11、13 章是模型与估计量（协方差、稀疏线性、主成分、可分解正则、低秩矩阵、图模型、非参数最小二乘）。作者把第 2、4 章标成绝大多数后续章的必读；第 3 章加深集中，但不挡后面的主线。
+
+若你已经把陈希孺教材读熟，Notes 的重点不是重讲大数定律与中心极限定理，而是把**固定维数 $d$、样本量 $n\to\infty$** 换成 **$(n,d)$ 同时变大时的非渐近尾界**，并看低维结构（稀疏、低秩、可加）如何把“维数灾难”压回去。
+
+第 1 章没有编号习题；正文把 (1.14) 留给读者。其余各章末 *Exercises* 的解答在 Solutions（英语），不写入 Notes。

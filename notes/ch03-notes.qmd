@@ -1,0 +1,973 @@
+---
+title: "第 3 章　测度集中"
+subtitle: "Wainwright, High-Dimensional Statistics 伴读 Notes"
+description: "面向已学陈希孺本科概率统计、并读过第 2 章切尔诺夫/次高斯/有界差分的读者：用熵方法、几何集中函数、运输代价与经验过程，把标量尾界升级成函数的测度集中"
+execute:
+  enabled: false
+lang: zh-CN
+---
+
+# 本章导览
+
+第 2 章已经能对**独立和**与**有界差分函数**写出次高斯 / 次指数尾。一旦函数依赖于许多坐标、又不是“每个坐标各改一点”那么粗糙，有界差分的代理会差一个 $\sqrt n$，高斯利普希茨（Theorem 2.26）又只对高斯坐标成立。本章的问题是：**在乘积测度、对数凹测度、甚至弱依赖（马尔可夫）上，利普希茨函数何时仍有与维数无关、或至少与欧氏宽度同阶的集中？**
+
+四条路线解决同一件事——控制 $\{f(X)\ge\mathbb E[f]+\delta\}$：
+
+- **熵方法**：把 $\phi(u)=u\log u$ 的 $\phi$-熵张量化到坐标，再用赫布斯特论证把熵界积分成累积量母函数；
+- **几何**：集中函数 $\alpha_{\mathbb P}(\varepsilon)$ 描写集合的 $\varepsilon$-膨胀，它与 1-利普希茨函数绕中位数的尾等价；
+- **运输代价**：瓦瑟斯坦距离被 KL 散度的平方根控制（信息不等式），对偶地给出利普希茨集中，并且适合马尔可夫链；
+- **经验过程**：把“函数类上样本均值的上确界”当成一个函数，得到泛函霍夫丁与塔拉格兰–伯恩斯坦。
+
+本章阅读主线：
+
+$$
+\phi\text{-熵 / 对数索伯列夫}
+\longrightarrow
+\text{赫布斯特（熵 }\Rightarrow\text{ 次高斯 CGF）}
+\longrightarrow
+\text{张量化 + 分别凸利普希茨}
+\longrightarrow
+\text{集中函数 / 运输代价}
+\longrightarrow
+\text{经验过程的泛函尾界}.
+$$
+
+> 教材定位：第 3 章 §§3.1–3.5，印刷页 58–92，PDF 页 77–111。习题 §3.6 印刷页 92–97，PDF 页 111–116，不进入 Notes。页码关系：**PDF 页 = 印刷页 + 19**。
+
+## 学习目标
+
+学完本章后，你应能：
+
+- **由** $\phi$-熵定义 (3.2) **写出** $H(e^{\lambda X})$ 与矩母函数的关系 (3.3)，并**陈述**赫布斯特论证：熵界 (3.5) 推出次高斯 CGF (3.6)；
+- **应用** Theorem 3.4：独立有界坐标上，分别凸且欧氏 $L$-利普希茨的函数有上尾 $\exp(-\delta^2/(4L^2(b-a)^2))$，并指出为何这比有界差分更锐；
+- **用**集中函数 $\alpha_{\mathbb P}$ **连接**集合膨胀与 1-利普希茨绕中位数的尾（Proposition 3.11），并写出球面 Lévy 界 (3.34) 与 (3.40)；
+- **陈述** $\rho$-运输代价不等式 (3.58)，并由 Pinsker 张量化**恢复**有界差分 (3.65)；指出马尔可夫 $\beta$-压缩把汉明代理多一个 $(1-\beta)^{-1}$；
+- **比较**泛函霍夫丁 (3.80) 的 $L^2$ 与有界差分的 $\widetilde L^2$，并**写出**塔拉格兰集中 (3.83) 的方差项 $\mathbb E[\Sigma^2]$。
+
+# 必要先修
+
+第 2 章的切尔诺夫、次高斯 (2.8)、伯恩斯坦、有界差分与高斯利普希茨，本章直接当工具。下面只补本科课与第 2 章都没有钉死的接口。
+
+::: {.callout-note title="为什么现在需要 $\phi$-熵，而不是再写一个方差"}
+方差是 $\phi(u)=u^2$ 的 Jensen 缺口 $\mathbb E[\phi(X)]-\phi(\mathbb E[X])$。本章用 $\phi(u)=u\log u$，缺口叫做 $\phi$-熵 $H(Z)$。它仍然非负、在 $Z$ 几乎必然为常数时为零，但**对独立坐标可以张量化**——联合熵被条件熵之和控制。方差没有同样干净的张量化，这正是熵方法能处理“许多变量的函数”而切尔诺夫对联合矩母函数束手的原因。
+:::
+
+::: {.callout-note title="作者解释：对数索伯列夫是赫布斯特的来源"}
+Gross (1975) 的对数索伯列夫不等式（logarithmic Sobolev inequality）对标准高斯测度 $\gamma$ 断言：光滑 $f$ 满足
+$$
+\int f^2\log f^2\,d\gamma
+-\Bigl(\int f^2\,d\gamma\Bigr)\log\Bigl(\int f^2\,d\gamma\Bigr)
+\le
+2\int\lVert\nabla f\rVert_2^2\,d\gamma.
+$$
+令 $g=f^2=e^{\lambda F}$。若 $F$ 是欧氏 $L$-利普希茨，则 $\lVert\nabla F\rVert_2\le L$，上式变成
+$$
+H(e^{\lambda F})
+\le
+\frac12 L^2\lambda^2\,\mathbb E[e^{\lambda F}],
+$$
+这正是熵界 (3.5)（$\sigma=L$）。赫布斯特论证把这个微分不等式积分成分步的次高斯 CGF，再切尔诺夫得尾。教材正文几乎不写“对数索伯列夫”这五个字，但 Proposition 3.2 的假设就是它的结论；§3.5 把出处指给 Gross 与 Herbst 的未刊笔记。乘积空间上不必先证一条对数索伯列夫：先对每个坐标用一元熵界，再用张量化（Lemma 3.8）拼起来。
+:::
+
+::: {.callout-note title="作者解释：瓦瑟斯坦距离是“利普希茨对偶”"}
+全变差 $\lVert\mathbb Q-\mathbb P\rVert_{\mathrm{TV}}$ 是指示函数的对偶（或密度 $L^1$ 差的一半）。若把试验函数从“有界”换成“1-利普希茨”，对偶量就是瓦瑟斯坦距离 $W_\rho$。坎托罗维奇–鲁宾斯坦对偶再把它写成耦合的平均运输代价 $\inf\mathbb E[\rho(X,X')]$。运输代价不等式说：这个几何距离被 KL 散度的平方根控制——于是“指数倾斜”下的均值漂移不能太大，切尔诺夫就有了。
+:::
+
+# 3 Concentration of measure　测度集中
+
+> 教材定位：章首，印刷页 58，PDF 页 77。
+
+本章在第 2 章之上给出测度集中的四条路线：熵、几何、运输代价、经验过程。§3.4 的泛函尾界会在非参数章节里反复出现；§3.1–3.3 本身不是后续章的硬前置。
+
+# 3.1 Concentration by entropic techniques　用熵方法做集中
+
+> 教材定位：§3.1，印刷页 58–67，PDF 页 77–86。
+
+## 3.1.1 Entropy and its properties　熵及其性质
+
+> 教材定位：§3.1.1，印刷页 58–59，PDF 页 77–78。
+
+凸函数 $\phi:\mathbb R\to\mathbb R$ 诱导
+$$
+H_\phi(X)
+:=
+\mathbb E[\phi(X)]-\phi(\mathbb E[X]).
+$$
+Jensen 保证 $H_\phi\ge 0$；$X$ 几乎必然等于均值时取 0。脚注提醒：$H_\phi$ 是概率的泛函，不是随机变量。
+
+特例：$\phi(u)=u^2$ 给出方差；$\phi(u)=-\log u$ 作用在 $Z=e^{\lambda X}$ 上给出中心累积量母函数 $\log\mathbb E[e^{\lambda(X-\mathbb E[X])}]$。切比雪夫与切尔诺夫正是这两条。
+
+本章默认
+$$
+\phi(u):=u\log u\quad(u>0),
+\qquad
+\phi(0):=0.
+\tag{3.1}
+$$
+对非负 $Z$，
+$$
+H(Z)
+=
+\mathbb E[Z\log Z]-\mathbb E[Z]\log\mathbb E[Z],
+\tag{3.2}
+$$
+并省略下标 $\phi$。它与香农熵、KL 散度的关系见 Exercise 3.1；对独立变量的张量化是选用 (3.1) 的真正理由。
+
+令 $\varphi_x(\lambda)=\mathbb E[e^{\lambda X}]$。短计算给出
+$$
+H(e^{\lambda X})
+=
+\lambda\varphi_x'(\lambda)-\varphi_x(\lambda)\log\varphi_x(\lambda).
+\tag{3.3}
+$$
+
+::: {.callout-important title="Example 3.1　高斯的熵"}
+$X\sim N(0,\sigma^2)$ 时 $\varphi_x(\lambda)=e^{\lambda^2\sigma^2/2}$，$\varphi_x'(\lambda)=\lambda\sigma^2\varphi_x(\lambda)$，故
+$$
+H(e^{\lambda X})
+=
+\lambda^2\sigma^2\varphi_x(\lambda)
+-\tfrac12\lambda^2\sigma^2\varphi_x(\lambda)
+=
+\tfrac12\lambda^2\sigma^2\varphi_x(\lambda).
+\tag{3.4}
+$$
+高斯在后面的熵界 (3.5) 里取等。
+:::
+
+## 3.1.2 Herbst argument and its extensions　赫布斯特论证及其推广
+
+> 教材定位：§3.1.2，印刷页 60–62，PDF 页 79–81。
+
+设存在 $\sigma>0$ 使
+$$
+H(e^{\lambda X})
+\le
+\tfrac12\sigma^2\lambda^2\varphi_x(\lambda).
+\tag{3.5}
+$$
+高斯对一切 $\lambda\in\mathbb R$ 取等；有界变量也满足 (3.5)（Exercise 3.7）。
+
+::: {.callout-important title="Proposition 3.2　赫布斯特论证"}
+若 (3.5) 对一切 $\lambda\in I$ 成立，$I$ 为 $[0,\infty)$ 或 $\mathbb R$，则
+$$
+\log\mathbb E\bigl[e^{\lambda(X-\mathbb E[X])}\bigr]
+\le
+\tfrac12\lambda^2\sigma^2
+\qquad\text{对一切 }\lambda\in I.
+\tag{3.6}
+$$
+:::
+
+$I=\mathbb R$ 即中心化变量是参数 $\sigma$ 的次高斯。切尔诺夫给出
+$$
+\mathbb P[X\ge\mathbb E[X]+t]
+\le
+e^{-t^2/(2\sigma^2)};
+\tag{3.7}
+$$
+$I=\mathbb R$ 时双侧多一个因子 2。
+
+**证明骨架。** 把 (3.3) 与 (3.5) 合成
+$$
+\lambda\varphi'(\lambda)-\varphi(\lambda)\log\varphi(\lambda)
+\le
+\tfrac12\sigma^2\lambda^2\varphi(\lambda),
+\qquad\lambda\ge 0.
+\tag{3.8}
+$$
+令 $G(\lambda)=\lambda^{-1}\log\varphi(\lambda)$（$\lambda\neq 0$），连续延拓
+$$
+G(0):=\lim_{\lambda\to 0}G(\lambda)=\mathbb E[X].
+\tag{3.9}
+$$
+直接微分得 $G'(\lambda)=\lambda^{-1}\varphi'/\varphi-\lambda^{-2}\log\varphi$，故 (3.8) 即 $G'\le\sigma^2/2$。从 $\lambda_0$ 积到 $\lambda$，再令 $\lambda_0\to 0^+$，得到 $G(\lambda)-\mathbb E[X]\le\sigma^2\lambda/2$，即 (3.6)。$I=\mathbb R$ 的延拓留给读者（对 $\lambda<0$ 同样积分）。
+
+次指数对应伯恩斯坦型熵界。
+
+::: {.callout-important title="Proposition 3.3　伯恩斯坦熵界"}
+若存在 $b,\sigma>0$ 使
+$$
+H(e^{\lambda X})
+\le
+\lambda^2\bigl\{b\varphi_x'(\lambda)+\varphi_x(\lambda)(\sigma^2-b\mathbb E[X])\bigr\}
+\qquad\lambda\in[0,1/b),
+\tag{3.10}
+$$
+则
+$$
+\log\mathbb E\bigl[e^{\lambda(X-\mathbb E[X])}\bigr]
+\le
+\sigma^2\lambda^2(1-b\lambda)^{-1}
+\qquad\lambda\in[0,1/b).
+\tag{3.11}
+$$
+:::
+
+切尔诺夫（常数非最优）给出
+$$
+\mathbb P[X\ge\mathbb E[X]+\delta]
+\le
+\exp\Bigl(-\frac{\delta^2}{4\sigma^2+2b\delta}\Bigr),
+\qquad\delta\ge 0.
+\tag{3.12}
+$$
+与第 2 章 Proposition 2.10 同类，分母里 $4\sigma^2$ 来自 (3.11) 比经典伯恩斯坦 CGF 多一个 2。
+
+证明先用 Exercise 3.6 把问题化成 $\mathbb E[X]=0$、$b=1$，于是
+$$
+H(e^{\lambda X})
+\le
+\lambda^2\{\varphi'(\lambda)+\varphi(\lambda)\sigma^2\},
+\qquad\lambda\in[0,1).
+\tag{3.13}
+$$
+这等价于 $G'\le\sigma^2+\varphi'/\varphi$。积分并令下限 $\to 0^+$ 得
+$$
+G(\lambda)-\mathbb E[X]
+\le
+\sigma^2\lambda+\log\varphi(\lambda),
+\tag{3.14}
+$$
+整理即 (3.11)。
+
+::: {.callout-warning title="适用边界"}
+赫布斯特把**已经得到的熵界**变成 CGF；它不凭空产生熵界。标量次高斯用切尔诺夫更直接。熵方法的价值在多元：张量化给出熵界，赫布斯特再收尾。
+:::
+
+## 3.1.3 Separately convex functions and the entropic method　分别凸函数与熵方法
+
+> 教材定位：§3.1.3，印刷页 62–64，PDF 页 81–83。
+
+$f:\mathbb R^n\to\mathbb R$ **分别凸**（separately convex）：每个坐标在其余固定时是一元凸函数。欧氏 $L$-利普希茨：
+$$
+\lvert f(x)-f(x')\rvert
+\le
+L\lVert x-x'\rVert_2
+\qquad\text{对一切 }x,x'\in\mathbb R^n.
+\tag{3.15}
+$$
+
+::: {.callout-important title="Theorem 3.4　有界坐标上分别凸利普希茨的上尾"}
+设 $\{X_i\}_{i=1}^n$ 独立、各支在 $[a,b]$，$f$ 分别凸且欧氏 $L$-利普希茨。则对一切 $\delta>0$，
+$$
+\mathbb P\bigl[f(X)\ge\mathbb E[f(X)]+\delta\bigr]
+\le
+\exp\Bigl(-\frac{\delta^2}{4L^2(b-a)^2}\Bigr).
+\tag{3.16}
+$$
+:::
+
+这是 Theorem 2.26 的有界坐标版，但**分别凸一般不能去掉**（反例见文献）。联合凸时下尾可用 §3.3.5 的 Theorem 3.24。
+
+**Example 3.5（拉德马赫复杂度的尖锐上尾）。** $Z=\sup_{a\in\mathcal A}\sum_{k=1}^n a_k\varepsilon_k$，$\varepsilon_k$ i.i.d. 拉德马赫。$Z$ 是线性函数的上确界，故联合凸。欧氏利普希茨常数是欧氏宽度 $\mathcal W(\mathcal A)=\sup_{a\in\mathcal A}\lVert a\rVert_2$。坐标支在 $[-1,1]$，故 $b-a=2$，(3.16) 给出
+$$
+\mathbb P[Z\ge\mathbb E[Z]+t]
+\le
+\exp\bigl(-t^2/(16\mathcal W^2(\mathcal A))\bigr).
+\tag{3.17}
+$$
+有界差分用的是 $\sum_k\sup_a a_k^2$，可比 $\mathcal W^2(\mathcal A)$ 大到 $n$ 倍。
+
+**Example 3.6（随机矩阵算子范数）。** $X\in\mathbb R^{n\times d}$，元素 i.i.d.、零均值、支在 $[-1,1]$。$\ell_2$-算子范数
+$$
+\Vert\vert X\Vert\vert_2
+=
+\max_{\lVert v\rVert_2=1}\lVert Xv\rVert_2
+=
+\max_{\lVert v\rVert_2=1}\max_{\lVert u\rVert_2=1}u^T Xv
+\tag{3.18}
+$$
+是线性函数的上确界，故凸；且
+$$
+\bigl\lvert\Vert\vert X\Vert\vert_2-\Vert\vert X'\Vert\vert_2\bigr\rvert
+\le
+\Vert\vert X-X'\Vert\vert_2
+\le
+\Vert\vert X-X'\Vert\vert_F,
+\tag{3.19}
+$$
+故作为 $\mathbb R^{nd}$ 上的函数 $L=1$。Theorem 3.4 给出
+$$
+\mathbb P\bigl[\Vert\vert X\Vert\vert_2\ge\mathbb E[\Vert\vert X\Vert\vert_2]+\delta\bigr]
+\le
+e^{-\delta^2/16}.
+$$
+这是高斯矩阵 (2.52) 的有界版，常数较差。
+
+## 3.1.4 Tensorization and separately convex functions　张量化与分别凸函数
+
+> 教材定位：§3.1.4，印刷页 64–67，PDF 页 83–86。
+
+::: {.callout-important title="Lemma 3.7　一元函数的熵界"}
+$X,Y\sim P$ i.i.d.。对任意 $g:\mathbb R\to\mathbb R$ 与 $\lambda>0$，
+$$
+H(e^{\lambda g(X)})
+\le
+\lambda^2\mathbb E\bigl[(g(X)-g(Y))^2 e^{\lambda g(X)}\mathbb I[g(X)\ge g(Y)]\bigr].
+\tag{3.20a}
+$$
+若再设 $X$ 支在 $[a,b]$、$g$ 凸且利普希茨，则
+$$
+H(e^{\lambda g(X)})
+\le
+\lambda^2(b-a)^2\mathbb E\bigl[(g'(X))^2 e^{\lambda g(X)}\bigr].
+\tag{3.20b}
+$$
+:::
+
+Rademacher 定理保证凸利普希茨函数几乎处处可微。若 $\lVert g'\rVert_\infty\le L$，则 $H\le\lambda^2 L^2(b-a)^2\mathbb E[e^{\lambda g}]$，赫布斯特即得一元版 Theorem 3.4。保留 $g'(X)$ 而不是最坏的 $L$，是多元定理变锐的关键，后面 §3.4 也用 (3.20a)。
+
+对 $f:\mathbb R^n\to\mathbb R$，坐标函数 $f_k$ 与条件熵 $H(e^{\lambda f_k(X_k)}\mid X^{\backslash k})$（给定其余坐标后的一元熵）按字面定义。
+
+::: {.callout-important title="Lemma 3.8　熵的张量化"}
+$\{X_k\}$ 独立时，对一切 $\lambda>0$，
+$$
+H\bigl(e^{\lambda f(X_1,\ldots,X_n)}\bigr)
+\le
+\mathbb E\Bigl[\sum_{k=1}^n H\bigl(e^{\lambda f_k(X_k)}\mid X^{\backslash k}\bigr)\Bigr].
+\tag{3.21}
+$$
+:::
+
+**Theorem 3.4 的证明。** 分别凸 $\Rightarrow$ 每个 $f_k$ 凸，(3.20b) 给出条件熵 $\le\lambda^2(b-a)^2\mathbb E[(\partial_{x_k}f)^2 e^{\lambda f}\mid x^{\backslash k}]$。张量化后
+$$
+H(e^{\lambda f(X)})
+\le
+\lambda^2(b-a)^2\mathbb E\bigl[\lVert\nabla f(X)\rVert_2^2 e^{\lambda f(X)}\bigr]
+\le
+\lambda^2(b-a)^2 L^2\mathbb E[e^{\lambda f(X)}],
+$$
+最后一步是利普希茨 $\Leftrightarrow$ $\lVert\nabla f\rVert_2\le L$ a.s.。赫布斯特即 (3.16)。
+
+**Lemma 3.7 的要点。** Jensen 把 $\log\mathbb E_Y[e^{\lambda g(Y)}]$ 换成 $\mathbb E_Y[\lambda g(Y)]$，对称化后只留 $\{g(X)\ge g(Y)\}$，再用 $e^s-e^t\le e^s(s-t)$ 得到 (3.20a)。凸性给出 $g(x)-g(y)\le g'(x)(x-y)$，区间长度变成 $(b-a)^2$。
+
+**Lemma 3.8 的要点。** 变分表示
+$$
+H(e^{\lambda f(X)})
+=
+\sup\bigl\{\mathbb E[g\,e^{\lambda f}]:\mathbb E[e^g]\le 1\bigr\}
+\tag{3.24}
+$$
+（Exercise 3.9）。把 $g$ 拆成
+$$
+g_1=g-\log\mathbb E[e^g\mid X_2^n],
+\qquad
+g_k=\log\frac{\mathbb E[e^g\mid X_k^n]}{\mathbb E[e^g\mid X_{k+1}^n]},
+$$
+则 $\sum_k g_k=g-\log\mathbb E[e^g]\ge g$，且 $\mathbb E[\exp(g_k)\mid X_{k+1}^n]=1$。逐坐标用 (3.24) 即张量化。
+
+印刷页 67 在变分步骤处写 $\mathbb E[g^k(X_k,\ldots,X_n)\mid X_{\backslash k}]=1$。同页前文构造的是 $\mathbb E[\exp(g^k)\mid X_{k+1}^n]=1$；(3.24) 需要的也是指数期望。Notes 按指数形式讲解，并把原文记为待批勘误，不改教材。
+
+# 3.2 A geometric perspective on concentration　集中的几何视角
+
+> 教材定位：§3.2，印刷页 67–76，PDF 页 86–95。
+
+度量测度空间 $(\mathcal X,\rho,\mathbb P)$：度量空间配上 Borel 概率。原型：欧氏 $(\mathbb R^n,\lVert\cdot\rVert_2)$，汉明立方 $(\{0,1\}^n,\rho_{\mathrm{Ham}})$。
+
+## 3.2.1 Concentration functions　集中函数
+
+> 教材定位：§3.2.1，印刷页 67–69，PDF 页 86–88。
+
+点到集合的距离 $\rho(x,A)=\inf_{y\in A}\rho(x,y)$。$\varepsilon$-膨胀
+$$
+A^\varepsilon
+:=
+\{x\in\mathcal X:\rho(x,A)<\varepsilon\}.
+\tag{3.27}
+$$
+
+::: {.callout-important title="Definition 3.9　集中函数"}
+$$
+\alpha_{\mathbb P,(\mathcal X,\rho)}(\varepsilon)
+:=
+\sup\bigl\{1-\mathbb P[A^\varepsilon]:\mathbb P[A]\ge\tfrac12\bigr\}.
+\tag{3.28}
+$$
+:::
+
+值落在 $[0,1/2]$。要问的是 $\varepsilon$ 增大时它多快趋于 0。
+
+**Example 3.10（球面）。** $\mathbb S^{n-1}=\{x:\lVert x\rVert_2=1\}$，测地距离 $\rho(x,y)=\arccos\langle x,y\rangle$，均匀测度。半球
+$$
+H_y=\{x\in\mathbb S^{n-1}:\langle x,y\rangle\le 0\}
+\tag{3.30}
+$$
+满足 $\mathbb P[H_y]=1/2$，膨胀 $H_y^\varepsilon=\{z:\langle z,y\rangle<\sin\varepsilon\}$。Lévy 等周：半球极小，故 $\alpha_{\mathbb S^{n-1}}(\varepsilon)=1-\mathbb P[H_y^\varepsilon]$。
+
+$\sin\varepsilon\ge\varepsilon/2$（$\varepsilon\in(0,\pi/2]$）把膨胀含于 $\{\langle z,y\rangle\le\varepsilon/2\}$。几何计算（$\varepsilon\in(0,\sqrt 2)$）给出
+$$
+\mathbb P[\widetilde H_y^\varepsilon]
+\ge
+1-\bigl(1-(\varepsilon/2)^2\bigr)^{n/2}
+\ge
+1-e^{-n\varepsilon^2/8},
+\tag{3.33}
+$$
+因而 $\alpha\le e^{-n\varepsilon^2/8}$。更精细的估计给出
+$$
+\alpha_{\mathbb S^{n-1}}(\varepsilon)
+\le
+\sqrt{\pi/2}\,e^{-n\varepsilon^2/2}.
+\tag{3.34}
+$$
+中心切片 $T_y(\varepsilon)=\{z:\lvert\langle z,y\rangle\rvert\le\varepsilon/2\}$ 于是占体积 $\ge 1-\sqrt{2\pi}\,e^{-n\varepsilon^2/2}$。低维图（Figure 3.1）完全不能代表高维球面：高维体积堆在赤道附近。
+
+印刷页 69 写“bounding $\mathbb P[H_y]$”以得 (3.34)。$\mathbb P[H_y]=1/2$ 对一切 $y$，要改进的是膨胀概率 $\mathbb P[H_y^\varepsilon]$。Notes 按膨胀概率讲解，原文记为待批勘误。
+
+## 3.2.2 Connection to Lipschitz functions　与利普希茨函数的联系
+
+> 教材定位：§3.2.2，印刷页 70–72，PDF 页 89–91。
+
+$L$-利普希茨：$|f(x)-f(y)|\le L\rho(x,y)$。中位数 $m_f$ 满足两侧概率都 $\ge 1/2$。集合 $A=\{f\le m_f\}$ 的 $( \varepsilon/L)$-膨胀落在 $\{f<m_f+\varepsilon\}$ 里，故
+$$
+\mathbb P[f\ge m_f+\varepsilon]
+\le
+\alpha_{\mathbb P}(\varepsilon/L).
+$$
+对 $-f$ 同样，合起来 $\mathbb P[|f-m_f|\ge\varepsilon]\le 2\alpha_{\mathbb P}(\varepsilon/L)$。绕中位数与绕均值只差常数（Exercise 2.14）。
+
+::: {.callout-important title="Proposition 3.11　集中函数 $\Leftrightarrow$ 1-利普希茨尾"}
+任何 1-利普希茨 $f$ 满足
+$$
+\mathbb P[\lvert f(X)-m_f\rvert\ge\varepsilon]
+\le
+2\alpha_{\mathbb P}(\varepsilon).
+\tag{3.39a}
+$$
+反之，若一切 1-利普希茨都有 $\mathbb P[f\ge\mathbb E f+\varepsilon]\le\beta(\varepsilon)$，则 $\alpha_{\mathbb P}(\varepsilon)\le\beta(\varepsilon/2)$。
+:::
+
+反方向取 $f(x)=\min\{\rho(x,A),\varepsilon\}$：它是 1-利普希茨，$\mathbb E[f]\le\varepsilon/2$，且 $1-\mathbb P[A^\varepsilon]=\mathbb P[f\ge\varepsilon]$。
+
+**Example 3.12（球面上的 Lévy 集中）。** 把 (3.34) 送进 (3.39a)：
+$$
+\mathbb P[\lvert f-m_f\rvert\ge\varepsilon]
+\le
+\sqrt{2\pi}\,e^{-n\varepsilon^2/2}.
+\tag{3.40}
+$$
+绕均值（Exercise 2.14(d)）变成
+$$
+\mathbb P[\lvert f-\mathbb E f\rvert\ge\varepsilon]
+\le
+2\sqrt{2\pi}\,e^{-n\varepsilon^2/8}.
+\tag{3.41}
+$$
+
+**Example 3.13（布尔超立方）。** 汉明度量加均匀测度。Harper 定理把集合夹在汉明球之间，并把距离缩小。对 $\mathbb P[A]\ge 1/2$，补集 $B=(A^\varepsilon)^c$ 的汉明球落到 $\{\sum X_i\ge n/2+\varepsilon\}$，霍夫丁给出 $\mathbb P[B]\le e^{-2\varepsilon^2/n}$（$n\ge 3$，$\varepsilon>1$ 才需要这一步；$\varepsilon\le 1$ 时 $1/2\le e^{-2/n}$）。故
+$$
+\alpha_{\mathbb P}(\varepsilon)
+\le
+e^{-2\varepsilon^2/n},
+\tag{3.42}
+$$
+1-利普希茨绕中位数以 $2e^{-2\varepsilon^2/n}$ 集中——与有界差分 (2.35) 同型。
+
+## 3.2.3 From geometry to concentration　从几何到集中
+
+> 教材定位：§3.2.3，印刷页 72–76，PDF 页 91–95。
+
+布鲁恩–闵可夫斯基（Brunn–Minkowski）：凸体 $C,D\subset\mathbb R^n$，
+$$
+\bigl[\mathrm{vol}(\lambda C+(1-\lambda)D)\bigr]^{1/n}
+\ge
+\lambda[\mathrm{vol}(C)]^{1/n}+(1-\lambda)[\mathrm{vol}(D)]^{1/n}.
+\tag{3.43}
+$$
+闵可夫斯基和 $\lambda C+(1-\lambda)D=\{\lambda c+(1-\lambda)d\}$。印刷页 72 脚注把凸体说成“紧致且闭的集合”——紧已含闭，标准凸体还要求凸、内部非空。Notes 不依赖该脚注。
+
+**Example 3.14（经典等周）。** 教材称 $\mathbb B_2^n=\{x:\lVert x\rVert_2\le 1\}$ 为 “Euclidean sphere”；该集合是闭单位球，球面是 $\mathbb S^{n-1}$。等周说：$\mathrm{vol}(A)=\mathrm{vol}(\mathbb B_2^n)$ 时 $\mathrm{vol}(A^\varepsilon)\ge\mathrm{vol}([\mathbb B_2^n]^\varepsilon)$。由 $A^\varepsilon=A+\varepsilon\mathbb B_2^n$ 与 (3.43) 即得。Notes 按单位球讲解，原文术语记为待批勘误。
+
+乘积形式
+$$
+\mathrm{vol}(\lambda C+(1-\lambda)D)
+\ge
+[\mathrm{vol}(C)]^\lambda[\mathrm{vol}(D)]^{1-\lambda}
+\tag{3.45}
+$$
+与 (3.43) 等价（Exercise 3.10），并引出函数版：
+
+::: {.callout-important title="Theorem 3.15　普雷科帕–莱因德勒不等式"}
+非负可积 $u,v,w$ 若对某 $\lambda\in[0,1]$ 满足
+$$
+w(\lambda x+(1-\lambda)y)
+\ge
+[u(x)]^\lambda[v(y)]^{1-\lambda},
+\tag{3.46}
+$$
+则
+$$
+\int w
+\ge
+\Bigl(\int u\Bigr)^\lambda\Bigl(\int v\Bigr)^{1-\lambda}.
+\tag{3.47}
+$$
+:::
+
+取指示函数即得 (3.45)。
+
+密度 $p=e^{-\psi}$ **强对数凹**（strongly log-concave）参数 $\gamma$：$\psi$ 强凸，
+$$
+\lambda\psi(x)+(1-\lambda)\psi(y)-\psi(\lambda x+(1-\lambda)y)
+\ge
+\frac\gamma2\lambda(1-\lambda)\lVert x-y\rVert_2^2.
+\tag{3.48}
+$$
+标准高斯 $\gamma=1$；协方差 $\Sigma\succ 0$ 的高斯 $\gamma=\gamma_{\min}(\Sigma^{-1})=1/\gamma_{\max}(\Sigma)$。
+
+::: {.callout-important title="Theorem 3.16　强对数凹上的欧氏利普希茨集中"}
+$f$ 欧氏 $L$-利普希茨时
+$$
+\mathbb P\bigl[\lvert f(X)-\mathbb E[f(X)]\rvert\ge t\bigr]
+\le
+2e^{-\gamma t^2/(4L^2)}.
+\tag{3.49}
+$$
+:::
+
+高斯 $\gamma=1$ 时回到 Theorem 2.26，指数里的 4 不是最优（最优是 2）。
+
+**证明骨架（简要）。** 对零均值 $L$-利普希茨 $h$，只需 $\mathbb E[e^{h}]\le e^{L^2/\gamma}$。定义下卷积
+$$
+g(y)=\inf_x\Bigl\{h(x)+\frac\gamma4\lVert x-y\rVert_2^2\Bigr\}.
+$$
+对 $w=p$、$u=e^{-h-\psi}$、$v=e^{g-\psi}$ 用 $\lambda=1/2$ 的 PL 不等式：强凸把 (3.46) 核对完毕，得到 $\mathbb E[e^g]\le 1/\mathbb E[e^{-h}]\le 1$（Jensen 与 $\mathbb E[h]=0$）。利普希茨再给出 $g\ge h-L^2/\gamma$，故 $\mathbb E[e^h]\le e^{L^2/\gamma}$。对 $h=\lambda(f-\mathbb E f)$ 即得次高斯 CGF，参数对应 (3.49)。
+
+# 3.3 Wasserstein distances and information inequalities　瓦瑟斯坦距离与信息不等式
+
+> 教材定位：§3.3，印刷页 76–86，PDF 页 95–105。
+
+运输代价与熵方法对偶，并且适合弱依赖。
+
+## 3.3.1 Wasserstein distances　瓦瑟斯坦距离
+
+> 教材定位：§3.3.1，印刷页 76–78，PDF 页 95–97。
+
+$\lVert f\rVert_{\mathrm{Lip}}$ 是使 $|f(x)-f(x')|\le L\rho(x,x')$ 成立的最小 $L$。瓦瑟斯坦距离
+$$
+W_\rho(\mathbb Q,\mathbb P)
+=
+\sup_{\lVert f\rVert_{\mathrm{Lip}}\le 1}
+\Bigl\lvert\int f\,d\mathbb Q-\int f\,d\mathbb P\Bigr\rvert.
+\tag{3.52}
+$$
+
+**Example 3.17。** 汉明 $\rho(x,x')=\mathbb I[x\neq x']$ 时，$W_{\mathrm{Ham}}=\lVert\mathbb Q-\mathbb P\rVert_{\mathrm{TV}}$（Exercise 3.13），也等于密度 $L^1$ 差的一半。
+
+耦合：乘积空间上边际为 $\mathbb Q,\mathbb P$ 的联合律 $\mathbb M$。1-利普希茨给出
+$$
+\int\rho\,d\mathbb M
+\ge
+\int(f(x)-f(x'))\,d\mathbb M
+=
+\int f\,(d\mathbb P-d\mathbb Q).
+\tag{3.54}
+$$
+坎托罗维奇–鲁宾斯坦对偶：取下确界后等号成立，
+$$
+\sup_{\lVert f\rVert_{\mathrm{Lip}}\le 1}\int f\,(d\mathbb Q-d\mathbb P)
+=
+\inf_{\mathbb M}\int\rho\,d\mathbb M
+=
+\inf_{\mathbb M}\mathbb E_{\mathbb M}[\rho(X,X')].
+\tag{3.55}
+$$
+印刷页 77 把左端标成 $W_\rho(\mathbb P,\mathbb Q)$，而 (3.52) 写成 $W_\rho(\mathbb Q,\mathbb P)$。度量对称，数值相同；Notes 统一用 $W_\rho(\mathbb Q,\mathbb P)$。
+
+运输解读：把密度 $p$ 的质量按计划 $m(x,x')$ 挪到 $q$，单位代价 $\rho$；最优代价即 $W_\rho$。
+
+## 3.3.2 Transportation cost and concentration inequalities　运输代价与集中不等式
+
+> 教材定位：§3.3.2，印刷页 78–80，PDF 页 97–99。
+
+KL 散度
+$$
+D(\mathbb Q\Vert\mathbb P)
+:=
+\begin{cases}
+\mathbb E_{\mathbb Q}[\log(d\mathbb Q/d\mathbb P)] & \mathbb Q\ll\mathbb P,\\
++\infty & \text{否则.}
+\end{cases}
+\tag{3.56}
+$$
+有密度时即 $\int q\log(q/p)\,d\nu$。它不是度量（不对称）。
+
+::: {.callout-important title="Definition 3.18　$\rho$-运输代价不等式"}
+称 $\mathbb P$ 满足参数 $\gamma>0$ 的 $\rho$-TCI，若对一切 $\mathbb Q$，
+$$
+W_\rho(\mathbb Q,\mathbb P)
+\le
+\sqrt{2\gamma D(\mathbb Q\Vert\mathbb P)}.
+\tag{3.58}
+$$
+:::
+
+平斯克–奇萨尔–库尔贝克：
+$$
+\lVert\mathbb P-\mathbb Q\rVert_{\mathrm{TV}}
+\le
+\sqrt{\tfrac12 D(\mathbb Q\Vert\mathbb P)},
+\tag{3.59}
+$$
+即汉明度量、$\gamma=1/4$ 的 TCI（证明见 Exercise 15.6）。
+
+::: {.callout-important title="Theorem 3.19　从运输代价到集中"}
+若 $\mathbb P$ 满足 (3.58)，则
+$$
+\alpha_{\mathbb P,(\mathcal X,\rho)}(t)
+\le
+2\exp(-t^2/(2\gamma)),
+\tag{3.60}
+$$
+且任何 $L$-利普希茨 $f$ 满足
+$$
+\mathbb P\bigl[\lvert f(X)-\mathbb E[f(X)]\rvert\ge t\bigr]
+\le
+2\exp(-t^2/(2\gamma L^2)).
+\tag{3.61}
+$$
+:::
+
+绕中位数的 (3.62) 由 (3.60) 加 Proposition 3.11 立刻得到，常数差于 (3.61)。
+
+**证明骨架（简要）。** 集中函数：对 $\mathbb P[A]\ge 1/2$，$B=(A^t)^c$，条件律 $\mathbb P_A,\mathbb P_B$ 的任何耦合都把质量隔开至少 $t$，故 $t\le W_\rho(\mathbb P_A,\mathbb P_B)$。三角不等式加 TCI、再 $(a+b)^2\le 2a^2+2b^2$，得到 $t^2\le 2\gamma\{D(\mathbb P_A\Vert\mathbb P)+D(\mathbb P_B\Vert\mathbb P)\}$。条件化的 KL 是 $-\log\mathbb P(A)$ 与 $-\log\mathbb P(B)$，故 $\mathbb P(A)\mathbb P(B)\le\exp(-t^2/(2\gamma))$，再用 $\mathbb P(A)\ge 1/2$。
+
+均值：利普希茨给出 $\int f(d\mathbb Q-d\mathbb P)\le L W_\rho\le L\sqrt{2\gamma D}$。对 $u=\gamma L^2$、$v=D(\mathbb Q\Vert\mathbb P)$ 用 Young $\sqrt{2uv}\le(\lambda u)/2+v/\lambda$，切成
+$$
+\int f(d\mathbb Q-d\mathbb P)
+\le
+\frac{\lambda\gamma L^2}{2}+\frac1\lambda D(\mathbb Q\Vert\mathbb P).
+\tag{3.63}
+$$
+取指数倾斜 $d\mathbb Q/d\mathbb P\propto\exp(\lambda(f-\mathbb E_{\mathbb P}f))$（再减一个常数使计算整齐），整理得 CGF $\le\lambda^2\gamma L^2/2$，切尔诺夫即上尾；对 $-f$ 得下尾。
+
+## 3.3.3 Tensorization for transportation cost　运输代价的张量化
+
+> 教材定位：§3.3.3，印刷页 80–82，PDF 页 99–101。
+
+::: {.callout-important title="Proposition 3.20　乘积测度的 TCI 张量化"}
+若每个 $\mathbb P_k$ 满足参数 $\gamma_k$ 的 $\rho_k$-TCI，则 $\mathbb P=\bigotimes_k\mathbb P_k$ 对 $\rho=\sum_k\rho_k$ 满足
+$$
+W_\rho(\mathbb Q,\mathbb P)
+\le
+\sqrt{2\Bigl(\sum_{k=1}^n\gamma_k\Bigr)D(\mathbb Q\Vert\mathbb P)}.
+\tag{3.64}
+$$
+:::
+
+**Example 3.21（恢复有界差分）。** $f$ 的第 $k$ 坐标振幅 $L_k$，则 $f$ 对 $\rho_k=L_k\mathbb I[x_k\neq y_k]$ 是 1-利普希茨。Pinsker 给 $\gamma_k=L_k^2/4$，张量化后 $\gamma=\frac14\sum L_k^2$，Theorem 3.19 即
+$$
+\mathbb P[\lvert f-\mathbb E f\rvert\ge t]
+\le
+2\exp\Bigl(-2t^2\Big/\sum_k L_k^2\Bigr).
+\tag{3.65}
+$$
+
+证明用耦合刻画：归纳地取坐标最优耦合，Jensen 处理平方根，柯西–施瓦茨把 $\sum\sqrt{\gamma_k D_k}$ 收成 $\sqrt{(\sum\gamma_k)(\sum D_k)}$，KL 链式法则（Exercise 3.2）把和收成 $D(\mathbb Q\Vert\mathbb P)$。Exercise 3.14 给出利普希茨形式的另一证法。
+
+## 3.3.4 Transportation cost inequalities for Markov chains　马尔可夫链的运输代价不等式
+
+> 教材定位：§3.3.4，印刷页 82–83，PDF 页 101–102。
+
+离散状态链：$X_1\sim\mathbb P_1$，核 $\mathbb K_{i+1}(x_{i+1}\mid x_i)$。$\beta$-压缩：
+$$
+\max_i\sup_{x_i,x_i'}\lVert\mathbb K_{i+1}(\cdot\mid x_i)-\mathbb K_{i+1}(\cdot\mid x_i')\rVert_{\mathrm{TV}}
+\le\beta\in[0,1).
+\tag{3.67}
+$$
+
+::: {.callout-important title="Theorem 3.22　$\beta$-压缩链的汉明 TCI"}
+对汉明 $\rho(x,y)=\sum_i\mathbb I[x_i\neq y_i]$，
+$$
+W_\rho(\mathbb Q,\mathbb P)
+\le
+\frac1{1-\beta}\sqrt{\frac n2 D(\mathbb Q\Vert\mathbb P)}.
+\tag{3.68}
+$$
+:::
+
+证明指回文献（Marton 1996b）。汉明 $L$-利普希茨因此满足
+$$
+\mathbb P[\lvert f-\mathbb E f\rvert\ge t]
+\le
+2\exp\bigl(-2(1-\beta)^2 t^2/(n L^2)\bigr).
+\tag{3.69}
+$$
+$\beta=0$ 即独立时的有界差分。
+
+**Example 3.23（二元链的粘性）。** $X_i\in\{0,1\}$，转移以 $\frac12(1+\delta)$ 保持原值、$\frac12(1-\delta)$ 翻转。无偏估计 $f=\frac1{n-1}\sum_{i=1}^{n-1}\mathbb I[X_i=X_{i+1}]$ 估 $\frac12(1+\delta)$。链是 $\beta=\delta$ 压缩，$f$ 的汉明利普希茨常数 $L=2/(n-1)$，故
+$$
+\mathbb P\bigl[\lvert f-\tfrac12(1+\delta)\rvert\ge t\bigr]
+\le
+2e^{-(n-1)^2(1-\delta)^2 t^2/(2n)}
+\le
+2e^{-(n-1)(1-\delta)^2 t^2/4}.
+\tag{3.70}
+$$
+
+## 3.3.5 Asymmetric coupling cost　非对称耦合代价
+
+> 教材定位：§3.3.5，印刷页 84–86，PDF 页 103–105。
+
+$\ell_1$ / 汉明利普希茨通常带 $\sqrt n$；欧氏利普希茨才维数无关。非对称耦合代价
+$$
+C(\mathbb Q,\mathbb P)
+:=
+\inf_{\mathbb M}
+\sqrt{\int\sum_{i=1}^n\bigl(\mathbb M[Y_i\neq x_i\mid X_i=x_i]\bigr)^2\,d\mathbb P(x)}
+\tag{3.71}
+$$
+有密度表示
+$$
+C(\mathbb Q,\mathbb P)
+=
+\sqrt{\int\Bigl\lvert 1-\frac{d\mathbb Q}{d\mathbb P}(x)\Bigr\rvert_+^2\,d\mathbb P(x)},
+\tag{3.72}
+$$
+$t_+=\max\{0,t\}$。它与全变差相近，但平方把坐标 $\ell_2$ 化。Samson：乘积测度上
+$$
+\max\{C(\mathbb Q,\mathbb P),C(\mathbb P,\mathbb Q)\}
+\le
+\sqrt{2D(\mathbb Q\Vert\mathbb P)}.
+\tag{3.73}
+$$
+
+::: {.callout-important title="Theorem 3.24　联合凸 + 欧氏利普希茨的双侧集中"}
+独立、$[0,1]$ 取值，$f$ 联合凸且欧氏 $L$-利普希茨，则
+$$
+\mathbb P[\lvert f-\mathbb E f\rvert\ge t]
+\le
+2e^{-t^2/(2L^2)}.
+\tag{3.74}
+$$
+:::
+
+这是 Theorem 2.26 的有界坐标、凸函数版，**维数无关**。凹函数同样。分别凸只给上尾（Theorem 3.4）；双侧需要联合凸或凹。
+
+**Example 3.25。** 拉德马赫复杂度联合凸、利普希茨常数 $\mathcal W(\mathcal A)$，故
+$$
+\mathbb P[\lvert Z-\mathbb E Z\rvert\ge t]
+\le
+2\exp\bigl(-t^2/(2\mathcal W^2(\mathcal A))\bigr),
+\tag{3.75}
+$$
+比 (3.17) 更锐且双侧。
+
+**证明骨架（简要）。** 凸性：$f(x)\ge f(y)+\langle\nabla f(y),x-y\rangle$，且 $|x_j-y_j|\le\mathbb I[x_j\neq y_j]$（$[0,1]$ 坐标）。积分后柯西–施瓦茨把偏差收成 $L\,C(\mathbb P,\mathbb Q)$。再 (3.73) 加 Theorem 3.19 的倾斜论证得上尾。下尾对凹函数同样，偏差收成 $L\,C(\mathbb Q,\mathbb P)$。
+
+一般信息不等式 (3.76) 把 $\sqrt{2D}$ 换成 $\sqrt{2\gamma D}$，利普希茨集中变成 (3.77)。$\beta$-压缩马尔可夫链可取 $\gamma=(1-\sqrt\beta)^{-2}$，欧氏 $L$-利普希茨满足维数无关界
+$$
+\mathbb P[\lvert f-\mathbb E f\rvert\ge t]
+\le
+2\exp\bigl(-(1-\sqrt\beta)^2 t^2/(2L^2)\bigr).
+\tag{3.78}
+$$
+对照汉明版 (3.69)：那里分母有 $nL^2$。
+
+# 3.4 Tail bounds for empirical processes　经验过程的尾界
+
+> 教材定位：§3.4，印刷页 87–91，PDF 页 106–110。
+
+函数类 $\mathcal F$，$X_i$ 独立（不必同分布），
+$$
+Z
+=
+\sup_{f\in\mathcal F}\Bigl(\frac1n\sum_{i=1}^n f(X_i)\Bigr).
+\tag{3.79}
+$$
+目标是上尾 $\{Z\ge\mathbb E[Z]+\delta\}$。绝对值版本把 $\mathcal F$ 换成 $\mathcal F\cup\{-\mathcal F\}$。不可数 $\mathcal F$ 有可测性问题，第 4 章再处理；下面默认可数或有限。
+
+## 3.4.1 A functional Hoeffding inequality　泛函霍夫丁不等式
+
+> 教材定位：§3.4.1，印刷页 87–89，PDF 页 106–108。
+
+::: {.callout-important title="Theorem 3.26　泛函霍夫丁"}
+设每个 $f(X_i)$ 取值在 $[a_{i,f},b_{i,f}]$。则
+$$
+\mathbb P[Z\ge\mathbb E[Z]+\delta]
+\le
+\exp\bigl(-n\delta^2/(4L^2)\bigr),
+\tag{3.80}
+$$
+其中
+$$
+L^2
+:=
+\sup_{f\in\mathcal F}\Bigl\{\frac1n\sum_{i=1}^n(b_{i,f}-a_{i,f})^2\Bigr\}.
+$$
+:::
+
+单点类 $f(x)=x$ 回到经典霍夫丁，指数常数 $1/4$ 不是最优。有界差分对同一 $Z$ 给出
+$$
+\widetilde L^2
+=
+\frac1n\sum_{i=1}^n\sup_{f}(b_{i,f}-a_{i,f})^2,
+$$
+上确界在平方外面，可远大于 $L^2$。
+
+**证明要点。** 有限类即可（再取极限）。对未缩放 $\widetilde Z=\sup_f\sum_i f(X_i)$ 用张量化+(3.20a)。达成集 $\mathcal A(f)=\{x:\widetilde Z=\sum_i f(x_i)\}$（平局任意拆开）上，坐标差被**同一个** $f$ 控制：
+$$
+\bigl(Z_j(x_j)-Z_j(y_j)\bigr)^2\mathbb I[Z_j(x_j)\ge Z_j(y_j)]
+\le
+\sum_f\mathbb I[x\in\mathcal A(f)]\bigl(f(x_j)-f(y_j)\bigr)^2.
+\tag{3.82}
+$$
+对 $j$ 求和后 $\le n L^2 e^{\lambda\widetilde Z}$，故 $H(e^{\lambda\widetilde Z})\le n L^2\lambda^2\mathbb E[e^{\lambda\widetilde Z}]$。这是 (3.5)，$\sigma=\sqrt{2n}\,L$。赫布斯特加 $t=n\delta$ 即 (3.80)。
+
+## 3.4.2 A functional Bernstein inequality　泛函伯恩斯坦不等式
+
+> 教材定位：§3.4.2，印刷页 89–91，PDF 页 108–110。
+
+::: {.callout-important title="Theorem 3.27　经验过程的塔拉格兰集中"}
+可数类 $\mathcal F$ 一致有界 $|f|\le b$。则
+$$
+\mathbb P[Z\ge\mathbb E[Z]+\delta]
+\le
+2\exp\Bigl(\frac{-n\delta^2}{8e\,\mathbb E[\Sigma^2]+4b\delta}\Bigr),
+\tag{3.83}
+$$
+其中 $\Sigma^2=\sup_{f\in\mathcal F}\frac1n\sum_{i=1}^n f^2(X_i)$。
+:::
+
+对称化（第 4 章）给出 $\mathbb E[\Sigma^2]\le\sigma^2+2b\mathbb E[Z]$，$\sigma^2=\sup_f\mathbb E[f^2(X)]$。由此有通用常数形式
+$$
+\mathbb P[Z\ge\mathbb E[Z]+c_0\gamma\sqrt t+c_1 bt]
+\le
+e^{-nt},
+\qquad
+\gamma^2=\sigma^2+2b\mathbb E[Z],
+\tag{3.85}
+$$
+已知最佳 $c_0=\sqrt 2$、$c_1=1/3$（Bousquet）。对任意 $\varepsilon>0$，
+$$
+\mathbb P\bigl[Z\ge(1+\varepsilon)\mathbb E[Z]+c_0\sigma\sqrt t+(c_1+c_0^2/\varepsilon)bt\bigr]
+\le
+e^{-nt};
+\tag{3.86}
+$$
+对 $\varepsilon$ 优化回到 (3.85)（Exercise 3.16）。
+
+印刷页 91 由 (3.12) 推出的未缩放尾是**不带前因子 2** 的 $\exp(-\delta^2/(8e\mathbb E[\Gamma]+4\delta))$。Notes 照抄定理 (3.83) 的因子 2，并记下证明给出因子 1；此项为待批勘误。
+
+**证明骨架（简要）。** $b=1$、未缩放。把 (3.82) 的平方差换成 $2\{\Gamma(X)+\Gamma(Y)\}$，$\Gamma=\sup_f\sum_i f^2(X_i)$，得
+$$
+H(e^{\lambda Z})
+\le
+2\lambda^2\bigl\{\mathbb E[\Gamma e^{\lambda Z}]+\mathbb E[\Gamma]\mathbb E[e^{\lambda Z}]\bigr\}.
+\tag{3.87}
+$$
+平移不变（Exercise 3.4）把同一界搬到 $\widetilde Z=Z-\mathbb E[Z]$。随机方差引理：
+
+::: {.callout-important title="Lemma 3.28　随机方差"}
+$$
+\mathbb E[\Gamma e^{\lambda\widetilde Z}]
+\le
+(e-1)\mathbb E[\Gamma]\,\mathbb E[e^{\lambda\widetilde Z}]
++\mathbb E[\widetilde Z e^{\lambda\widetilde Z}].
+\tag{3.88}
+$$
+:::
+
+代入后 $H(e^{\lambda\widetilde Z})\le\lambda^2\{2e\mathbb E[\Gamma]\,\varphi+2\varphi'\}$，即 Bernstein 熵界 $b=2$、$\sigma^2=2e\mathbb E[\Gamma]$。(3.12) 再缩放 $1/n$ 即定理（$b=1$）。Lemma 3.28 用 Young $st\le s\log s-s+e^t$ 配 $s=e^{\lambda\widetilde Z}$、$t=\Gamma-(e-1)\mathbb E[\Gamma]$，非负函数上确界的 Poisson 型界 $\mathbb E[e^{\Gamma-(e-1)\mathbb E\Gamma}]\le 1$ 来自 Exercise 3.15。
+
+# 3.5 Bibliographic details and background　文献与背景
+
+> 教材定位：§3.5，印刷页 91–92，PDF 页 110–111。文献条目指回教材。
+
+阅读锚点：对数索伯列夫（Gross 1975）；赫布斯特未刊笔记；Ledoux 把熵方法系统化；Theorem 3.4 的原形是 Talagrand 凸距离；布鲁恩–闵可夫斯基与普雷科帕–莱因德勒；运输代价由 Marton 引入集中，Samson 给出 (3.73)；经验过程上尾由 Talagrand 开创，Bousquet 把 (3.85) 的常数推到 $\sqrt 2$ 与 $1/3$。
+
+# 常见错误
+
+1. **错误做法：** 把 $H(e^{\lambda X})$ 当成随机变量，或把 $\phi$-熵与香农熵 $H(X)=-\sum p\log p$ 当成同一个量。  
+   **为什么错：** $H(\,\cdot\,)$ 是分布的泛函；(3.2) 作用在非负 $Z$ 上，香农熵作用在离散标签的分布上。两者的换算是 Exercise 3.1，多一个 $|X|$ 与符号。  
+   **正确判断：** 先看自变量是 $e^{\lambda X}$ 还是 $X$ 本身。
+
+2. **错误做法：** 有矩母函数时仍去“用熵方法证次高斯”，或把赫布斯特理解成新的尾形。  
+   **为什么错：** 赫布斯特的输出就是次高斯 / 伯恩斯坦 CGF，切尔诺夫之后与第 2 章相同。没有张量化时，它不比直接切尔诺夫强。  
+   **正确判断：** 熵方法的输入是张量化或对数索伯列夫给出的熵界。
+
+3. **错误做法：** 对非凸的利普希茨函数套 Theorem 3.4 或 3.24，并声称与高斯利普希茨一样维数无关。  
+   **为什么错：** 有界乘积测度上，没有凸性就不能去掉分别凸 / 联合凸；反例见 Ledoux。高斯（或强对数凹）不需要凸性（Theorem 2.26、3.16）。  
+   **正确判断：** 先问测度是不是高斯 / 对数凹；否则找凸性或退回有界差分。
+
+4. **错误做法：** 经验过程用有界差分，把 $L_i=\sup_f|b_{i,f}-a_{i,f}|$ 平方再加，当作 Theorem 3.26。  
+   **为什么错：** 那是 $\widetilde L^2$。泛函霍夫丁的 $L^2$ 先对 $i$ 加 $(b_{i,f}-a_{i,f})^2$，再对 $f$ 取上确界——达成集论证保证坐标差来自同一个 $f$。  
+   **正确判断：** 上确界与求和的次序不能换。
+
+5. **错误做法：** 把运输代价不等式里的 $\gamma$ 当成次高斯参数，或把 Pinsker 的 $1/4$ 套到欧氏瓦瑟斯坦上。  
+   **为什么错：** (3.61) 的次高斯参数（对 1-利普希茨）是 $\sqrt\gamma$，不是 $\gamma$；Pinsker 只对汉明 / 全变差。欧氏 TCI 是更强的陈述，高斯满足 $\gamma=1$ 量级的 $W_2$ 不等式，但不能从 Pinsker 推出。  
+   **正确判断：** 先写清度量 $\rho$，再写 $\gamma$。
+
+# 轻量自测
+
+1. 用一句话说明：高斯为何在 (3.5) 取等，赫布斯特如何把 (3.5) 变成 (3.6)？指出 $G(\lambda)$ 的定义。
+2. 拉德马赫复杂度 $Z$：分别写出有界差分的代理与 Theorem 3.4 的代理，并说明何时后者能好一个 $n$ 倍。
+3. 由 (3.39a) 与 (3.34) 推出球面 1-利普希茨绕中位数的尾 (3.40)。因子 $\sqrt{2\pi}$ 从哪来？
+4. 从 Pinsker 的 $\gamma=1/4$ 与 Proposition 3.20 恢复 McDiarmid 界 (3.65) 的指数。独立性用在哪一步？
+5. 比较 (3.80) 的 $L^2$ 与 $\widetilde L^2$。若一类函数在每个坐标上都有一个“尖”坐标达到振幅 1、其余振幅 $1/\sqrt n$，两种代理差多少？
+
+<details>
+<summary>查看参考答案</summary>
+
+1. Example 3.1：$\varphi=e^{\lambda^2\sigma^2/2}$ 代入 (3.3) 正好给出 (3.4)，即 (3.5) 取等。赫布斯特令 $G(\lambda)=\lambda^{-1}\log\varphi(\lambda)$、$G(0)=\mathbb E[X]$，把 (3.5) 写成 $G'\le\sigma^2/2$，从 $0$ 积到 $\lambda$ 即 $G(\lambda)-\mathbb E[X]\le\sigma^2\lambda/2$，也就是中心化 CGF $\le\sigma^2\lambda^2/2$。
+2. 有界差分：改第 $k$ 个符号最多改变 $2\sup_a\lvert a_k\rvert$，代理 $\sum_k\sup_a a_k^2$。Theorem 3.4：$\mathcal W^2(\mathcal A)=\sup_a\lVert a\rVert_2^2$。若 $\mathcal A$ 是欧氏球的一薄集（很多坐标都小、欧氏半径却由整体 $\ell_2$ 控制），$\sum_k\sup a_k^2$ 可比 $\mathcal W^2$ 大到 $n$ 倍。
+3. (3.39a) 给出 $2\alpha(\varepsilon)$。$\alpha\le\sqrt{\pi/2}\,e^{-n\varepsilon^2/2}$，故 $2\alpha\le 2\sqrt{\pi/2}\,e^{-n\varepsilon^2/2}=\sqrt{2\pi}\,e^{-n\varepsilon^2/2}$。
+4. 每个坐标汉明（缩放 $L_k$）有 $\gamma_k=L_k^2/4$。张量化 $\gamma=\sum\gamma_k=\frac14\sum L_k^2$。1-利普希茨套 (3.61)：指数 $-t^2/(2\gamma)= -2t^2/\sum L_k^2$，前因子 2。独立性用在乘积结构，使 Proposition 3.20 能把坐标 TCI 加起来。
+5. $L^2=\sup_f n^{-1}\sum_i(b_{i,f}-a_{i,f})^2\le n^{-1}(1+(n-1)/n)\approx 2/n$。$\widetilde L^2=n^{-1}\sum_i\sup_f(\Delta_{i,f})^2=n^{-1}\cdot n\cdot 1=1$。泛函霍夫丁的指数多一个近 $n/2$ 的因子；有界差分完全看不见“尖坐标不能同时出现”。
+
+</details>
+
+# 本章小结
+
+- $\phi$-熵 (3.2) 对 $e^{\lambda X}$ 就是矩母函数的一个微分表达式 (3.3)；赫布斯特把二次熵界积分成次高斯 CGF，伯恩斯坦熵界积分成 (3.11)；
+- 真正的多元来自张量化 (3.21) 加一元凸利普希茨界 (3.20b)：分别凸 + 欧氏利普希茨 + 有界坐标 $\Rightarrow$ 上尾 (3.16)，代理是 $L(b-a)$ 而不是 $\sqrt{\sum L_k^2}$；
+- 集中函数与 1-利普希茨绕中位数等价；球面 Lévy 与 Harper 立方是两条几何原型；强对数凹用普雷科帕–莱因德勒给出高斯型、常数稍差的 (3.49)；
+- 运输代价不等式把瓦瑟斯坦控制成 $\sqrt{\mathrm{KL}}$，张量化恢复有界差分，并自然覆盖 $\beta$-压缩马尔可夫链；欧氏凸函数用 Samson 的非对称代价得到维数无关的 (3.74)；
+- 经验过程把上确界当成一个函数：泛函霍夫丁的 $L$ 先求和再取上确界；塔拉格兰把经验方差 $\mathbb E[\Sigma^2]$ 写进伯恩斯坦分母。
+
+## 术语对照
+
+| 中文 | English | 备注 |
+|---|---|---|
+| 测度集中 | concentration of measure | 章名 |
+| $\phi$-熵 | $\phi$-entropy | (3.2)；Jensen 缺口 |
+| 香农熵 | Shannon entropy | Exercise 3.1 |
+| 库尔贝克–莱布勒散度 | Kullback–Leibler divergence | (3.56)；亦称 KL 散度 |
+| 赫布斯特论证 | Herbst argument | Proposition 3.2 |
+| 对数索伯列夫不等式 | logarithmic Sobolev inequality | Gross；Notes 用作者解释桥接 |
+| 张量化 | tensorization | Lemma 3.8；(3.21) |
+| 分别凸 | separately convex | 逐坐标凸 |
+| 集中函数 | concentration function | Definition 3.9 |
+| $\varepsilon$-膨胀 | $\varepsilon$-enlargement | (3.27) |
+| 中位数 | median | (3.37) |
+| 测地距离 | geodesic distance | 球面 $\arccos\langle x,y\rangle$ |
+| 等周不等式 | isoperimetric inequality | Lévy；经典欧氏 |
+| 布鲁恩–闵可夫斯基不等式 | Brunn–Minkowski inequality | (3.43) |
+| 闵可夫斯基和 | Minkowski sum | $\lambda C+(1-\lambda)D$ |
+| 普雷科帕–莱因德勒不等式 | Prékopa–Leindler inequality | Theorem 3.15 |
+| 强对数凹 | strongly log-concave | (3.48) |
+| 下卷积 | inf-convolution | Theorem 3.16 证明 |
+| 瓦瑟斯坦距离 | Wasserstein distance | (3.52) |
+| 利普希茨范数 | Lipschitz norm | $\lVert f\rVert_{\mathrm{Lip}}$ |
+| 全变差 | total variation | (3.53) |
+| 耦合 | coupling | 给定边际的联合律 |
+| 坎托罗维奇–鲁宾斯坦对偶 | Kantorovich–Rubinstein duality | (3.55) |
+| 运输代价不等式 | transportation cost inequality | Definition 3.18；亦称信息不等式 |
+| 平斯克不等式 | Pinsker inequality | (3.59)；平斯克–奇萨尔–库尔贝克 |
+| 汉明度量 | Hamming metric | $\sum\mathbb I[x_j\neq y_j]$ |
+| 非对称耦合代价 | asymmetric coupling cost | (3.71)；Samson |
+| 经验过程 | empirical process | §3.4 |
+| 泛函霍夫丁不等式 | functional Hoeffding inequality | Theorem 3.26 |
+| 泛函伯恩斯坦不等式 | functional Bernstein inequality | Theorem 3.27 |
+| 塔拉格兰集中 | Talagrand concentration | (3.83) |
+| 欧氏宽度 | Euclidean width | $\mathcal W(\mathcal A)=\sup\lVert a\rVert_2$ |
+| 压缩马尔可夫链 | contractive Markov chain | (3.67) |
+
+: 本章术语（中文从名词委；英文从教材或国际通行用法）
+
+## 来源定位
+
+- 教材：第 3 章 §§3.1–3.5，印刷页 58–92，PDF 页 77–111。
+- 习题：§3.6 Exercises 3.1–3.16，印刷页 92–97，PDF 页 111–116；解答见 [Solutions](../solutions/ch03-solutions.qmd)。
+- 页码关系：**PDF 页 = 印刷页 + 19**（印刷页 58 = PDF 页 77）。

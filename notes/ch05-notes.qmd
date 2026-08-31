@@ -1,0 +1,997 @@
+---
+title: "第 5 章　度量熵及其应用"
+subtitle: "Wainwright, High-Dimensional Statistics 伴读 Notes"
+description: "面向已学陈希孺本科概率统计、并读过本书第 1–4 章的读者：把第 1 章预告的覆盖/填装做成度量熵，再用它控制高斯与次高斯过程的上确界"
+execute:
+  enabled: false
+lang: zh-CN
+---
+
+# 本章导览
+
+第 1 章用立方体上的近邻距离预告了 **$\delta$-覆盖**（covering）与 **$\delta$-填装**（packing）；第 4 章把有限 VC 类的一致定律写成拉德马赫复杂度。一旦指标集是无穷的——函数类、欧氏球、秩一矩阵——就不能再靠基数，需要一个**随尺度 $\delta$ 变化的确定性大小**。这个大小就是 **度量熵**（metric entropy）$\log N(\delta;\mathbb T,\rho)$。
+
+度量熵本身不含随机性。它进入统计，是因为次高斯过程的上确界可以先离散成有限最大值（一步离散化），再沿一串越来越细的覆盖把增量加起来（**链式** / chaining）。达德利熵积分把链式收成 $\int\sqrt{\log N(u)}\,du$；反过来，苏达科夫下界用填装数给高斯上确界一个匹配的下界。夹在中间的高斯比较（斯莱皮安、苏达科夫–费尔尼克、高斯收缩）则允许把一个难算的过程换成一个好算的过程。
+
+本章阅读主线：
+
+$$
+\text{覆盖 / 填装 / 体积比}
+\longrightarrow
+\text{高斯与拉德马赫复杂度}
+\longrightarrow
+\text{一步离散化}
+\longrightarrow
+\text{链式与达德利积分}
+\longrightarrow
+\text{高斯比较与苏达科夫下界}.
+$$
+
+> 教材定位：第 5 章 §§5.1–5.7，印刷页 121–154，PDF 页 140–173。习题 §5.8 印刷页 154–158，PDF 页 173–177，不进入 Notes。页码关系：**PDF 页 = 印刷页 + 19**。
+
+## 学习目标
+
+学完本章后，你应能：
+
+- **陈述** $\delta$-覆盖数、$\delta$-填装数与度量熵，并写出填装–覆盖关系 (5.4)；
+- **用** 体积比 Lemma 5.7 **给出** 单位球在自身范数下的熵 (5.9)，并对比 $\ell_2$、$\ell_1$、Lipschitz 类的标度；
+- **计算或估计** 欧氏球、$\ell_1$-球与 $s$-稀疏球的高斯 / 拉德马赫复杂度；
+- **写出** 一步离散化 (5.33) 与达德利熵积分 (5.46)，并说明链式如何去掉参数类上的对数因子；
+- **陈述** 苏达科夫–费尔尼克比较、高斯收缩与苏达科夫下界 (5.63)，并能判断何时只能用于高斯过程。
+
+# 必要先修
+
+陈希孺里的度量空间、范数与体积，以及本书第 2 章的次高斯尾、第 4 章的拉德马赫复杂度与 VC 维，本章直接当工具用。下面只钉三处接口。
+
+::: {.callout-note title="覆盖与填装：沿用第 1 章的两个汉字"}
+第 1 章 (1.15) 已经用过 $\delta$-covering / $\delta$-packing。全书固定译名：**覆盖**、**填装**。不要改成包覆、装填或铺砌。覆盖数 $N(\delta;\mathbb T,\rho)$ 是半径 $\delta$ 的球最少要多少个才能盖住 $\mathbb T$；填装数 $M(\delta;\mathbb T,\rho)$ 是 $\mathbb T$ 里最多能放下多少个彼此距离 $>\delta$ 的点。
+:::
+
+::: {.callout-note title="作者解释：次高斯增量就是第 2 章的矩母函数"}
+Definition 5.16 要求增量 $X_\theta-X_{\widetilde\theta}$ 的矩母函数不超过 $\exp(\lambda^2\rho_X^2(\theta,\widetilde\theta)/2)$。这正是 Definition 2.2 的次高斯，参数是伪度量 $\rho_X$。切尔诺夫立刻给出
+$$
+\mathbb P\bigl[\lvert X_\theta-X_{\widetilde\theta}\rvert\ge t\bigr]
+\le
+2e^{-t^2/(2\rho_X^2(\theta,\widetilde\theta))}.
+$$
+典范高斯过程与拉德马赫过程对欧氏度量都满足这一条。
+:::
+
+::: {.callout-note title="作者解释：有限最大值的次高斯尾已经够用"}
+一步离散化与链式都把无穷上确界换成有限个次高斯变量的最大值。Exercise 2.11–2.12 给出
+$$
+\mathbb E\bigl[\max_{i\le N}\lvert Y_i\rvert\bigr]
+\le
+2\sigma\sqrt{\log N},
+$$
+其中每个 $Y_i$ 是参数 $\le\sigma$ 的中心次高斯。达德利积分里的 $\sqrt{\log N(u)}$ 就是这一行沿着尺度 $u$ 积起来。
+:::
+
+# 5 Metric entropy and its uses　度量熵及其应用
+
+> 教材定位：章首，印刷页 121，PDF 页 140。
+
+统计里经常要控制**用无穷指标集标记的随机变量族**：连续时间随机游走的指标是 $[0,1]$，随机矩阵的指标是欧氏球面，经验过程的指标是函数类。有限集的大小是基数；无穷集需要更精细的尺度。柯尔莫哥洛夫、吉洪米罗夫一派引入的度量熵，用度量空间里的覆盖与填装来量这个大小。它的定义是确定性的，却决定随机过程上确界的标度。
+
+# 5.1 Covering and packing　覆盖与填装
+
+> 教材定位：§5.1，印刷页 121–131，PDF 页 140–150。
+
+度量空间 $(\mathbb T,\rho)$：$\mathbb T$ 非空，$\rho:\mathbb T\times\mathbb T\to\mathbb R$ 满足
+
+- 非负：$\rho(\theta,\widetilde\theta)\ge 0$，等号当且仅当 $\theta=\widetilde\theta$；
+- 对称：$\rho(\theta,\widetilde\theta)=\rho(\widetilde\theta,\theta)$；
+- 三角不等式：$\rho(\theta,\widetilde\theta)\le\rho(\theta,\widetilde\theta')+\rho(\widetilde\theta',\widetilde\theta)$。
+
+四个贯穿本章的例子：
+
+$$
+\rho(\theta,\widetilde\theta)
+=
+\lVert\theta-\widetilde\theta\rVert_2
+:=
+\sqrt{\sum_{j=1}^d(\theta_j-\widetilde\theta_j)^2},
+\tag{5.1a}
+$$
+
+$$
+\rho_H(\theta,\widetilde\theta)
+:=
+\frac1d\sum_{j=1}^d\mathbb I[\theta_j\neq\widetilde\theta_j],
+\tag{5.1b}
+$$
+
+$$
+\lVert f-g\rVert_2
+:=
+\Bigl(\int_0^1(f(x)-g(x))^2\,d\mu(x)\Bigr)^{1/2},
+\tag{5.1c}
+$$
+
+$$
+\lVert f-g\rVert_\infty
+=
+\sup_{x\in[0,1]}\lvert f(x)-g(x)\rvert.
+\tag{5.1d}
+$$
+
+(5.1a) 是 $\mathbb R^d$ 的欧氏度量；(5.1b) 是离散立方体 $\{0,1\}^d$ 上的**重标度汉明度量**（rescaled Hamming metric）；(5.1c)–(5.1d) 分别是 $L^2(\mu,[0,1])$ 与 $C[0,1]$ 上的度量。
+
+::: {.callout-important title="Definition 5.1　覆盖数"}
+集合 $\mathbb T$ 关于度量 $\rho$ 的一个 **$\delta$-覆盖**（$\delta$-cover）是 $\{\theta^1,\ldots,\theta^N\}\subset\mathbb T$，使得每个 $\theta\in\mathbb T$ 都存在某个 $i$ 满足 $\rho(\theta,\theta^i)\le\delta$。**$\delta$-覆盖数** $N(\delta;\mathbb T,\rho)$ 是最小 $\delta$-覆盖的基数。
+:::
+
+Figure 5.1(a)：半径 $\delta$ 的球盖住 $\mathbb T$。Figure 5.1(b)：$\delta$-填装对应半径 $\delta/2$、球心在 $\mathbb T$ 里、彼此不相交的球。
+
+讨论度量熵时，默认 $(\mathbb T,\rho)$ **完全有界**（totally bounded）：一切 $\delta>0$ 的覆盖数有限。Exercise 5.1 给出一个一致有界凸函数类，在 $\lVert\cdot\rVert_\infty$ 下不完全有界。覆盖数对 $\delta$ 非增；我们关心 $\delta\to 0^+$ 时 $\log N(\delta;\mathbb T,\rho)$ 的增长速度。这个对数就是 $\mathbb T$ 关于 $\rho$ 的**度量熵**。
+
+## 例：立方体与布尔超立方体
+
+**Example 5.2。** 区间 $[-1,1]$ 用绝对值。把 $[-1,1]$ 切成 $L:=\lfloor 1/\delta\rfloor+1$ 段，中心 $\theta^i=-1+2(i-1)\delta$，每段长至多 $2\delta$。任意一点到某个中心的距离 $\le\delta$，故
+
+$$
+N(\delta;[-1,1],\lvert\cdot\rvert)
+\le
+\frac1\delta+1.
+\tag{5.2}
+$$
+
+同样的切法给出 $N(\delta;[-1,1]^d,\lVert\cdot\rVert_\infty)\le(1+1/\delta)^d$。
+
+::: {.callout-note title="作者解释：印刷页 123 的区间"}
+构造覆盖时教材写 “for any point $\overline\theta\in[0,1]$”。区间与中心都在 $[-1,1]$，应按 $[-1,1]$ 读。
+:::
+
+**Example 5.3。** 布尔超立方体 $\mathbb H^d=\{0,1\}^d$，度量 (5.1b)。令 $S=\{1,\ldots,\lceil(1-\delta)d\rceil\}$，把 $S$ 以外的坐标一律置 0，得到 $2^{\lceil(1-\delta)d\rceil}$ 个向量的覆盖，于是
+$$
+\frac{\log N_H(\delta;\mathbb H^d)}{\log 2}
+\le
+\lceil d(1-\delta)\rceil.
+$$
+下界：$\delta$-覆盖的未重标度汉明球（半径 $s=\lfloor\delta d\rfloor$）必须盖住全部 $2^d$ 个向量。每个球的体积是 $\sum_{j=0}^s\binom{d}{j}$，因而 $N\sum_{j=0}^s\binom{d}{j}\ge 2^d$。右端用霍夫丁控制 $d$ 个 Bernoulli$(1/2)$ 的下尾，得到
+$$
+\log N_H(\delta;\mathbb H^d)
+\ge
+2d\Bigl(\tfrac12-\delta\Bigr)^2,
+\qquad
+\delta\in(0,1/2).
+$$
+Exercise 2.9 的二项尾换成 KL 散度 $D(\delta\Vert 1/2)$ 之后更尖：
+
+$$
+\log N_H(\delta;\mathbb H^d)
+\ge
+d\,D(\delta\Vert\tfrac12),
+\qquad
+\delta\in(0,\tfrac12).
+\tag{5.3}
+$$
+
+::: {.callout-important title="Definition 5.4　填装数"}
+集合 $\mathbb T$ 关于 $\rho$ 的一个 **$\delta$-填装**（$\delta$-packing）是 $\{\theta^1,\ldots,\theta^M\}\subset\mathbb T$，使得一切 $i\neq j$ 都有 $\rho(\theta^i,\theta^j)>\delta$。**$\delta$-填装数** $M(\delta;\mathbb T,\rho)$ 是最大 $\delta$-填装的基数。
+:::
+
+::: {.callout-important title="Lemma 5.5　填装与覆盖"}
+对一切 $\delta>0$，
+$$
+M(2\delta;\mathbb T,\rho)
+\le
+N(\delta;\mathbb T,\rho)
+\le
+M(\delta;\mathbb T,\rho).
+\tag{5.4}
+$$
+:::
+
+证明见 Exercise 5.2。直觉：(a) 半径 $\delta$ 的覆盖球最多各含一个 $2\delta$-填装点；(b) 最大 $\delta$-填装自动是 $\delta$-覆盖——否则还能再塞一个点。因此两者只差常数因子，熵的标度相同。
+
+**Example 5.6。** Example 5.2 的中心 $\{\theta^j:j=1,\ldots,L-1\}$ 满足 $\lvert\theta^j-\theta^k\rvert\ge 2\delta>\delta$，故 $M(2\delta;[-1,1],\lvert\cdot\rvert)\ge\lfloor 1/\delta\rfloor$。配上 (5.2) 与 (5.4)，
+$$
+\log N(\delta;[0,1]^d,\lVert\cdot\rVert_\infty)
+\asymp
+d\log(1/\delta)
+\qquad\text{对充分小的 }\delta>0.
+\tag{5.5}
+$$
+这就是第 1 章维数灾难的熵语言：分辨率 $\delta$ 要换约 $(1/\delta)^d$ 个立方体。
+
+## 体积比
+
+对 $\mathbb R^d$ 上的范数，覆盖数由单位球的体积比控制。$\ell_q$-单位球
+
+$$
+\mathbb B_q^d(1)
+:=
+\{x\in\mathbb R^d:\lVert x\rVert_q\le 1\},
+\tag{5.6}
+$$
+
+$$
+\lVert x\rVert_q
+:=
+\begin{cases}
+\bigl(\sum_{i=1}^d\lvert x_i\rvert^q\bigr)^{1/q}, & q\in[1,\infty),\\
+\max_{i=1,\ldots,d}\lvert x_i\rvert, & q=\infty.
+\end{cases}
+\tag{5.7}
+$$
+
+闵可夫斯基和 $A+B:=\{a+b:a\in A,\,b\in B\}$。
+
+::: {.callout-important title="Lemma 5.7　体积比与度量熵"}
+设 $\lVert\cdot\rVert$ 与 $\lVert\cdot\rVert'$ 是 $\mathbb R^d$ 上的两个范数，单位球分别为 $\mathbb B$ 与 $\mathbb B'$。则 $\mathbb B$ 在 $\lVert\cdot\rVert'$ 下的 $\delta$-覆盖数满足
+$$
+\Bigl(\frac1\delta\Bigr)^d\frac{\mathrm{vol}(\mathbb B)}{\mathrm{vol}(\mathbb B')}
+\le
+N(\delta;\mathbb B,\lVert\cdot\rVert')
+\le
+\frac{\mathrm{vol}\bigl(\tfrac2\delta\mathbb B+\mathbb B'\bigr)}{\mathrm{vol}(\mathbb B')}.
+\tag{5.8}
+$$
+若 $\mathbb B'\subseteq\mathbb B$，上界简化为 $N(\delta;\mathbb B,\lVert\cdot\rVert')\le(1+2/\delta)^d\,\mathrm{vol}(\mathbb B)/\mathrm{vol}(\mathbb B')$。
+:::
+
+下界：$\delta$-覆盖给出 $\mathbb B\subseteq\bigcup_j(\theta^j+\delta\mathbb B')$，取体积。上界：最大 $(\delta/2)$-填装同时是 $\delta$-覆盖；半径 $\delta/2$ 的 $\lVert\cdot\rVert'$-球互不相交且落在 $\mathbb B+(\delta/2)\mathbb B'$ 里。
+
+**Example 5.8。** 取 $\mathbb B=\mathbb B'$：
+
+$$
+d\log(1/\delta)
+\le
+\log N(\delta;\mathbb B,\lVert\cdot\rVert)
+\le
+d\log\Bigl(1+\frac2\delta\Bigr).
+\tag{5.9}
+$$
+
+$\ell_\infty$-球 $[-1,1]^d$ 的熵 $\asymp d\log(1/\delta)$，收回 Example 5.2 与 5.6。欧氏单位球 $\mathbb B_2^d$ 至多用 $(1+2/\delta)^d$ 个半径 $\delta$ 的欧氏球盖住。
+
+## 函数类的度量熵
+
+**Example 5.9（参数类）。** $f_\theta(x)=1-e^{-\theta x}$，$\mathscr P=\{f_\theta:[0,1]\to\mathbb R:\theta\in[0,1]\}$，一致范数。
+
+$$
+1+\Bigl\lfloor\frac{1-1/e}{2\delta}\Bigr\rfloor
+\le
+N_\infty(\delta;\mathscr P)
+\le
+\frac1{2\delta}+2.
+\tag{5.10}
+$$
+
+上界：在 $\theta$ 网格上取步长 $2\delta$，再用 $\lvert e^{-\theta x}-e^{-\theta'x}\rvert\le\lvert\theta-\theta'\rvert$。下界：令 $\theta^i=-\log(1-\delta i)$，使 $\lvert f_{\theta^i}(1)-f_{\theta^j}(1)\rvert\ge\delta$，再经 (5.4) 把填装换成覆盖。结论：$\log N(\delta;\mathscr P,\lVert\cdot\rVert_\infty)\asymp\log(1/\delta)$——一维参数类的典型标度。
+
+**Example 5.10（Lipschitz 类）。**
+
+$$
+\mathscr F_L
+:=
+\bigl\{
+g:[0,1]\to\mathbb R:
+g(0)=0,\;
+\lvert g(x)-g(x')\rvert\le L\lvert x-x'\rvert
+\ \forall x,x'\in[0,1]
+\bigr\}.
+\tag{5.11}
+$$
+
+$\mathscr P\subset\mathscr F_1$。一致范数下
+
+$$
+\log N_\infty(\delta;\mathscr F_L)
+\asymp
+L/\delta
+\qquad\text{对充分小的 }\delta>0.
+\tag{5.12}
+$$
+
+比参数类的 $\log(1/\delta)$ 快得多。下界用锯齿填装：网格间距 $\varepsilon$，每段斜率 $\pm L$，共 $2^{\lfloor 1/\varepsilon\rfloor}$ 个分段线性函数（Figure 5.2）。相异符号串至少在一段上反向，一致距离 $\ge 2L\varepsilon$。取 $\varepsilon=\delta/L$，经 Lemma 5.5 得到 $\log N(\delta;\mathscr F_L,\lVert\cdot\rVert_\infty)\gtrsim L/\delta$。同一批锯齿也可以当覆盖，给出匹配上界。
+
+高维立方体上的 Lipschitz 类 $\mathscr F_L([0,1]^d)$ 满足 $\lvert f(x)-f(y)\rvert\le L\lVert x-y\rVert_\infty$，熵变成
+
+$$
+\log N_\infty\bigl(\delta;\mathscr F_L([0,1]^d)\bigr)
+\asymp
+(L/\delta)^d.
+$$
+
+与单位球的线性 $d\log(1/\delta)$ 对照，这是指数式的维数灾难。
+
+**Example 5.11（高阶光滑类）。** 整数 $\alpha$，$\gamma\in(0,1]$：
+
+$$
+\lvert f^{(j)}(x)\rvert\le C_j,
+\qquad
+j=0,\ldots,\alpha,
+\tag{5.16a}
+$$
+
+$$
+\lvert f^{(\alpha)}(x)-f^{(\alpha)}(x')\rvert
+\le
+L\lvert x-x'\rvert^\gamma.
+\tag{5.16b}
+$$
+
+记这个类为 $\mathscr F_{\alpha,\gamma}$。吸收 $C_j,L$ 之后，
+
+$$
+\log N(\delta;\mathscr F_{\alpha,\gamma},\lVert\cdot\rVert_\infty)
+\asymp
+(1/\delta)^{1/(\alpha+\gamma)}.
+\tag{5.17}
+$$
+
+$\alpha=0,\gamma=1$ 收回 Example 5.10。下界仍用符号 bump：$\phi$ 是支撑在 $[0,1]$ 上、足够平坦的峰 (5.18)，网格间距 $h$，高度按 $h^{\alpha+\gamma}$ 缩放以保住 $\alpha$ 阶 Hölder。相邻符号相反时一致距离 $\asymp h^{\alpha+\gamma}$；取这个距离当填装半径，$\log M\asymp 1/h\asymp(1/\varepsilon)^{1/(\alpha+\gamma)}$。
+
+::: {.callout-note title="作者解释：印刷页 130 末式的符号"}
+证明里网格间距与覆盖半径都曾叫 $\delta$，填装半径又写成 $2\varepsilon$。末行印成 $\log N(\delta;\mathscr F_{\alpha,\gamma},\lVert\cdot\rVert_\infty)\gtrsim(1/\delta)\asymp(1/\varepsilon)^{1/(\alpha+\gamma)}$，把两种 $\delta$ 写在同一行。以 (5.17) 为准：覆盖半径 $\delta$ 的熵标度是 $(1/\delta)^{1/(\alpha+\gamma)}$。
+:::
+
+**Example 5.12（$\ell^2(\mathbb N)$ 椭球）。** 非负 $(\mu_j)_{j\ge 1}$ 且 $\sum\mu_j<\infty$，
+
+$$
+\mathcal E
+=
+\Bigl\{
+(\theta_j)_{j\ge 1}:
+\sum_{j=1}^\infty\frac{\theta_j^2}{\mu_j}\le 1
+\Bigr\}
+\subset\ell^2(\mathbb N).
+\tag{5.20}
+$$
+
+取 $\mu_j=j^{-2\alpha}$（$\alpha>1/2$），对应某些 $\alpha$ 次可微函数（第 12 章）。欧氏熵
+
+$$
+\log N(\delta;\mathcal E,\lVert\cdot\rVert_2)
+\asymp
+(1/\delta)^{1/\alpha}
+\qquad\text{对充分小的 }\delta>0.
+\tag{5.21}
+$$
+
+上界：取最小的 $d$ 使 $\mu_d\le\delta^2$，尾坐标的 $\ell^2$ 质量 $\le\delta$；截断椭球 $\widetilde{\mathcal E}\subset\mathbb R^d$ 的 $\delta$-覆盖给出原椭球的 $\sqrt 2\delta$-覆盖。体积比 (5.8) 加上 $\mathrm{vol}(\widetilde{\mathcal E})/\mathrm{vol}(\mathbb B_2^d)=\prod_{j=1}^d\sqrt{\mu_j}$，再用 $\sum_{j=1}^d\log j\ge d\log d-d$ 与 $d\le(1/\delta)^{1/\alpha}+1$。下界：截断椭球含 $\mathbb B_2^d(\delta)$，再引 (5.9)。
+
+# 5.2 Gaussian and Rademacher complexity　高斯与拉德马赫复杂度
+
+> 教材定位：§5.2，印刷页 132–134，PDF 页 151–153。
+
+度量熵是确定性的；随机过程上确界既被它控制，也可以反过来读出集合的大小。
+
+对 $\mathbb T\subseteq\mathbb R^d$，典范高斯过程
+
+$$
+G_\theta
+:=
+\langle w,\theta\rangle
+=
+\sum_{i=1}^d w_i\theta_i,
+\qquad
+w_i\sim N(0,1)\ \text{i.i.d.}
+\tag{5.22}
+$$
+
+**高斯复杂度**（Gaussian complexity）
+
+$$
+\mathcal G(\mathbb T)
+:=
+\mathbb E\Bigl[\sup_{\theta\in\mathbb T}\langle\theta,w\rangle\Bigr].
+\tag{5.23}
+$$
+
+把 $w_i$ 换成等概率 $\pm 1$ 的 $\varepsilon_i$，得到拉德马赫过程
+
+$$
+R_\theta
+:=
+\langle\varepsilon,\theta\rangle
+=
+\sum_{i=1}^d\varepsilon_i\theta_i.
+\tag{5.24}
+$$
+
+期望 $\mathcal R(\mathbb T):=\mathbb E[\sup_{\theta\in\mathbb T}\langle\theta,\varepsilon\rangle]$ 是**拉德马赫复杂度**。Exercise 5.5：一切 $\mathbb T$ 都有 $\mathcal R(\mathbb T)\le\sqrt{\pi/2}\,\mathcal G(\mathbb T)$；存在集合使高斯侧大出一个 $\sqrt{\log d}$ 因子（这是最坏比）。
+
+**Example 5.13（欧氏球）。** 柯西–施瓦茨给出 $\mathcal R(\mathbb B_2^d)=\sqrt d$。同样 $\mathcal G(\mathbb B_2^d)=\mathbb E[\lVert w\rVert_2]\le\sqrt d$（Jensen）。$\chi^2$ 集中给出匹配下界，因而
+
+$$
+\mathcal G(\mathbb B_2^d)/\sqrt d
+=
+1-o(1).
+\tag{5.25}
+$$
+
+**Example 5.14（$\ell_1$-球）。** 对偶 $\lVert\cdot\rVert_1\leftrightarrow\lVert\cdot\rVert_\infty$：$\mathcal R(\mathbb B_1^d)=\mathbb E[\lVert\varepsilon\rVert_\infty]=1$，而 $\mathcal G(\mathbb B_1^d)=\mathbb E[\lVert w\rVert_\infty]$，Exercise 2.11 给出
+
+$$
+\mathcal G(\mathbb B_1^d)/\sqrt{2\log d}
+=
+1\pm o(1).
+\tag{5.26}
+$$
+
+$\ell_1$-球远小于欧氏球；高斯与拉德马赫在这里差一个 $\sqrt{\log d}$。
+
+**Example 5.15（$\ell_0$-球）。** $\lVert\theta\rVert_0:=\sum_j\mathbb I[\theta_j\neq 0]$ 不是范数。半径 $s$ 的 $\ell_0$-“球” $\mathbb B_0^d(s)$ 是 $\binom{d}{s}$ 个坐标子空间的并，无界。加上欧氏单位约束
+
+$$
+\mathbb S^d(s)
+:=
+\mathbb B_0^d(s)\cap\mathbb B_2^d(1)
+=
+\{\theta:\lVert\theta\rVert_0\le s,\;\lVert\theta\rVert_2\le 1\}.
+\tag{5.28}
+$$
+
+Exercise 5.7–5.8：
+
+$$
+\mathcal G\bigl(\mathbb S^d(s)\bigr)
+\lesssim
+\sqrt{s\log(ed/s)},
+\tag{5.29}
+$$
+且下界同阶。稀疏的组合复杂度是 $\log\binom{d}{s}\asymp s\log(ed/s)$，不是 $d$。
+
+函数类：设计点 $x_1^n=\{x_1,\ldots,x_n\}$，
+
+$$
+\mathscr F(x_1^n)
+:=
+\bigl\{(f(x_1),\ldots,f(x_n)):f\in\mathscr F\bigr\}
+\subseteq\mathbb R^n.
+\tag{5.30}
+$$
+
+经验 $L^2$ 度量
+
+$$
+\lVert f-g\rVert_n
+:=
+\Bigl(\frac1n\sum_{i=1}^n(f(x_i)-g(x_i))^2\Bigr)^{1/2}
+\tag{5.31}
+$$
+正是 $\mathscr F(x_1^n)/\sqrt n$ 上的欧氏度量。若 $\lVert f\rVert_\infty\le b$，则平凡界 $\mathcal G(\mathscr F(x_1^n)/n)\le b$。结构会把这个界压下去；第 13 章的非参数最小二乘就吃这个量。
+
+# 5.3 Metric entropy and sub-Gaussian processes　度量熵与次高斯过程
+
+> 教材定位：§5.3，印刷页 134–143，PDF 页 153–162。
+
+::: {.callout-important title="Definition 5.16　次高斯过程"}
+零均值族 $\{X_\theta:\theta\in\mathbb T\}$ 关于度量 $\rho_X$ 是**次高斯过程**，若
+$$
+\mathbb E\bigl[e^{\lambda(X_\theta-X_{\widetilde\theta})}\bigr]
+\le
+\exp\bigl(\lambda^2\rho_X^2(\theta,\widetilde\theta)/2\bigr)
+\qquad
+\forall\theta,\widetilde\theta\in\mathbb T,\;\lambda\in\mathbb R.
+\tag{5.32}
+$$
+:::
+
+$N_X(\delta;\mathbb T)$ 表示关于 $\rho_X$ 的覆盖数；$N_2(\delta;\mathbb T)$ 专指欧氏覆盖数。典范高斯与拉德马赫过程都对 $\lVert\theta-\widetilde\theta\rVert_2$ 次高斯。
+
+## 5.3.1 Upper bound by one-step discretization　一步离散化上界
+
+> 教材定位：§5.3.1，印刷页 135–136，PDF 页 154–155。
+
+直径 $D:=\sup_{\theta,\widetilde\theta}\rho_X(\theta,\widetilde\theta)$。想法：用 $\delta$-覆盖把上确界换成有限最大，余下的是 $\rho_X\le\delta$ 的局部增量。
+
+::: {.callout-important title="Proposition 5.17　一步离散化"}
+设 $\{X_\theta:\theta\in\mathbb T\}$ 是关于 $\rho_X$ 的零均值次高斯过程。则对一切使 $N_X(\delta;\mathbb T)\ge 10$ 的 $\delta\in[0,D]$，
+$$
+\mathbb E\Bigl[\sup_{\theta,\widetilde\theta\in\mathbb T}(X_\theta-X_{\widetilde\theta})\Bigr]
+\le
+2\,\mathbb E\Bigl[\sup_{\rho_X(\gamma,\gamma')\le\delta}(X_\gamma-X_{\gamma'})\Bigr]
++
+4\sqrt{D^2\log N_X(\delta;\mathbb T)}.
+\tag{5.33}
+$$
+:::
+
+零均值把 $\mathbb E[\sup X_\theta]$ 收进增量上确界。$\delta\to 0$ 时第一项（逼近）变小、第二项（估计 / 熵）变大，实践中对 $\delta$ 取最优权衡。
+
+### 关键推导
+
+$\delta$-覆盖 $\{\theta^1,\ldots,\theta^N\}$。对每个 $\theta$ 找 $\theta^i$ 使 $\rho_X(\theta,\theta^i)\le\delta$，拆开
+$$
+X_\theta-X_{\theta^1}
+\le
+\sup_{\rho_X\le\delta}(X_\gamma-X_{\gamma'})
++
+\max_i\lvert X_{\theta^i}-X_{\theta^1}\rvert.
+$$
+对任意 $\widetilde\theta$ 做同样的事，两段相加得到 (5.34)。每个增量 $X_{\theta^i}-X_{\theta^1}$ 是参数 $\le D$ 的中心次高斯，Exercise 2.12(c) 给出 $\mathbb E[\max_i\lvert X_{\theta^i}-X_{\theta^1}\rvert]\le 2\sqrt{D^2\log N}$。
+
+若 $\mathbb T$ 含原点，高斯复杂度有局部化形式
+
+$$
+\mathcal G(\mathbb T)
+\le
+\min_{\delta\in[0,D]}
+\Bigl\{
+\mathcal G(\widetilde{\mathbb T}(\delta))
++
+2\sqrt{D^2\log N_2(\delta;\mathbb T)}
+\Bigr\},
+\tag{5.35}
+$$
+
+其中 $\widetilde{\mathbb T}(\delta):=\{\gamma-\gamma':\gamma,\gamma'\in\mathbb T,\,\lVert\gamma-\gamma'\rVert_2\le\delta\}$ 的高斯复杂度叫做**局部高斯复杂度**（localized Gaussian complexity）。第 13、14 章用它拿最优速率。柯西–施瓦茨把局部项换成 $\delta\sqrt d$，得到**朴素离散化**
+
+$$
+\mathcal G(\mathbb T)
+\le
+\min_{\delta\in[0,D]}
+\bigl\{
+\delta\sqrt d
++
+2\sqrt{D^2\log N_2(\delta;\mathbb T)}
+\bigr\}.
+\tag{5.36}
+$$
+
+有的集合这一下就够；有的必须更小心地控制局部复杂度。
+
+## 5.3.2 Some examples of discretization bounds　离散化界的例子
+
+> 教材定位：§5.3.2，印刷页 137–139，PDF 页 156–158。
+
+**Example 5.18。** 欧氏球：$\log N_2(\delta;\mathbb B_2^d)\le d\log(1+2/\delta)$。在 (5.36) 里取 $\delta=1/2$，
+$$
+\mathcal G(\mathbb B_2^d)
+\le
+\sqrt d\Bigl\{\tfrac12+2\sqrt{2\log 5}\Bigr\}.
+$$
+标度 $\sqrt d$ 正确，前置常数次优。
+
+**Example 5.19（次高斯矩阵的最大奇异值）。** $W\in\mathbb R^{n\times d}$，元素 i.i.d.、中心、次高斯参数 $\sigma=1$。谱范数 $\lvert\lvert\lvert W\rvert\rvert\rvert_2:=\sup_{v\in\mathbb S^{d-1}}\lVert Wv\rVert_2$。目标
+$$
+\mathbb E\bigl[\lvert\lvert\lvert W\rvert\rvert\rvert_2/\sqrt n\bigr]
+\lesssim
+1+\sqrt{d/n}.
+$$
+秩一单位 Frobenius 矩阵类
+$$
+\mathbb M^{n,d}(1)
+:=
+\{\Theta\in\mathbb R^{n\times d}:\mathrm{rank}(\Theta)=1,\;\lvert\lvert\lvert\Theta\rvert\rvert\rvert_F=1\},
+\tag{5.37}
+$$
+变分表示（Exercise 5.11(a)）
+$$
+\lvert\lvert\lvert W\rvert\rvert\rvert_2
+=
+\sup_{\Theta\in\mathbb M^{n,d}(1)}X_\Theta,
+\qquad
+X_\Theta:=\langle\langle W,\Theta\rangle\rangle=\sum_{i,j}W_{ij}\Theta_{ij}.
+\tag{5.38}
+$$
+过程 $\{X_\Theta\}$ 关于 Frobenius 度量次高斯。一步离散化给出 (5.39)；局部项 $\le\sqrt 2\,\delta\,\mathbb E[\lvert\lvert\lvert W\rvert\rvert\rvert_2]$（(5.40)），熵 $\log N_F(\delta;\mathbb M^{n,d}(1))\le(n+d)\log(1+2/\delta)$（(5.41)）。取 $\delta=1/(4\sqrt 2)$ 并整理，得到正确的 $(n,d)$ 标度。高斯矩阵上 Exercise 5.14 用苏达科夫–费尔尼克把前置常数收到 $c_1=1$。
+
+经验 $L^2$、逐点与一致熵的比较：
+
+$$
+\log N_2\bigl(\delta;\mathscr F(x_1^n)/\sqrt n\bigr)
+\le
+\log N_\infty\bigl(\delta;\mathscr F(x_1^n)\bigr)
+\le
+\log N(\delta;\mathscr F,\lVert\cdot\rVert_\infty).
+\tag{5.42}
+$$
+
+**Example 5.20。** 参数类 $\mathscr P$：$\delta\le 1/4$ 时 $\log N_\infty(\delta;\mathscr P)\le\log(1/\delta)$，经验直径 $D\le 1$。一步离散化再取 $\delta=1/(4\sqrt n)$，
+$$
+\mathcal G\bigl(\mathscr P(x_1^n)/n\bigr)
+\lesssim
+\sqrt{(\log n)/n}.
+\tag{5.43}
+$$
+真值其实是 $1/\sqrt n$；对数因子是一步法的税，链式会去掉。
+
+**Example 5.21。** Lipschitz 类：$\log N_\infty(\delta;\mathscr F_L)\le c L/\delta$。取 $\delta=n^{-1/3}$，
+$$
+\mathcal G\bigl(\mathscr F_L(x_1^n)/n\bigr)
+\lesssim
+n^{-1/3}.
+\tag{5.44}
+$$
+比参数类的 $n^{-1/2}$ 慢——熵从 $\log(1/\delta)$ 换成了 $1/\delta$。
+
+## 5.3.3 Chaining and Dudley's entropy integral　链式与达德利熵积分
+
+> 教材定位：§5.3.3，印刷页 139–143，PDF 页 158–162。
+
+一步法只在一个尺度上付熵税。**链式**把上确界拆成一串越来越细的有限最大：第 $m$ 层用半径 $D2^{-m}$ 的覆盖，增量是次高斯、参数 $\asymp D2^{-m}$，期望 $\asymp D2^{-m}\sqrt{\log N(D2^{-m})}$。对尺度求和，再把和收成积分。
+
+$\delta$-截断的**达德利熵积分**（Dudley's entropy integral）
+
+$$
+\mathcal J(\delta;D)
+:=
+\int_\delta^D\sqrt{\log N_X(u;\mathbb T)}\,du.
+\tag{5.45}
+$$
+
+::: {.callout-important title="Theorem 5.22　达德利熵积分"}
+设 $\{X_\theta:\theta\in\mathbb T\}$ 是关于伪度量 $\rho_X$ 的零均值次高斯过程。则对一切 $\delta\in[0,D]$，
+$$
+\mathbb E\Bigl[\sup_{\theta,\widetilde\theta}(X_\theta-X_{\widetilde\theta})\Bigr]
+\le
+2\,\mathbb E\Bigl[\sup_{\rho_X(\gamma,\gamma')\le\delta}(X_\gamma-X_{\gamma'})\Bigr]
++
+32\,\mathcal J(\delta/4;D).
+\tag{5.46}
+$$
+:::
+
+常数 32 不重要。$\delta=0$ 是经典形式 $\mathcal J(0;D)$；留下 $\delta>0$ 便于局部化。
+
+证明骨架：从 (5.34) 出发，不再对 $N$ 个点直接用并。令 $\mathbb U=\{\theta^1,\ldots,\theta^N\}$。对 $m=1,\ldots,L$，取 $\mathbb U$ 的最小 $\varepsilon_m=D2^{-m}$-覆盖 $\mathbb U_m$（允许用 $\mathbb T$ 里的点）。映射 $\pi_m(\theta)=\arg\min_{\beta\in\mathbb U_m}\rho_X(\theta,\beta)$。从 $\gamma^L=\theta$ 递归 $\gamma^{m-1}=\pi_{m-1}(\gamma^m)$，链式
+$$
+X_\theta-X_{\gamma^1}
+=
+\sum_{m=2}^L(X_{\gamma^m}-X_{\gamma^{m-1}}).
+\tag{5.47}
+$$
+Figure 5.3 画的是 $L=5$ 的树。图注印的是 $De^{-m}$-覆盖；正文与证明用的是 $\varepsilon_m=D2^{-m}$。对每层用次高斯最大值，
+$$
+\mathbb E\bigl[\max_{\beta\in\mathbb U_m}\lvert X_\beta-X_{\pi_{m-1}(\beta)}\rvert\bigr]
+\le
+2\,D2^{-(m-1)}\sqrt{\log N(D2^{-m})}.
+$$
+熵非增，把 $D2^{-(m-1)}\sqrt{\log N(D2^{-m})}$ 收进积分 $\int_{D2^{-(m+1)}}^{D2^{-m}}\sqrt{\log N(u)}\,du$，全部加起来就是 $32\mathcal J(\delta/4;D)$。
+
+**Example 5.23。** 参数类的 $L^\infty$ 熵 $O(\log(1+1/\delta))$，达德利积分 $\int_0^2\sqrt{\log(1+1/u)}\,du<\infty$，故
+$$
+\mathcal G\bigl(\mathscr P(x_1^n)/n\bigr)
+\le
+c/\sqrt n.
+$$
+一步法多出来的 $\sqrt{\log n}$ 被积分吃掉：每层只付该层的 $\sqrt{\log N}$，而不是最细那一层的。
+
+**Example 5.24（有限 VC 类）。** $\mathscr F$ 一致有界 $\lvert f\rvert\le b$，VC 维 $\nu$。对称化之后要控制 $\mathbb E_\varepsilon\sup_f\lvert n^{-1}\sum\varepsilon_i f(x_i)\rvert$。过程 $Z_f=n^{-1/2}\sum\varepsilon_i f(x_i)$ 关于 $\lVert\cdot\rVert_{\mathbb P_n}$ 次高斯，达德利给出
+$$
+\mathbb E_\varepsilon\sup_f\Bigl\lvert\frac1n\sum_{i=1}^n\varepsilon_i f(x_i)\Bigr\rvert
+\le
+\frac{24}{\sqrt n}\int_0^{2b}\sqrt{\log N(t;\mathscr F,\lVert\cdot\rVert_{\mathbb P_n})}\,dt.
+\tag{5.48}
+$$
+VC 熵（van der Vaart–Wellner；较弱形式见 Exercise 5.4）
+$$
+N(\varepsilon;\mathscr F,\lVert\cdot\rVert_{\mathbb P_n})
+\le
+C\nu(16e)^\nu(b/\varepsilon)^{2\nu}.
+\tag{5.49}
+$$
+积分有限，因而
+$$
+\mathbb E_\varepsilon\sup_f\Bigl\lvert\frac1n\sum\varepsilon_i f(x_i)\Bigr\rvert
+\le
+c_0'\sqrt{\nu/n}.
+\tag{5.50}
+$$
+这比 Lemma 4.14 的 $\sqrt{\nu\log(n+1)/n}$ 更尖。格利文科–坎泰利：指示函数 VC 维 $\nu=1$，配 Theorem 4.10，
+$$
+\mathbb P\bigl[\lVert\widehat F_n-F\rVert_\infty\ge c/\sqrt n+\delta\bigr]
+\le
+2e^{-n\delta^2/8},
+\qquad
+\delta\ge 0.
+\tag{5.51}
+$$
+除常数外不可改进。
+
+# 5.4 Some Gaussian comparison inequalities　若干高斯比较不等式
+
+> 教材定位：§5.4，印刷页 143–148，PDF 页 162–167。
+
+两个同指标的高斯过程，何时 $\mathbb E[F(X)]\le\mathbb E[F(Y)]$？上确界 $F(X)=\sup_\theta X_\theta$ 是最重要的例子。高斯过程的上确界由有限子集的最大值取极限定义，故本节取 $\mathbb T=[N]$。
+
+## 5.4.1 A general comparison result　一般比较
+
+> 教材定位：§5.4.1，印刷页 143–145，PDF 页 162–164。
+
+::: {.callout-important title="Theorem 5.25　一般高斯比较"}
+设 $X,Y\in\mathbb R^N$ 是中心高斯向量。若存在 $[N]\times[N]$ 的不交子集 $A,B$，使得
+$$
+\begin{aligned}
+\mathbb E[X_i X_j]&\le\mathbb E[Y_i Y_j] && (i,j)\in A,\\
+\mathbb E[X_i X_j]&\ge\mathbb E[Y_i Y_j] && (i,j)\in B,\\
+\mathbb E[X_i X_j]&=\mathbb E[Y_i Y_j] && (i,j)\notin A\cup B,
+\end{aligned}
+\tag{5.52}
+$$
+且 $F:\mathbb R^N\to\mathbb R$ 二阶可微，混合二阶导数在 $A$ 上非负、在 $B$ 上非正，则 $\mathbb E[F(X)]\le\mathbb E[F(Y)]$。
+:::
+
+插值 $Z(t)=\sqrt{1-t}\,X+\sqrt t\,Y$，$\phi(t)=\mathbb E[F(Z(t))]$。目标是 $\phi'(t)\ge 0$。链式法则把 $\phi'$ 写成 $\sum_j\mathbb E[(\partial F/\partial z_j)(Z)\,Z_j']$，而 $\mathbb E[Z_i(t)Z_j'(t)]=\frac12(\mathbb E[Y_i Y_j]-\mathbb E[X_i X_j])$。把 $Z_i$ 对 $Z_j'$ 回归：$Z_i=\alpha_{ij}Z_j'+W_{ij}$，系数 $\alpha_{ij}$ 的符号与 $A,B$ 一致，$W_{\cdot j}$ 与 $Z_j'$ 独立。对 $\partial F/\partial z_j$ 做一阶泰勒，交叉项在取期望后只留下 $\partial^2 F\cdot\alpha_{ij}\cdot(Z_j')^2$。教材证明末行写 “second derivatives of $f$”；定理里的函数是 $F$。
+
+## 5.4.2 Slepian and Sudakov–Fernique inequalities　斯莱皮安与苏达科夫–费尔尼克
+
+> 教材定位：§5.4.2，印刷页 145–146，PDF 页 164–165。
+
+::: {.callout-important title="Corollary 5.26　斯莱皮安不等式"}
+若 $X,Y$ 零均值高斯，非对角协方差 $\mathbb E[X_i X_j]\ge\mathbb E[Y_i Y_j]$（$i\neq j$），且等方差 $\mathbb E[X_i^2]=\mathbb E[Y_i^2]$，则
+$$
+\mathbb E\bigl[\max_i X_i\bigr]
+\le
+\mathbb E\bigl[\max_i Y_i\bigr].
+\tag{5.57}
+$$
+:::
+
+软最大 $F_\beta(x)=\beta^{-1}\log\sum_j e^{\beta x_j}$ 夹逼最大值，
+$$
+\max_j x_j
+\le
+F_\beta(x)
+\le
+\max_j x_j+(\log N)/\beta.
+\tag{5.58}
+$$
+$i\neq j$ 时 $\partial^2 F_\beta/\partial x_i\partial x_j\le 0$，故 Theorem 5.25 用于 $A=\emptyset$、$B=\{i\neq j\}$。再令 $\beta\to\infty$。
+
+很多时候更方便比较增量的 $L^2$ 度量 $\rho_X^2(i,j)=\mathbb E[(X_i-X_j)^2]$。
+
+::: {.callout-important title="Theorem 5.27　苏达科夫–费尔尼克"}
+设 $(X_1,\ldots,X_N)$ 与 $(Y_1,\ldots,Y_N)$ 是零均值高斯向量。若
+$$
+\mathbb E[(X_i-X_j)^2]
+\le
+\mathbb E[(Y_i-Y_j)^2]
+\qquad
+\forall(i,j)\in[N]\times[N],
+\tag{5.59}
+$$
+则 $\mathbb E[\max_j X_j]\le\mathbb E[\max_j Y_j]$。
+:::
+
+教材定理框在 “$(Y_1,\ldots,Y_N$” 处缺右括号。斯莱皮安条件推出 (5.59)，故苏达科夫–费尔尼克更强；证明也更长，细节指回文献。
+
+## 5.4.3 Gaussian contraction inequality　高斯收缩
+
+> 教材定位：§5.4.3，印刷页 146–148，PDF 页 165–167。
+
+坐标映射 $\phi_j:\mathbb R\to\mathbb R$ 满足 $\phi_j(0)=0$ 且 $1$-利普希茨。对向量，$\phi(\theta)=(\phi_1(\theta_1),\ldots,\phi_d(\theta_d))$，$\phi(\mathbb T)$ 是像集。
+
+::: {.callout-important title="Proposition 5.28　高斯收缩"}
+$$
+\mathcal G(\phi(\mathbb T))
+\le
+\mathcal G(\mathbb T).
+\tag{5.60}
+$$
+:::
+
+证明见 Exercise 5.12：增量 $\lVert\phi(\theta)-\phi(\theta')\rVert_2\le\lVert\theta-\theta'\rVert_2$，苏达科夫–费尔尼克直接给出。拉德马赫版要多一个 2：$\mathcal R(\phi(\mathbb T))\le 2\mathcal R(\mathbb T)$（(5.61)），证明更细，见 Ledoux–Talagrand。
+
+**Example 5.29。** 平方函数类 $\mathscr F^2(x_1^n)=\{(f(x_1)^2,\ldots,f(x_n)^2):f\in\mathscr F\}$。若 $\lVert f\rVert_\infty\le b$，取截断平方 $\phi_b(t)=t^2/(2b)$（$\lvert t\rvert\le b$），它是中心 $1$-利普希茨，因而
+$$
+\mathcal G\bigl(\mathscr F^2(x_1^n)\bigr)
+\le
+2b\,\mathcal G\bigl(\mathscr F(x_1^n)\bigr).
+\tag{5.62}
+$$
+
+# 5.5 Sudakov's lower bound　苏达科夫下界
+
+> 教材定位：§5.5，印刷页 148–150，PDF 页 167–169。
+
+前面两条是上界。下界必须限制在**高斯**过程：一般次高斯可以表现得完全不同（$\ell_1$-球的拉德马赫 vs 高斯）。
+
+::: {.callout-important title="Theorem 5.30　苏达科夫下界"}
+设 $\{X_\theta:\theta\in\mathbb T\}$ 是非空集上的零均值高斯过程。则
+$$
+\mathbb E\Bigl[\sup_{\theta\in\mathbb T}X_\theta\Bigr]
+\ge
+\sup_{\delta>0}\frac\delta2\sqrt{\log M_X(\delta;\mathbb T)},
+\tag{5.63}
+$$
+其中 $M_X$ 是度量 $\rho_X(\theta,\widetilde\theta):=\sqrt{\mathbb E[(X_\theta-X_{\widetilde\theta})^2]}$ 下的填装数。
+:::
+
+证明：$\delta$-填装上的限制过程 $Y_i=X_{\theta^i}$ 满足 $\mathbb E[(Y_i-Y_j)^2]>\delta^2$。拿 i.i.d. $Z_i\sim N(0,\delta^2/2)$ 作比较过程（增量恰好是 $\delta^2$），苏达科夫–费尔尼克给出 $\mathbb E[\max Y_i]\ge\mathbb E[\max Z_i]$。i.i.d. 高斯最大值（Exercise 2.11）$\ge(\delta/2)\sqrt{\log M}$。
+
+**Example 5.31。** $\mathcal G(\mathbb B_2^d)\le\sqrt d$ 已知。单位球自身熵的下界来自 Example 5.8 / (5.9)（教材此处引 Example 5.9，那是参数函数类）：$\log N_2(\delta;\mathbb B_2^d)\ge d\log(1/\delta)$。取 $\delta=1/4$，
+$$
+\mathcal G(\mathbb B_2^d)
+\ge
+\frac{\sqrt{\log 4}}{8}\sqrt d.
+$$
+标度匹配，常数次优。
+
+苏达科夫也可以**反过来**由高斯复杂度上界推出熵上界。
+
+**Example 5.32。** $\mathcal G(\mathbb B_1^d)=\mathbb E[\lVert w\rVert_\infty]\le 2\sqrt{\log d}$，代入 (5.63) 得到
+$$
+\log N(\delta;\mathbb B_1^d,\lVert\cdot\rVert_2)
+\le
+c(1/\delta)^2\log d.
+\tag{5.64}
+$$
+相关 $\delta$ 范围内这个上界是紧的。$\ell_1$-球的熵对 $d$ 只是对数，欧氏球是线性——又一次看见 $\ell_1$ 小得多。
+
+**Example 5.33。** 回到 $\mathbb E[\lvert\lvert\lvert W\rvert\rvert\rvert_2]=\mathcal G(\mathbb M^{n,d}(1))$。Exercise 5.13 给出 Frobenius 填装 $\log M(\delta;\mathbb M^{n,d}(1))\ge c_1^2(n+d)\log(1/\delta)$（$\delta\in(0,1/2)$）。取 $\delta=1/4$，
+$$
+\mathbb E\bigl[\lvert\lvert\lvert W\rvert\rvert\rvert_2\bigr]
+\ge
+c_1'(\sqrt n+\sqrt d),
+$$
+与 Example 5.19 的上界同阶。
+
+# 5.6 Chaining and Orlicz processes　链式与奥利茨过程
+
+> 教材定位：§5.6，印刷页 150–153，PDF 页 169–172。
+
+高斯上确界会集中在期望附近（Exercise 5.10）。一般次高斯、以及只有次指数尾的过程，需要统一的矩语言。对 $q\in[1,2]$，令 $\psi_q(t)=e^{t^q}-1$。
+
+::: {.callout-important title="Definition 5.34　奥利茨范数"}
+零均值随机变量 $X$ 的 $\psi_q$-**奥利茨范数**（Orlicz norm）
+$$
+\lVert X\rVert_{\psi_q}
+:=
+\inf\bigl\{\lambda>0:\mathbb E[\psi_q(\lvert X\rvert/\lambda)]\le 1\bigr\}.
+\tag{5.65}
+$$
+若不存在有限的 $\lambda$，范数为无穷。
+:::
+
+马尔可夫立刻给出 $\mathbb P[\lvert X\rvert\ge t]\le 1/\psi_q(t/\lVert X\rVert_{\psi_q})$。$q=2$ 即次高斯尾（Exercise 2.18）；$q=1$ 即次指数。第 2 章把同一对象叫做奥利茨范数。
+
+::: {.callout-important title="Definition 5.35　$\psi_q$-过程"}
+零均值过程关于度量 $\rho$ 是 $\psi_q$-过程，若
+$$
+\lVert X_\theta-X_{\widetilde\theta}\rVert_{\psi_q}
+\le
+\rho(\theta,\widetilde\theta)
+\qquad
+\forall\theta,\widetilde\theta\in\mathbb T.
+\tag{5.66}
+$$
+:::
+
+典范高斯过程是关于 $\rho(\theta,\widetilde\theta)=2\lVert\theta-\widetilde\theta\rVert_2$ 的 $\psi_2$-过程。广义达德利积分
+$$
+\mathcal J_q(\delta;D)
+:=
+\int_\delta^D\psi_q^{-1}\bigl(N(u;\mathbb T,\rho)\bigr)\,du,
+\qquad
+\psi_q^{-1}(u)=[\log(1+u)]^{1/q}.
+\tag{5.67}
+$$
+
+::: {.callout-important title="Theorem 5.36　奥利茨过程的尾界"}
+存在万有常数 $c_1$，使得
+$$
+\mathbb P\Bigl[
+\sup_{\theta,\widetilde\theta}\lvert X_\theta-X_{\widetilde\theta}\rvert
+\ge
+c_1\bigl(\mathcal J_q(0;D)+t\bigr)
+\Bigr]
+\le
+2e^{-t^q/D^q},
+\qquad t>0.
+\tag{5.69}
+$$
+:::
+
+这从两个方向推广 Theorem 5.22：$q\in[1,2]$（次高斯是 $q=2$），以及给出尾而不只是期望。期望可由尾积分收回。
+
+辅助 Lemma 5.37：若 $\lVert Y_i\rVert_{\psi_q}\le 1$，则在可测集 $A$ 上
+$$
+\mathbb E_A[Y_i]
+\le
+\mathbb P[A]\,\psi_q^{-1}(1/\mathbb P(A)),
+\qquad
+\mathbb E_A\bigl[\max_i Y_i\bigr]
+\le
+\mathbb P[A]\,\psi_q^{-1}(N/\mathbb P(A)).
+\tag{5.70}
+$$
+证明用 $\psi_q^{-1}$ 的凹性（Jensen）以及 $\mathbb E_A[\psi_q(Y)]\le 1$。把 Lemma 5.37 送进与 Theorem 5.22 相同的链式，得到
+$$
+\mathbb E_A[Z]
+\le
+8\,\mathbb P[A]\int_0^D\psi_q^{-1}\bigl(N(u)/\mathbb P[A]\bigr)\,du.
+\tag{5.72}
+$$
+取 $A$ 为全空间得期望界；取 $A=\{Z\ge t\}$ 再用 $\psi_q^{-1}(st)\le c(\psi_q^{-1}(s)+\psi_q^{-1}(t))$，整理即 (5.69)。
+
+# 5.7 Bibliographic details and background　文献与背景
+
+> 教材定位：§5.7，印刷页 153–154，PDF 页 172–173。文献条目指回教材。
+
+度量熵：Kolmogorov–Tikhomirov。达德利积分：Dudley (1967)；更尖的高斯上确界用塔拉格兰一般链式。奥利茨推广：Ledoux–Talagrand。$\ell_1$ / $\ell_q$ 球的熵：Schütt、Kühn，Raskutti 等改写成度量熵。高斯比较：Slepian、Fernique、Gordon、Chatterjee。VC 熵 (5.49)：van der Vaart–Wellner Theorem 2.6.7。
+
+# 常见错误
+
+1. **错误做法：** 把覆盖半径与填装间隔当成同一个 $\delta$，或忘记 Lemma 5.5 里的 $2\delta$。  
+   **为什么错：** 覆盖用半径 $\delta$ 的球；填装要求点距 $>\delta$，几何图像是半径 $\delta/2$ 的不相交球。体积比上界用的是最大 $(\delta/2)$-填装。  
+   **正确判断：** 先写清 $\rho(\theta^i,\theta^j)>\delta$ 还是 $\le\delta$，再决定 $N$ 与 $M$ 谁大。
+
+2. **错误做法：** 认为一步离散化给出的速率总是紧的。  
+   **为什么错：** 参数类上 (5.43) 多一个 $\sqrt{\log n}$；Lipschitz 类的 $n^{-1/3}$ 来自熵 $1/\delta$，这一次一步法的标度是对的，但前置常数仍粗。  
+   **正确判断：** 熵是 $\log(1/\delta)$ 型时优先到达德利积分；熵是 $(1/\delta)^\alpha$ 型时一步法往往已给出正确幂次。
+
+3. **错误做法：** 把苏达科夫下界用到拉德马赫过程上，并声称 $\mathcal R(\mathbb B_1^d)\gtrsim\sqrt{\log d}$。  
+   **为什么错：** Theorem 5.30 需要高斯。$\mathcal R(\mathbb B_1^d)=1$，与 $\mathcal G(\mathbb B_1^d)\sim\sqrt{2\log d}$ 可以差一个对数根号（Exercise 5.5 的最坏比）。  
+   **正确判断：** 下界默认高斯；一般次高斯只有上界（离散化 / 达德利 / 奥利茨）。
+
+4. **错误做法：** 用体积比时混用两个范数的单位球，或把 $d\log(1/\delta)$ 套到 $\ell_1$-球的欧氏熵上。  
+   **为什么错：** (5.9) 是“自己的范数盖自己的球”。$\mathbb B_1^d$ 的欧氏熵是 $(1/\delta)^2\log d$（(5.64)），不是 $d\log(1/\delta)$。  
+   **正确判断：** 先固定被覆盖的集合，再固定覆盖所用的度量。
+
+5. **错误做法：** 把 Figure 5.3 的图注 $De^{-m}$ 当成证明里的覆盖半径。  
+   **为什么错：** 正文取 $\varepsilon_m=D2^{-m}$，积分换元按 2 的几何级数来。指数 $e^{-m}$ 会改常数，不改证明结构，但与印刷公式不一致。  
+   **正确判断：** 链式半径用 $D2^{-m}$。
+
+# 轻量自测
+
+1. 用一句话说明：为何 $M(2\delta)\le N(\delta)\le M(\delta)$，以及这对度量熵的标度意味着什么。
+2. 由 (5.9) 写出 $\mathbb B_2^d$ 在欧氏度量下 $\delta=1/4$ 时覆盖数的对数上、下界。
+3. 比较 $\mathcal G(\mathbb B_2^d)$、$\mathcal G(\mathbb B_1^d)$、$\mathcal G(\mathbb S^d(s))$ 的标度，并指出哪一对高斯 / 拉德马赫可以差 $\sqrt{\log d}$。
+4. 参数类 $\mathscr P$ 的一步法给出 $\sqrt{(\log n)/n}$，达德利给出 $1/\sqrt n$。指出对数从哪一步被积分消掉。
+5. 苏达科夫下界 (5.63) 的比较过程 $Z_i$ 为什么选方差 $\delta^2/2$？若过程只是次高斯，这条下界还成不成立？
+
+<details>
+<summary>查看参考答案</summary>
+
+1. 每个半径 $\delta$ 的覆盖球最多装一个 $2\delta$-填装点，故 $M(2\delta)\le N(\delta)$。最大 $\delta$-填装若不是 $\delta$-覆盖，就能再塞进一个与所有填装点距离 $>\delta$ 的点，矛盾，故 $N(\delta)\le M(\delta)$。两者只差 $\delta\mapsto 2\delta$，对数熵作为 $\delta\to 0$ 的增长速度相同。
+2. (5.9)：$d\log 4\le\log N(1/4;\mathbb B_2^d,\lVert\cdot\rVert_2)\le d\log(1+8)=d\log 9$。
+3. $\sqrt d$、$~\sqrt{2\log d}$、$~\sqrt{s\log(ed/s)}$。$\ell_1$-球：$\mathcal R=1$ 而 $\mathcal G\sim\sqrt{2\log d}$，这是 Exercise 5.5 的最坏比。
+4. 一步法用最细尺度的 $\log N(\delta)\asymp\log(1/\delta)$，再取 $\delta\sim n^{-1/2}$ 就出现 $\sqrt{\log n}$。链式在每个二进尺度 $u=D2^{-m}$ 只付 $\sqrt{\log N(u)}$，积分 $\int_0\sqrt{\log(1/u)}\,du$ 收敛，不再留下 $\log n$。
+5. 填装点满足 $\mathbb E[(Y_i-Y_j)^2]>\delta^2$；i.i.d. $N(0,\delta^2/2)$ 的增量恰好是 $\delta^2$，苏达科夫–费尔尼克的方向是“增量更大则最大值更大”。方差选 $\delta^2/2$ 是为了让比较过程的增量卡在填装下限上。过程若只是次高斯，比较不等式不必成立（反例即 $\ell_1$-球的拉德马赫过程）。
+
+</details>
+
+# 本章小结
+
+- 无穷指标集的大小用覆盖数 / 填装数衡量；Lemma 5.5 保证两者同阶，体积比把有限维单位球的熵钉在 $d\log(1/\delta)$ 上；
+- 函数类的熵从参数的 $\log(1/\delta)$、Lipschitz 的 $1/\delta$、光滑的 $(1/\delta)^{1/(\alpha+\gamma)}$，一直到高维 Lipschitz 的 $(L/\delta)^d$（维数灾难）；
+- 高斯 / 拉德马赫复杂度是同一套几何的随机版本：欧氏球 $\sqrt d$，$\ell_1$-球 $\sqrt{\log d}$，稀疏球 $\sqrt{s\log(d/s)}$；
+- 一步离散化把上确界拆成局部增量加有限最大；链式沿 $D2^{-m}$ 把熵税积成达德利积分，常常去掉一步法的对数；
+- 高斯比较（斯莱皮安 / 苏达科夫–费尔尼克 / 收缩）在过程之间搬家；苏达科夫下界用填装给高斯上确界匹配的下界，不能随意搬到拉德马赫过程。
+
+## 术语对照
+
+| 中文 | English | 备注 |
+|---|---|---|
+| 度量熵 | metric entropy | $\log N(\delta;\mathbb T,\rho)$ |
+| 覆盖 | covering | 第 1 章已用；Definition 5.1 |
+| 覆盖数 | covering number | $N(\delta;\mathbb T,\rho)$ |
+| 填装 | packing | 第 1 章已用；Definition 5.4 |
+| 填装数 | packing number | $M(\delta;\mathbb T,\rho)$ |
+| 完全有界 | totally bounded | 一切 $\delta>0$ 的覆盖数有限 |
+| 重标度汉明度量 | rescaled Hamming metric | (5.1b) |
+| 体积比 | volume ratio | Lemma 5.7 |
+| 典范高斯过程 | canonical Gaussian process | (5.22) |
+| 高斯复杂度 | Gaussian complexity | (5.23)；第 2 章 Example 2.30 |
+| 拉德马赫过程 | Rademacher process | (5.24) |
+| 拉德马赫复杂度 | Rademacher complexity | 第 4 章；(5.24) 的期望 |
+| 次高斯过程 | sub-Gaussian process | Definition 5.16 |
+| 一步离散化 | one-step discretization | Proposition 5.17 |
+| 局部高斯复杂度 | localized Gaussian complexity | (5.35) |
+| 链式 | chaining | (5.47)；Figure 5.3 |
+| 达德利熵积分 | Dudley's entropy integral | (5.45)；Theorem 5.22 |
+| 高斯比较不等式 | Gaussian comparison inequality | Theorem 5.25 |
+| 斯莱皮安不等式 | Slepian's inequality | Corollary 5.26 |
+| 苏达科夫–费尔尼克不等式 | Sudakov–Fernique inequality | Theorem 5.27 |
+| 高斯收缩 | Gaussian contraction | Proposition 5.28 |
+| 苏达科夫下界 | Sudakov minoration | Theorem 5.30 |
+| 奥利茨范数 | Orlicz norm | Definition 5.34；第 2 章 Exercise 2.18 |
+| 奥利茨过程 | Orlicz process | Definition 5.35；$\psi_q$-过程 |
+| 设计点 | design points | (5.30) 的 $x_1^n$ |
+| 经验 $L^2$ 度量 | empirical $L^2$ metric | (5.31) |
+| 维数灾难 | curse of dimensionality | 高维 Lipschitz 熵 $(L/\delta)^d$ |
+| 格利文科–坎泰利定理 | Glivenko–Cantelli theorem | (5.51) |
+
+: 本章术语（中文从名词委；英文从教材或国际通行用法）
+
+## 来源定位
+
+- 教材：第 5 章 §§5.1–5.7，印刷页 121–154，PDF 页 140–173。
+- 习题：§5.8 Exercises 5.1–5.14，印刷页 154–158，PDF 页 173–177；解答见 [Solutions](../solutions/ch05-solutions.qmd)。
+- 页码关系：**PDF 页 = 印刷页 + 19**（印刷页 121 = PDF 页 140）。

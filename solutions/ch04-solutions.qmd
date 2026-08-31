@@ -1,0 +1,294 @@
+---
+title: "Chapter 4 Exercises"
+subtitle: "Wainwright, High-Dimensional Statistics §4"
+description: "Exercise list locked from the textbook; solved independently"
+execute:
+  enabled: false
+---
+
+# How to use this file
+
+- Textbook: *High-Dimensional Statistics*, Chapter 4.
+- Coverage: Exercises 4.1--4.17, printed pp. 117--120.
+- The exercise wording is abridged; notation and numbering follow the textbook.
+- A suspected source typo is retained and explicitly identified rather than silently repaired.
+- Companion notes: [`ch04-notes.qmd`](../notes/ch04-notes.qmd).
+
+### Exercise 4.1
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Use uniform-norm continuity and the Glivenko--Cantelli theorem. Determine whether the mean, Cramér--von Mises functional, and a quantile functional are continuous in the uniform norm.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+If $\gamma$ is continuous at $F$, then, for every $\varepsilon>0$, continuity gives a $\delta>0$ such that $\|G-F\|_\infty<\delta$ implies $|\gamma(G)-\gamma(F)|<\varepsilon$. The Glivenko--Cantelli theorem gives $\|\widehat F_n-F\|_\infty\to0$ in probability (indeed almost surely), so the displayed implication proves $\gamma(\widehat F_n)\to\gamma(F)$ in probability.
+
+(i) The mean is not uniformly continuous on all distribution functions: put mass $\varepsilon$ at $M$ and move it to $0$. The c.d.f.s differ by at most $\varepsilon$, whereas the means differ by $\varepsilon M$, which can be arbitrarily large.
+
+(ii) $\gamma(F)=\int(F-F_0)^2\,dF_0$ is continuous, since
+$$
+ |\gamma(F)-\gamma(G)|\le 2\|F-G\|_\infty
+$$
+because both squared terms lie in $[0,1]$.
+
+(iii) $Q_\alpha$ is not continuous in general. A flat part of $F$ at height $\alpha$, or an atom that can be shifted slightly, permits arbitrarily small uniform perturbations with a non-vanishing jump of the selected quantile. It is continuous at distributions that cross level $\alpha$ uniquely and strictly.
+:::
+
+### Exercise 4.2
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+For the class of all finite subsets of $[0,1]$, prove $\mathcal R_n(\mathcal S)\ge1/2$, and discuss the implication for Theorem 4.10.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Take distinct points $x_1,\ldots,x_n$. For each Rademacher vector $\varepsilon$, choose the finite set $S_\varepsilon=\{x_i:\varepsilon_i=1\}$. Then
+$$
+ \sup_{S\in\mathcal S}\frac1n\sum_i\varepsilon_i1\{x_i\in S\}
+ \ge \frac1n\sum_i\varepsilon_i1\{\varepsilon_i=1\}
+ =\frac1n\sum_i1\{\varepsilon_i=1\}.
+$$
+Taking expectation yields $\mathcal R_n(\mathcal S)\ge1/2$. Thus this class is far too rich for the Rademacher complexity bound in Theorem 4.10 to vanish; the theorem gives no uniform-law conclusion despite every individual finite set having probability zero under a continuous distribution.
+:::
+
+### Exercise 4.3
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Compute the population MLE risk and exact excess risk for Bernoulli, Poisson, and Gaussian location models; compare with Rademacher-complexity bounds.
+:::
+
+::: {.callout-warning icon="false" title="Source erratum (pending approval)"}
+The printed Bernoulli denominator is $1+e^{\theta x}$, so the two displayed values do not form a probability mass function except at $\theta=0$. The intended logistic Bernoulli model has $p_\theta(x)=e^{\theta x}/(1+e^\theta)$, i.e. $p_\theta(1)=e^\theta/(1+e^\theta)$ and $p_\theta(0)=1/(1+e^\theta)$. The calculations below are conditional on that intended model.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+In every regular model the population risk is the Kullback--Leibler divergence $R(\theta,\theta^*)=D(P_{\theta^*}\|P_\theta)$.
+
+For Bernoulli, writing $p_*=p_{\theta^*}$ and $p=p_\theta$,
+$$
+ R=p_*\log\frac{p_*}{p}+(1-p_*)\log\frac{1-p_*}{1-p}.
+$$
+The MLE is $\widehat p=\bar X$, so the exact excess risk is $D(\mathrm{Bern}(p_*)\|\mathrm{Bern}(\bar X))$, with the usual value $+\infty$ when $\bar X\in\{0,1\}$ and $0<p_*<1$. Hence an unbounded log-loss class cannot have a finite distribution-free Rademacher upper bound without clipping or restricting $p\in[\eta,1-\eta]$. Under that restriction, contraction bounds it by a constant depending on $\eta$ times the complexity of the linear score class.
+
+For Poisson, $\lambda=e^\theta$ and
+$$
+ R=\lambda_*\log\frac{\lambda_*}{\lambda}+\lambda-\lambda_*.
+$$
+Since $\widehat\lambda=\bar X$, the exact excess risk is the same expression with $\lambda=\bar X$; it is again infinite on $\{\bar X=0\}$ when $\lambda_*>0$. A finite Rademacher bound likewise needs a bounded parameter/data regime.
+
+For $N(\theta,\Sigma)$,
+$$
+ R(\theta,\theta^*)=\tfrac12(\theta-\theta^*)^\top\Sigma^{-1}(\theta-\theta^*).
+$$
+The MLE $\widehat\theta=\bar X$ therefore has exact excess risk
+$$
+ \tfrac12(\bar X-\theta^*)^\top\Sigma^{-1}(\bar X-\theta^*),
+ \qquad \mathbb E R(\widehat\theta,\theta^*)=\frac d{2n}.
+$$
+On a bounded parameter set, the centered Gaussian negative log-likelihood is linear in $x$, and its Rademacher complexity gives the usual order $n^{-1/2}$ uniform bound; the exact well-specified expected excess risk is the sharper $d/(2n)$.
+:::
+
+### Exercise 4.4
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Prove the two displayed suprema inequalities and use them to finish (4.17) and Proposition 4.11.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+For every $g$, $\mathbb Eg(X)\le\mathbb E|g(X)|\le\mathbb E\sup_{h\in\mathcal G}|h(X)|$. Taking the supremum proves
+$$
+ \sup_g\mathbb Eg(X)\le\mathbb E\sup_g|g(X)|.
+$$
+Apply this to the symmetrized empirical process in (4.17).
+
+If $\Phi$ is nondecreasing and convex, Jensen's inequality gives
+$$
+ \Phi(\mathbb E|g(X)|)\le\mathbb E\Phi(|g(X)|)
+ \le\mathbb E\Phi\!\left(\sup_{h\in\mathcal G}|h(X)|\right).
+$$
+Taking the supremum over $g$ proves the claimed inequality, which is exactly the final Jensen/envelope step in Proposition 4.11.
+:::
+
+### Exercise 4.5
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $\bar\mathcal F=\{f-\mathbb Ef:f\in\mathcal F\}$. Prove the recentering bound and complete Proposition 4.12.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+For $S_n(f)=n^{-1/2}\sum_i\varepsilon_if(X_i)$,
+$$
+ S_n(f-\mathbb Ef)=S_n(f)-\frac{\mathbb Ef}{\sqrt n}\sum_i\varepsilon_i.
+$$
+Thus $\|S_n\|_{\bar\mathcal F}\ge\|S_n\|_{\mathcal F}-|n^{-1/2}\sum_i\varepsilon_i|\sup_f|\mathbb Ef|$. Taking expectation and using $\mathbb E|n^{-1/2}\sum_i\varepsilon_i|\le1$ yields the stated inequality.
+
+The centered class permits the concentration inequality used in Proposition 4.12. Insert the preceding lower bound into that concentration statement and rearrange; this supplies the displayed deviation bound for the original, non-centred class, with the extra $n^{-1/2}\sup_f|\mathbb Ef|$ term.
+:::
+
+### Exercise 4.6
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+For homogeneous linear classifiers in $\mathbb R^d$, with $d\ge n$ and linearly independent samples, show the empirical Rademacher complexity is one. Discuss ERM.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+For any labels $\varepsilon_i\in\{-1,1\}$, linear independence lets us solve $\langle\theta,x_i\rangle=\varepsilon_i$ for a nonzero $\theta$; rescaling gives a unit vector without changing signs. Hence the class contains $f$ with $f(x_i)=\varepsilon_i$, and
+$$
+ \widehat{\mathcal R}_n=\mathbb E_\varepsilon\sup_f\frac1n\sum_i\varepsilon_if(x_i)=1.
+$$
+An ERM can interpolate arbitrary labels, so zero training error has no distribution-free generalization meaning here. The class is too rich unless additional norm, margin, or dimension control is imposed.
+:::
+
+### Exercise 4.7
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Establish the convex-hull, sum-class, and translation properties of Rademacher complexity.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Linearity of $f\mapsto\sum_i\varepsilon_if(x_i)$ implies its supremum over $\operatorname{conv}(\mathcal F)$ equals its supremum over $\mathcal F$; hence $\mathcal R_n(\mathcal F)=\mathcal R_n(\operatorname{conv}\mathcal F)$.
+
+Also,
+$$
+ \sup_{f,g}\sum_i\varepsilon_i(f+g)(x_i)
+ \le\sup_f\sum_i\varepsilon_if(x_i)+\sup_g\sum_i\varepsilon_ig(x_i),
+$$
+so $\mathcal R_n(\mathcal F+\mathcal G)\le\mathcal R_n(\mathcal F)+\mathcal R_n(\mathcal G)$. Equality holds, for example, if both classes are singleton linear spaces aligned with the same maximizing function (or if $\mathcal G=\mathcal F$ is a vector space).
+
+Finally, for fixed $g$,
+$$
+ \mathcal R_n(\mathcal F+g)\le\mathcal R_n(\mathcal F)+\frac{\|g\|_\infty}{n}\mathbb E\left|\sum_i\varepsilon_i\right|
+ \le\mathcal R_n(\mathcal F)+\frac{\|g\|_\infty}{\sqrt n}.
+$$
+:::
+
+### Exercise 4.8
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Show that complements, intersections, and unions of finite-VC classes have finite VC dimension.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Complements preserve every trace cardinality, so $\operatorname{VC}(\mathcal S^c)=\operatorname{VC}(\mathcal S)$. For $n$ points,
+$$
+ |(\mathcal S\cap\mathcal T)(x_1^n)|\le |\mathcal S(x_1^n)|\,|\mathcal T(x_1^n)|,
+$$
+and the same bound holds for unions, by encoding a trace as the pair of constituent traces. Sauer's lemma makes the right side polynomial in $n$ when both VC dimensions are finite; it cannot equal $2^n$ for all large $n$. Thus both derived classes have finite VC dimension.
+:::
+
+### Exercise 4.9
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Prove Lemma 4.14.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Let $\Pi_\mathcal S(n)$ be the largest number of traces on $n$ points. Split a collection of traces according to whether the $n$-th point is absent or present. Traces occurring in only one part contribute at most $\Pi_\mathcal S(n-1)$; the paired traces induce a class on the first $n-1$ points with VC dimension at most $\nu-1$, otherwise adjoining the last point would shatter $\nu+1$ points. Therefore
+$$
+ \Pi_\mathcal S(n)\le\Pi_\mathcal S(n-1)+\Pi_{\nu-1}(n-1).
+$$
+Induction with Pascal's identity yields $\Pi_\mathcal S(n)\le\sum_{j=0}^\nu{n\choose j}$, which is Lemma 4.14 (Sauer's lemma).
+:::
+
+### Exercise 4.10
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Prove Pascal's identity.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Count $k$-subsets of $\{1,\ldots,n\}$ according as they omit or contain $n$. The two numbers are ${n-1\choose k}$ and ${n-1\choose k-1}$, giving ${n\choose k}={n-1\choose k}+{n-1\choose k-1}$.
+:::
+
+### Exercise 4.11
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Bound $\sum_{i=0}^\nu{n\choose i}$, then sharpen it for $n\ge\nu$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Since ${n\choose i}\le n^i\le(n+1)^\nu$ is unnecessarily crude, use the injection from subsets of size at most $\nu$ into $(\nu+1)$-tuples chosen from $n+1$ symbols (pad with a sentinel): it gives $\sum_{i=0}^\nu{n\choose i}\le(n+1)^\nu$.
+
+For $n\ge\nu$, put $p=\nu/n$. Then
+$$
+ 1\ge\sum_{i=0}^\nu{n\choose i}p^i(1-p)^{n-i}
+ \ge {n\choose\nu}p^\nu(1-p)^{n-\nu},
+$$
+and the standard Sauer bound (equivalently ${n\choose\nu}\le(en/\nu)^\nu$ plus monotonicity of binomial coefficients up to $\nu$) yields
+$$
+ \sum_{i=0}^\nu{n\choose i}\le\left(\frac{en}{\nu}\right)^\nu.
+$$
+:::
+
+### Exercise 4.12
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+For lower orthants in $\mathbb R^d$, prove the trace bound and compute the VC dimension.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+On $x_1,\ldots,x_n$, each threshold coordinate $t_j$ has only $n+1$ distinct trace effects, so the class has at most $(n+1)^d$ traces. To shatter $d$ points, take $x_i$ whose $i$-th coordinate is $1$ and all other coordinates are $0$; choose each $t_i$ between $0$ and $1$ according to whether $x_i$ is wanted. Conversely, if $d+1$ points were shattered, select one point maximizing each coordinate. At most $d$ selected points arise, so one point is not selected; every lower orthant containing all selected points contains that remaining point, a contradiction. Thus $\mathrm{VC}=d$.
+:::
+
+### Exercise 4.13
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Show that closed discs in $\mathbb R^2$ have VC dimension three.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Any three non-collinear points are shattered: the empty and singleton labels use sufficiently small discs (or a disc far away for the empty trace); pairs use a disc centered near their midpoint and small enough to exclude the third; all three use a large disc.
+
+For four points, if one lies in the convex hull of the other three, the label selecting the three outer points is impossible because discs are convex. Otherwise the four are in convex position; label two opposite vertices positive and the other two negative. The two positive vertices' segment intersects the segment joining the negatives, so a convex set containing the positives cannot exclude both negatives. Hence no four points are shattered and $\mathrm{VC}=3$.
+:::
+
+### Exercise 4.14
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+For monotone Boolean conjunctions on $\{0,1\}^d$, prove VC dimension $d$.
+:::
+
+::: {.callout-warning icon="false" title="Notation"}
+The printed display switches from $h_S$ to $h_s$. This is a notation typo; $S\subseteq\{1,\ldots,d\}$ is used below.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Let $z_i$ be the vector with a zero only in coordinate $i$. For any subset $A\subseteq\{z_1,\ldots,z_d\}$, choose the conjunction over coordinates $i$ for which $z_i\notin A$. It labels exactly $A$ by one, so $d$ points are shattered.
+
+If $d+1$ points $x_1,\ldots,x_{d+1}$ were shattered, then for each $i$ the labeling that is zero at $x_i$ and one at all other points would be realized by a conjunction. One of its selected coordinates, say $j_i$, must be zero at $x_i$ and one at every $x_\ell$, $\ell\ne i$. The coordinates $j_i$ are distinct for different $i$, requiring $d+1$ coordinates in $\{1,\ldots,d\}$, a contradiction. Therefore $\mathrm{VC}=d$.
+:::
+
+### Exercise 4.15
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Show that all closed convex subsets of $\mathbb R^d$ have infinite VC dimension.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+For arbitrary $n$, take $n$ distinct points on the boundary of the Euclidean unit ball in a two-dimensional plane. Each is an extreme point: it is not in the convex hull of the other $n-1$ points. For every subset $A$, its convex hull is a closed convex set containing precisely the selected sample points; unselected extreme points cannot lie in it. Thus arbitrarily large finite sets are shattered, so the VC dimension is infinite.
+:::
+
+### Exercise 4.16
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Compute the VC dimension of planar polygons with at most four vertices.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The answer is $9$. We use the elementary polygonal-separation lemma: the class of (simple) planar polygons with at most $k$ vertices has VC dimension $2k+1$. For completeness, its geometric proof has two parts. Place $2k+1$ points on a circle. Every binary cyclic labeling has an even number of label changes, hence at most $2k$; draw the $k$ sides so that their crossings with the circle occur in the change gaps. The inside/outside status alternates at those crossings, realizing the labeling. Conversely, an alternating labeling on $2k+2$ points in convex position has $2k+2$ changes, while the $k$ straight sides of a polygon can meet the boundary of their convex hull at most $2k$ times. If a candidate point set is not in convex position, the same argument is applied after first separating an interior point from a minimal set of hull points that contains it; this uses two crossings and leaves the alternating obstruction on the remaining hull points.
+
+Taking $k=4$ gives a lower bound of $9$ and an upper bound of $9$, so the VC dimension is $9$.
+:::
+
+### Exercise 4.17
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Prove that $\{x\mapsto\operatorname{sign}(\sin(tx)):t\in\mathbb R\}$ on $[-1,1]$ has infinite VC dimension.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Fix $m$ and take $x_i=2^{-i}$, $i=1,\ldots,m$. Let $t=\pi M$, where $M$ is an odd positive integer. Then
+$$
+ \operatorname{sign}\{\sin(\pi M/2^i)\}=(-1)^{\lfloor M/2^i\rfloor}.
+$$
+The right side is determined by the $i$-th binary digit of $M$. Choose the first $m$ relevant binary digits of an odd $M$ to match any prescribed signs (and choose higher digits arbitrarily). No sine value is zero because $M$ is odd. Thus the $m$ points are shattered for every $m$, and the VC dimension is infinite.
+:::

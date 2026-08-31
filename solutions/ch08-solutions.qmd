@@ -1,0 +1,527 @@
+---
+title: "Chapter 8 Exercises"
+subtitle: "Wainwright, High-Dimensional Statistics §8.5"
+description: "Exercise list locked from the textbook; solved independently"
+execute:
+  enabled: false
+---
+
+# How to use this file
+
+- **Textbook:** Martin J. Wainwright, *High-Dimensional Statistics: A Non-Asymptotic Viewpoint* (Cambridge Series in Statistical and Probabilistic Mathematics, No. 48; 2019).
+- **Range:** Chapter 8 Exercises 8.1–8.9, printed pp. 256–258.
+- **Pages:** printed pp. 256–258; PDF pp. 275–277 (offset **PDF = printed + 19**).
+- **Principle:** stems follow the textbook; solutions are independent. Identities printed in the book are recomputed.
+- **Companion notes:** [`ch08-notes.qmd`](../notes/ch08-notes.qmd).
+
+### Exercise 8.1 (Courant–Fischer variational representation)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+For an integer $j\in\{2,\ldots,d\}$, let $\mathcal V_{j-1}$ be the collection of all subspaces of dimension $j-1$. For a symmetric matrix $Q$, show that the $j$th largest eigenvalue is
+$$
+\gamma_j(Q)
+=
+\min_{\mathbb V\in\mathcal V_{j-1}}
+\max_{u\in\mathbb V^\perp\cap\mathbb S^{d-1}}
+\langle u,Qu\rangle.
+\tag{8.41}
+$$
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Let $\gamma_1\ge\cdots\ge\gamma_d$ be the ordered eigenvalues of the symmetric matrix $Q$, with a corresponding orthonormal eigenbasis $v_1,\ldots,v_d$. Write $S_k:=\mathrm{span}\{v_1,\ldots,v_k\}$ (and $S_0:=\{0\}$).
+
+**Lower bound.** Fix an arbitrary subspace $\mathbb V$ of dimension $j-1$. Then $\dim\mathbb V^\perp=d-j+1$. The subspace $S_j$ has dimension $j$, so
+$$
+\dim\bigl(\mathbb V^\perp\cap S_j\bigr)
+\ge
+\dim\mathbb V^\perp+\dim S_j-d
+=
+1.
+$$
+Hence there exists a unit vector $u\in\mathbb V^\perp\cap S_j$. Expanding $u=\sum_{k=1}^j a_k v_k$ with $\sum_{k=1}^j a_k^2=1$,
+$$
+\langle u,Qu\rangle
+=
+\sum_{k=1}^j\gamma_k a_k^2
+\ge
+\gamma_j.
+$$
+The inner maximum in (8.41) is therefore at least $\gamma_j$. Since $\mathbb V$ was arbitrary, the minimum over $\mathcal V_{j-1}$ is at least $\gamma_j$.
+
+**Upper bound.** Take the specific subspace $\mathbb V=S_{j-1}$. Then $\mathbb V^\perp=\mathrm{span}\{v_j,\ldots,v_d\}$, and for every unit $u$ in this complement,
+$$
+\langle u,Qu\rangle
+=
+\sum_{k=j}^d\gamma_k a_k^2
+\le
+\gamma_j.
+$$
+The inner maximum equals $\gamma_j$ (attained at $u=v_j$). Thus the minimum over $\mathcal V_{j-1}$ is at most $\gamma_j$.
+
+The two directions give (8.41). The case $j=1$ is the ordinary Rayleigh quotient $\gamma_1(Q)=\max_{u\in\mathbb S^{d-1}}\langle u,Qu\rangle$, which is (8.41) with $\mathbb V=\{0\}$.
+:::
+
+### Exercise 8.2 (Unitarily invariant matrix norms)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+For $d_1\le d_2$, a matrix norm on $\mathbb R^{d_1\times d_2}$ is *unitarily invariant* if $|||\mathbf M|||=|||\mathbf V\mathbf M\mathbf U|||$ for all orthonormal $\mathbf V\in\mathbb R^{d_1\times d_1}$ and $\mathbf U\in\mathbb R^{d_2\times d_2}$.
+
+(a) Which of the following are unitarily invariant?
+(i) the Frobenius norm $|||\mathbf M|||_F$ (printed “Frobenium”);
+(ii) the nuclear norm $|||\mathbf M|||_{\mathrm{nuc}}$;
+(iii) the $\ell_2$-operator norm $|||\mathbf M|||_2=\sup_{\|u\|_2=1}\|\mathbf Mu\|_2$;
+(iv) the $\ell_\infty$-operator norm $|||\mathbf M|||_\infty=\sup_{\|u\|_\infty=1}\|\mathbf Mu\|_\infty$.
+
+(b) Let $\rho$ be a norm on $\mathbb R^{d_1}$ that is invariant under permutations and sign flips,
+$$
+\rho(x_1,\ldots,x_{d_1})
+=
+\rho(z_1 x_{\pi(1)},\ldots,z_{d_1}x_{\pi(d_1)})
+$$
+for all $z\in\{-1,1\}^{d_1}$ and all permutations $\pi$ (a *symmetric gauge*). Let $\{\sigma_j(\mathbf M)\}_{j=1}^{d_1}$ be the singular values of $\mathbf M$. Show that
+$$
+|||\mathbf M|||_\rho
+:=
+\rho\bigl(\sigma_1(\mathbf M),\ldots,\sigma_{d_1}(\mathbf M)\bigr)
+$$
+defines a matrix norm. Hint: $\mathrm{trace}(\mathbf N^T\mathbf M)\le\langle\sigma(\mathbf N),\sigma(\mathbf M)\rangle$.
+
+(c) Show that every norm in the family from (b) is unitarily invariant.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The printed spelling “Frobenium” in (a)(i) is a typographical error for Frobenius (**勘误待批**). The argument below uses the standard name.
+
+**(a)(i)–(iii).** If $\mathbf M=\mathbf A\boldsymbol\Sigma\mathbf B^T$ is an SVD, then $\mathbf V\mathbf M\mathbf U$ has the same singular values as $\mathbf M$, because $\mathbf V\mathbf A$ and $\mathbf U^T\mathbf B$ remain orthonormal. The Frobenius, nuclear, and $\ell_2$-operator norms are, respectively,
+$$
+\biggl(\sum_{j=1}^{d_1}\sigma_j(\mathbf M)^2\biggr)^{1/2},
+\qquad
+\sum_{j=1}^{d_1}\sigma_j(\mathbf M),
+\qquad
+\sigma_1(\mathbf M),
+$$
+hence they are invariant under $(\mathbf V,\mathbf U)$.
+
+**(a)(iv).** The $\ell_\infty$-operator norm is the maximum absolute row-sum, and is *not* unitarily invariant. Take $d_1=d_2=2$ and $\mathbf M=e_1 e_1^T$, so $|||\mathbf M|||_\infty=1$. For the orthonormal matrix
+$$
+\mathbf U
+=
+\frac1{\sqrt2}
+\begin{pmatrix}1&1\\1&-1\end{pmatrix},
+$$
+the product $\mathbf M\mathbf U$ has first row $(1/\sqrt2,1/\sqrt2)$ and second row zero, hence $|||\mathbf M\mathbf U|||_\infty=\sqrt2\neq 1$.
+
+**(b).** Non-negativity, positive homogeneity, and $|||\mathbf M|||_\rho=0\Leftrightarrow\mathbf M=0$ are immediate from the corresponding properties of $\rho$ together with $\sigma(\mathbf M)=0\Leftrightarrow\mathbf M=0$. It remains to check the triangle inequality.
+
+Let $\rho^\circ$ denote the dual norm $\rho^\circ(y)=\sup_{\rho(x)\le 1}\langle x,y\rangle$. The dual of a symmetric gauge is again a symmetric gauge. von Neumann’s trace inequality (the hint) yields, for every pair of $d_1\times d_2$ matrices,
+$$
+\bigl|\langle\mathbf M,\mathbf Z\rangle\bigr|
+=
+\bigl|\mathrm{trace}(\mathbf Z^T\mathbf M)\bigr|
+\le
+\langle\sigma(\mathbf M),\sigma(\mathbf Z)\rangle
+\le
+\rho\bigl(\sigma(\mathbf M)\bigr)\,\rho^\circ\bigl(\sigma(\mathbf Z)\bigr).
+$$
+Taking the supremum over $\rho^\circ(\sigma(\mathbf Z))\le 1$ gives
+$$
+|||\mathbf M|||_\rho
+=
+\sup\bigl\{\langle\mathbf M,\mathbf Z\rangle:\rho^\circ(\sigma(\mathbf Z))\le 1\bigr\}.
+$$
+(The reverse inequality follows by taking $\mathbf Z$ to share the singular vectors of $\mathbf M$ and to have singular-value vector in the dual unit sphere of $\rho$.) The right-hand side is the support function of a convex set, hence a norm: in particular
+$$
+|||\mathbf M+\mathbf N|||_\rho
+=
+\sup_{\rho^\circ(\sigma(\mathbf Z))\le 1}\langle\mathbf M+\mathbf N,\mathbf Z\rangle
+\le
+|||\mathbf M|||_\rho+|||\mathbf N|||_\rho.
+$$
+
+**(c).** Left-right multiplication by orthonormal matrices does not change singular values, so $\sigma(\mathbf V\mathbf M\mathbf U)=\sigma(\mathbf M)$ and therefore $|||\mathbf V\mathbf M\mathbf U|||_\rho=|||\mathbf M|||_\rho$.
+
+The four examples in (a) sit in this family except (iv): Frobenius is $\rho=\|\cdot\|_2$, nuclear is $\rho=\|\cdot\|_1$, and the $\ell_2$-operator norm is $\rho=\|\cdot\|_\infty$. The $\ell_\infty$-operator norm is not a function of the singular values alone.
+:::
+
+### Exercise 8.3 (Weyl's inequality)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Prove Weyl’s inequality (8.9). Hint: Exercise 8.1 may be useful.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Let $Q=R+P$ with $P$ symmetric. For each $j\in\{1,\ldots,d\}$, the Courant–Fischer formula (8.41) (including the $j=1$ Rayleigh case) gives
+\begin{align*}
+\gamma_j(Q)
+&=
+\min_{\dim\mathbb V=j-1}
+\max_{u\perp\mathbb V,\;\|u\|_2=1}
+\langle u,(R+P)u\rangle \\
+&\le
+\min_{\dim\mathbb V=j-1}
+\max_{u\perp\mathbb V,\;\|u\|_2=1}
+\bigl(\langle u,Ru\rangle+\langle u,Pu\rangle\bigr) \\
+&\le
+\min_{\dim\mathbb V=j-1}
+\Biggl(
+\max_{u\perp\mathbb V,\;\|u\|_2=1}
+\langle u,Ru\rangle
++
+\|P\|_{\mathrm{op}}
+\Biggr) \\
+&=
+\gamma_j(R)+\|P\|_{\mathrm{op}}.
+\end{align*}
+Reversing the roles of $Q$ and $R$ (or replacing $P$ by $-P$) yields $\gamma_j(R)\le\gamma_j(Q)+\|P\|_{\mathrm{op}}$. Combining the two sides,
+$$
+\max_{j=1,\ldots,d}
+\bigl|\gamma_j(Q)-\gamma_j(R)\bigr|
+\le
+\|Q-R\|_{\mathrm{op}},
+$$
+which is (8.9).
+:::
+
+### Exercise 8.4 (Variational characterization of eigenvectors)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Show that the orthonormal matrix $V\in\mathbb R^{d\times r}$ maximising the criterion (8.2) has columns formed by the top $r$ eigenvectors of $\Sigma=\mathrm{cov}(X)$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Assume without loss of generality that $\mathbb E[X]=0$, so that $\Sigma=\mathbb E[XX^T]$. For $V\in\mathbb R^{d\times r}$ with $V^TV=I_r$,
+$$
+\mathbb E\|V^T X\|_2^2
+=
+\mathbb E\langle VX,X\rangle
+=
+\langle VV^T,\Sigma\rangle_F
+=
+\mathrm{trace}(V^T\Sigma V).
+$$
+Let $\gamma_1\ge\cdots\ge\gamma_d$ be the ordered eigenvalues of $\Sigma$ with orthonormal eigenbasis $v_1,\ldots,v_d$, and write $\Pi:=VV^T$ for the associated orthogonal projector (so $\mathrm{rank}(\Pi)=r$ and $0\preceq\Pi\preceq I$). Then
+$$
+\mathrm{trace}(\Sigma\Pi)
+=
+\sum_{k=1}^d\gamma_k\langle v_k,\Pi v_k\rangle
+=
+\sum_{k=1}^d\gamma_k a_k,
+$$
+where $a_k:=\|\Pi v_k\|_2^2$ satisfies $0\le a_k\le 1$ and $\sum_{k=1}^d a_k=\mathrm{trace}(\Pi)=r$. The linear functional $\sum\gamma_k a_k$ over this simplex is maximised by putting mass $1$ on the $r$ largest coordinates of $(\gamma_k)$, i.e. $a_1=\cdots=a_r=1$ and $a_{r+1}=\cdots=a_d=0$. The maximum value is $\sum_{j=1}^r\gamma_j(\Sigma)$, and it is attained precisely when $\mathrm{range}(\Pi)=\mathrm{span}\{v_1,\ldots,v_r\}$ whenever $\gamma_r(\Sigma)>\gamma_{r+1}(\Sigma)$. In that case the columns of $V$ may be taken as those top $r$ eigenvectors.
+
+The same identity gives the *correct* reconstruction formula (cf. the printed (8.7), which squares the leftover eigenvalues; **勘误待批** in the Notes):
+$$
+\mathbb E\|X-\Pi_{\mathbb V^*}(X)\|_2^2
+=
+\mathrm{tr}(\Sigma)-\sum_{j=1}^r\gamma_j(\Sigma)
+=
+\sum_{j=r+1}^d\gamma_j(\Sigma).
+$$
+The squared leftover eigenvalues appear instead as the Frobenius matrix error (8.6).
+:::
+
+### Exercise 8.5 (Matrix power method)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Let $Q\in\mathcal S^{d\times d}$ be strictly positive definite and symmetric, with a unique maximal eigenvector $\theta^*$. Given a nonzero $\theta^0\in\mathbb R^d$, set
+$$
+\theta^{t+1}
+=
+\frac{Q\theta^t}{\|Q\theta^t\|_2}.
+\tag{8.42}
+$$
+(a) Prove that there is a large set of initial vectors $\theta^0$ for which $\{\theta^t\}_{t\ge 0}$ converges to $\theta^*$.
+(b) Give a “bad” initialisation for which this convergence does not take place.
+(c) Using (b), specify a procedure to compute the second-largest eigenvector, assuming it is also unique.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Write $Q=\sum_{j=1}^d\gamma_j u_j u_j^T$ with $\gamma_1>\gamma_2\ge\cdots\ge\gamma_d>0$ and $u_1=\theta^*$ (the maximiser is unique, and strict positive-definiteness rules out a zero eigenvalue). Expand the initial vector in this basis: $\theta^0=\sum_{j=1}^d c_j u_j$. A short induction gives
+$$
+Q^t\theta^0
+=
+\sum_{j=1}^d c_j\gamma_j^t u_j
+=
+\gamma_1^t
+\Biggl(
+c_1 u_1
++
+\sum_{j=2}^d c_j\Bigl(\frac{\gamma_j}{\gamma_1}\Bigr)^t u_j
+\Biggr).
+$$
+The iterate $\theta^t$ is $Q^t\theta^0$ renormalised.
+
+**(a).** Suppose $c_1=\langle\theta^0,\theta^*\rangle\neq 0$. Then $|\gamma_j/\gamma_1|<1$ for every $j\ge 2$, so
+$$
+\frac{Q^t\theta^0}{\gamma_1^t}
+\to
+c_1\theta^*,
+$$
+and after $\ell_2$-normalisation,
+$$
+\theta^t
+\to
+\mathrm{sign}(c_1)\,\theta^*.
+$$
+If one identifies $\pm\theta^*$ (eigenvectors are defined up to sign), every initial vector off the hyperplane $\langle\theta^0,\theta^*\rangle=0$ works. That set is open, dense, and of full Lebesgue measure in $\mathbb R^d$. If the target is specifically $+\theta^*$, the same argument applies on the open half-space $\langle\theta^0,\theta^*\rangle>0$.
+
+**(b).** Any $\theta^0$ orthogonal to $\theta^*$ is bad. In particular, if $\theta^0=u_2$ (a unit second eigenvector), then $c_1=0$ and the iteration remains in $\{\theta^*\}^\perp$ for all $t$, converging to $\mathrm{sign}(\langle\theta^0,u_2\rangle)u_2$ when $\gamma_2>\gamma_3$, and never to $\theta^*$.
+
+**(c).** First run (8.42) from a generic initialisation to obtain $\widehat u_1\approx\theta^*$. Then apply the same iteration to the deflated matrix
+$$
+Q_2
+:=
+\bigl(I-\widehat u_1\widehat u_1^T\bigr)Q\bigl(I-\widehat u_1\widehat u_1^T\bigr)
+=
+Q-\widehat\gamma_1\widehat u_1\widehat u_1^T,
+$$
+which (when $\widehat u_1=\theta^*$) has maximal eigenvector $u_2$ and maximal eigenvalue $\gamma_2$. Equivalently, start (8.42) at a vector orthogonal to $\widehat u_1$ and re-orthogonalise against $\widehat u_1$ after each multiplication by $Q$ (the subspace $\{\widehat u_1\}^\perp$ is invariant for the exact $Q$ once $\widehat u_1=\theta^*$). Uniqueness of the second eigenpair guarantees that the deflated power method has a unique maximiser on that hyperplane.
+:::
+
+### Exercise 8.6 (PCA for Gaussian mixture models)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Consider Example 8.3 with equal weights $\alpha=0.5$ and $\|\theta^*\|_2=1$, and let $\widehat\theta$ be the PCA estimator of $\theta^*$ (the maximal eigenvector of the sample second-moment matrix).
+
+(a) Prove that if $n>c_1\sigma^2(1++\sigma^2)d$ for a sufficiently large $c_1$, then
+$$
+\|\widehat\theta-\theta^*\|_2
+\le
+c_2\sigma\sqrt{1+\sigma^2}\sqrt{\frac{d}{n}}
+$$
+with high probability.
+
+(b) Explain how to turn $\widehat\theta$ into a classifier $x\mapsto\psi(x)\in\{-1,+1\}$ for the two mixture components.
+
+(c) Does the method still work if the shared covariance is *not* a multiple of the identity?
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The printed sample-size condition contains a doubled plus, $1++\sigma^2$ (**勘误待批**). The bound that follows, and the spiked substitution $\nu=1/\sigma^2$ used below, both require $1+\sigma^2$. We solve the exercise with that reading.
+
+**(a).** With $\alpha=0.5$ the mixture is symmetric, $\mathbb E[X]=0$, and the second-moment matrix coincides with the covariance:
+$$
+\Gamma
+=
+\mathbb E[XX^T]
+=
+\theta^*(\theta^*)^T+\sigma^2 I_d.
+$$
+(Each component contributes $\theta^*(\theta^*)^T+\sigma^2 I_d$, and the two components are equally weighted.) Rescale $\widetilde x:=X/\sigma$. Then
+$$
+\widetilde x
+\;\stackrel{d}{=}\;
+\pm\frac1\sigma\theta^*+g,
+\qquad
+g\sim N(0,I_d),
+$$
+which is the spiked ensemble (8.18) with $\nu=1/\sigma^2$, Rademacher multipliers $\xi_i=\pm 1$ (sub-Gaussian with parameter $1$), and Gaussian noise $w_i\sim N(0,I_d)$. The population covariance of $\widetilde x$ is $\nu\theta^*(\theta^*)^T+I_d$, with eigengap $\nu=1/\sigma^2$ and leading eigenvalue $\nu+1$.
+
+Corollary 8.7 applies as soon as $n>d$ and
+$$
+\sqrt{\frac{\nu+1}{\nu^2}}\sqrt{\frac{d}{n}}
+=
+\sigma\sqrt{1+\sigma^2}\sqrt{\frac{d}{n}}
+\le
+\frac1{128},
+$$
+i.e. $n\ge c_1\sigma^2(1+\sigma^2)d$ for a sufficiently large universal $c_1$. On that event the leading eigenvector $\widehat\theta$ of the sample second-moment matrix of $\{\widetilde x_i\}$ (equivalently, of $\{x_i\}$, since the two matrices differ only by the scalar $\sigma^2$) satisfies
+$$
+\|\widehat\theta-\theta^*\|_2
+\le
+c_0\sqrt{\frac{\nu+1}{\nu^2}}\sqrt{\frac{d}{n}}
+=
+c_0\sigma\sqrt{1+\sigma^2}\sqrt{\frac{d}{n}},
+$$
+up to the additive $\delta$ which may be absorbed into $c_2$ by the usual high-probability reparameterisation. This is the claimed bound.
+
+**(b).** Equal-weight classification between $N(-\theta^*,\sigma^2 I_d)$ and $N(\theta^*,\sigma^2 I_d)$ has Bayes rule $\mathrm{sign}(\langle\theta^*,x\rangle)$ (the log-likelihood ratio is linear with normal $\theta^*$). Substitute the PCA estimate and set
+$$
+\psi(x)
+:=
+\mathrm{sign}\bigl(\langle\widehat\theta,x\rangle\bigr).
+$$
+The plug-in excess error is controlled by $\|\widehat\theta-\theta^*\|_2$ via the same argument as in Chapter 1 for LDA with known isotropic covariance: the inner-product correlation $\langle\widehat\theta,\theta^*\rangle$ stays bounded away from zero as soon as the bound in (a) is $o(1)$, so the decision boundary remains a small rotation of the Bayes hyperplane.
+
+**(c).** No, not without further assumptions. If the shared covariance is a general $\Sigma\succ 0$, then for $\alpha=0.5$,
+$$
+\mathbb E[XX^T]
+=
+\theta^*(\theta^*)^T+\Sigma.
+$$
+The leading eigenvector of $\theta^*(\theta^*)^T+\Sigma$ equals $\theta^*$ if and only if $\theta^*$ is already an eigenvector of $\Sigma$ *and* the spike dominates the rest of the spectrum. A noise direction with eigenvalue larger than $1+\lambda_{\min}(\Sigma)$ (on the scale of $\|\theta^*\|_2^2$) will steal the leading eigenpair. If $\Sigma$ is known one can whiten, replacing $x$ by $\Sigma^{-1/2}x$ and recovering a spiked identity model with spike $\Sigma^{-1/2}\theta^*$. If $\Sigma$ is unknown, ordinary PCA on the second-moment matrix is not a consistent estimator of $\theta^*$ in general.
+:::
+
+### Exercise 8.7 (PCA for retrieval from absolute values)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Estimate an unknown $\theta^*\in\mathbb R^d$ from i.i.d. pairs $(x_i,y_i)$ with $y_i=\lvert\langle x_i,\theta^*\rangle\rvert$ and $x_i\sim N(0,I_d)$. Suggest a PCA-based method that is consistent given infinite data. Hint: using the pair $(x,y)$, try to construct a random matrix $\mathbf Z$ such that
+$$
+\mathbb E[\mathbf Z]
+=
+\sqrt{\frac2\pi}\bigl(\theta^*\otimes\theta^*+I_d\bigr).
+$$
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+This is a real-valued idealisation of phase retrieval (taken up in Chapter 10). The hint is realised by the rank-one matrix $y\,xx^T$. Indeed, rotational invariance of $x\sim N(0,I_d)$ lets us take $\theta^*=e_1$ without loss of generality (the general case follows by conjugating with an orthonormal matrix sending $\theta^*$ to $e_1$, assuming $\|\theta^*\|_2=1$; the homogeneous case $\|\theta^*\|\neq 1$ is identical upon replacing $\theta^*$ by $\theta^*/\|\theta^*\|$ and multiplying $y$ by $\|\theta^*\|$). Then $y=\lvert x_1\rvert$, and the entries of $\mathbb E[y\,xx^T]$ are
+$$
+\mathbb E\bigl[\lvert x_1\rvert x_j x_k\bigr].
+$$
+Oddness in any coordinate $j\neq 1$ kills the off-diagonal terms that mix the first coordinate with another, and independence of the Gaussian coordinates gives
+\begin{align*}
+\mathbb E\bigl[\lvert x_1\rvert x_1^2\bigr]
+&=
+\mathbb E\lvert g\rvert^3
+=
+2\sqrt{\frac2\pi},
+\qquad
+\mathbb E\bigl[\lvert x_1\rvert x_j^2\bigr]
+=
+\mathbb E\lvert g\rvert
+=
+\sqrt{\frac2\pi}
+\quad(j\neq 1),
+\end{align*}
+where $g\sim N(0,1)$. (The moments are $\mathbb E\lvert g\rvert^p=\pi^{-1/2}2^{p/2}\Gamma((p+1)/2)$.) Therefore
+\begin{align*}
+\mathbb E[y\,xx^T]
+&=
+2\sqrt{\frac2\pi}\,e_1 e_1^T
++
+\sqrt{\frac2\pi}\,(I_d-e_1 e_1^T)
+=
+\sqrt{\frac2\pi}\,(e_1 e_1^T+I_d),
+\end{align*}
+which is the claimed spike. In original coordinates,
+$$
+\mathbb E[y\,xx^T]
+=
+\sqrt{\frac2\pi}\bigl(\theta^*\otimes\theta^*+I_d\bigr).
+$$
+The leading eigenvector of this expectation is exactly $\theta^*$ (eigengap $\sqrt{2/\pi}$). The PCA estimator is the leading eigenvector of the empirical average
+$$
+\widehat Z_n
+:=
+\frac1n\sum_{i=1}^n y_i x_i x_i^T.
+$$
+By the strong law (entrywise, or in any matrix norm, $d$ being fixed in the infinite-data limit contemplated by the exercise), $\widehat Z_n\to\mathbb E[\mathbf Z]$ almost surely, and Weyl plus the eigengap give $\widehat\theta_n\to\theta^*$ almost surely (up to sign). Finite-sample rates follow the spiked analysis of Corollary 8.7 after checking that $y x$ has sub-exponential / sub-Gaussian tails; that is not asked here.
+:::
+
+### Exercise 8.8 (Semidefinite relaxation of sparse PCA)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Recall the nonconvex SCOTLASS program (8.25a). Following d’Aspremont et al. (2007):
+
+(a) Show that (8.25a) is equivalent to
+$$
+\max_{\Theta\in\mathcal S_+^{d\times d}}
+\mathrm{trace}(\widehat\Sigma\Theta)
+\quad\text{s.t.}\quad
+\mathrm{trace}(\Theta)=1,\;
+\sum_{j,k=1}^d\lvert\Theta_{jk}\rvert\le R^2,\;
+\mathrm{rank}(\Theta)=1.
+$$
+
+(b) Dropping the rank constraint yields the convex program
+$$
+\max_{\Theta\in\mathcal S_+^{d\times d}}
+\mathrm{trace}(\widehat\Sigma\Theta)
+\quad\text{s.t.}\quad
+\mathrm{trace}(\Theta)=1,\;
+\sum_{j,k=1}^d\lvert\Theta_{jk}\rvert\le R^2.
+$$
+What happens when its optimum is attained at a rank-one matrix?
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+**(a).** If $\theta\in\mathbb S^{d-1}$ is feasible for (8.25a), the rank-one matrix $\Theta=\theta\theta^T$ is symmetric and positive semidefinite, $\mathrm{trace}(\Theta)=\|\theta\|_2^2=1$, $\mathrm{rank}(\Theta)=1$, and
+$$
+\sum_{j,k}\lvert\Theta_{jk}\rvert
+=
+\sum_{j,k}\lvert\theta_j\theta_k\rvert
+=
+\biggl(\sum_j\lvert\theta_j\rvert\biggr)^2
+=
+\|\theta\|_1^2
+\le
+R^2.
+$$
+The objectives match: $\mathrm{trace}(\widehat\Sigma\Theta)=\langle\theta,\widehat\Sigma\theta\rangle$.
+
+Conversely, a feasible rank-one $\Theta\in\mathcal S_+^{d\times d}$ with $\mathrm{trace}(\Theta)=1$ must be of the form $\Theta=\theta\theta^T$ for some $\theta\in\mathbb S^{d-1}$. The entrywise $\ell_1$ constraint becomes $\|\theta\|_1^2\le R^2$, i.e. $\|\theta\|_1\le R$, so $\theta$ is feasible for (8.25a) and the objectives again agree. The two programs therefore have the same optimal value, and their solutions correspond via $\Theta=\theta\otimes\theta$.
+
+**(b).** The program without the rank constraint is a convex SDP (linear objective, spectrahedron, and an $\ell_1$ ball on the entries). If a maximiser $\Theta^\star$ happens to have rank one, then $\Theta^\star$ is feasible for the program in (a), hence optimal for (a), and the corresponding unit vector is optimal for the original nonconvex SCOTLASS problem (8.25a). In that case the relaxation is tight: convexification has not increased the optimal value, and a globally optimal sparse principal component can be read off from an SDP.
+:::
+
+### Exercise 8.9 (Primal–dual witness for sparse PCA)
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+The SDP relaxation of Exercise 8.8(b) can be written in Lagrangian form as
+$$
+\max_{\substack{\Theta\in\mathcal S_+^{d\times d}\\ \mathrm{trace}(\Theta)=1}}
+\Biggl\{
+\mathrm{trace}(\widehat\Sigma\Theta)
+-
+\lambda_n\sum_{j,k=1}^d\lvert\Theta_{jk}\rvert
+\Biggr\}.
+\tag{8.43}
+$$
+Suppose there exist $\widehat\theta\in\mathbb R^d$ and $\widehat U\in\mathbb R^{d\times d}$ such that
+$$
+\widehat U_{jk}
+=
+\begin{cases}
+\mathrm{sign}(\widehat\theta_j\widehat\theta_k) & \text{if }\widehat\theta_j\widehat\theta_k\neq 0,\\
+\in[-1,1] & \text{otherwise,}
+\end{cases}
+$$
+and such that $\widehat\theta$ is a maximal eigenvector of $\widehat\Sigma-\lambda_n\widehat U$. Prove that the rank-one matrix $\widehat\Theta=\widehat\theta\otimes\widehat\theta$ is optimal for (8.43).
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Normalise the maximal eigenvector so that $\|\widehat\theta\|_2=1$ (the problem statement does not record the normalisation, but $\widehat\Theta=\widehat\theta\otimes\widehat\theta$ must have trace one to be feasible for (8.43)). The matrix $\widehat U$ may be taken symmetric: the subdifferential of $\Theta\mapsto\sum_{jk}\lvert\Theta_{jk}\rvert$ at a symmetric matrix always contains a symmetric matrix with the stated sign pattern.
+
+For an arbitrary feasible $\Theta$ (i.e. $\Theta\succeq 0$ and $\mathrm{trace}(\Theta)=1$),
+\begin{align*}
+\mathrm{trace}(\widehat\Sigma\Theta)-\lambda_n\sum_{jk}\lvert\Theta_{jk}\rvert
+&=
+\bigl\langle\widehat\Sigma-\lambda_n\widehat U,\;\Theta\bigr\rangle
+-
+\lambda_n\Biggl(\sum_{jk}\lvert\Theta_{jk}\rvert-\langle\widehat U,\Theta\rangle\Biggr).
+\end{align*}
+Each summand $\lvert\Theta_{jk}\rvert-\widehat U_{jk}\Theta_{jk}$ is nonnegative because $\lvert\widehat U_{jk}\rvert\le 1$. Hence the second (penalty) term is nonnegative, and
+$$
+\mathrm{trace}(\widehat\Sigma\Theta)-\lambda_n\sum_{jk}\lvert\Theta_{jk}\rvert
+\le
+\langle\widehat\Sigma-\lambda_n\widehat U,\;\Theta\rangle
+\le
+\gamma_1(\widehat\Sigma-\lambda_n\widehat U)\,\mathrm{trace}(\Theta)
+=
+\gamma_1(\widehat\Sigma-\lambda_n\widehat U),
+$$
+where the last inequality uses $\Theta\succeq 0$ together with $\mathrm{trace}(\Theta)=1$ (the variational characterisation of the largest eigenvalue).
+
+For the candidate $\widehat\Theta=\widehat\theta\widehat\theta^T$ the same expansion collapses. Whenever $\widehat\theta_j\widehat\theta_k\neq 0$ one has $\widehat U_{jk}=\mathrm{sign}(\widehat\theta_j\widehat\theta_k)$, and whenever $\widehat\theta_j\widehat\theta_k=0$ the corresponding summand vanishes, so
+$$
+\sum_{jk}\lvert\widehat\theta_j\widehat\theta_k\rvert
+=
+\sum_{jk}\widehat U_{jk}\widehat\theta_j\widehat\theta_k
+=
+\langle\widehat U,\widehat\theta\widehat\theta^T\rangle
+=
+\widehat\theta^T\widehat U\widehat\theta.
+$$
+Therefore the objective at $\widehat\Theta$ equals
+$$
+\widehat\theta^T\widehat\Sigma\widehat\theta-\lambda_n\widehat\theta^T\widehat U\widehat\theta
+=
+\widehat\theta^T(\widehat\Sigma-\lambda_n\widehat U)\widehat\theta
+=
+\gamma_1(\widehat\Sigma-\lambda_n\widehat U),
+$$
+the last step because $\widehat\theta$ is a maximal eigenvector of $\widehat\Sigma-\lambda_n\widehat U$. The candidate meets the upper bound derived for every feasible $\Theta$, and is itself feasible, hence optimal for (8.43).
+
+(The same identity is the *primal–dual witness*: $\widehat U$ is a subgradient of the entrywise $\ell_1$ norm at $\widehat\Theta$, and $\widehat\Sigma-\lambda_n\widehat U$ has $\widehat\theta$ as leading eigenvector, which is the KKT condition for the SDP.)
+:::
