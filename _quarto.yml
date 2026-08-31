@@ -26,10 +26,62 @@ website:
             href: notes/ch01-notes.qmd
           - text: "Ch 2 Tail bounds"
             href: notes/ch02-notes.qmd
+          - text: "Ch 3 Concentration of measure"
+            href: notes/ch03-notes.qmd
+          - text: "Ch 4 Uniform laws"
+            href: notes/ch04-notes.qmd
+          - text: "Ch 5 Metric entropy"
+            href: notes/ch05-notes.qmd
+          - text: "Ch 6 Random matrices"
+            href: notes/ch06-notes.qmd
+          - text: "Ch 7 Sparse linear models"
+            href: notes/ch07-notes.qmd
+          - text: "Ch 8 Principal component analysis"
+            href: notes/ch08-notes.qmd
+          - text: "Ch 9 Decomposability and RSC"
+            href: notes/ch09-notes.qmd
+          - text: "Ch 10 Rank-constrained matrices"
+            href: notes/ch10-notes.qmd
+          - text: "Ch 11 Graphical models"
+            href: notes/ch11-notes.qmd
+          - text: "Ch 12 RKHS"
+            href: notes/ch12-notes.qmd
+          - text: "Ch 13 Nonparametric least squares"
+            href: notes/ch13-notes.qmd
+          - text: "Ch 14 Localization"
+            href: notes/ch14-notes.qmd
+          - text: "Ch 15 Minimax lower bounds"
+            href: notes/ch15-notes.qmd
       - text: Solutions
         menu:
           - text: "Ch 1 Exercises"
             href: solutions/ch01-solutions.qmd
+          - text: "Ch 3 Exercises"
+            href: solutions/ch03-solutions.qmd
+          - text: "Ch 4 Exercises"
+            href: solutions/ch04-solutions.qmd
+          - text: "Ch 5 Exercises"
+            href: solutions/ch05-solutions.qmd
+          - text: "Ch 6 Exercises"
+            href: solutions/ch06-solutions.qmd
+          - text: "Ch 7 Exercises"
+            href: solutions/ch07-solutions.qmd
+          - text: "Ch 8 Exercises"
+            href: solutions/ch08-solutions.qmd
+          - text: "Ch 9 Exercises"
+            href: solutions/ch09-solutions.qmd
+          - text: "Ch 10 Exercises"
+            href: solutions/ch10-solutions.qmd
+          - text: "Ch 11 Exercises"
+            href: solutions/ch11-solutions.qmd
+          - text: "Ch 12 Exercises"
+            href: solutions/ch12-solutions.qmd
+          - text: "Ch 13 Exercises"
+            href: solutions/ch13-solutions.qmd
+          - text: "Ch 14 Exercises"
+            href: solutions/ch14-solutions.qmd
+          - text: "Ch 15 Exercises"
+            href: solutions/ch15-solutions.qmd
     right:
       - icon: github
         href: https://github.com/sunfang3/HDS
@@ -43,9 +95,35 @@ website:
         contents:
           - notes/ch01-notes.qmd
           - notes/ch02-notes.qmd
+          - notes/ch03-notes.qmd
+          - notes/ch04-notes.qmd
+          - notes/ch05-notes.qmd
+          - notes/ch06-notes.qmd
+          - notes/ch07-notes.qmd
+          - notes/ch08-notes.qmd
+          - notes/ch09-notes.qmd
+          - notes/ch10-notes.qmd
+          - notes/ch11-notes.qmd
+          - notes/ch12-notes.qmd
+          - notes/ch13-notes.qmd
+          - notes/ch14-notes.qmd
+          - notes/ch15-notes.qmd
       - section: "Solutions"
         contents:
           - solutions/ch01-solutions.qmd
+          - solutions/ch03-solutions.qmd
+          - solutions/ch04-solutions.qmd
+          - solutions/ch05-solutions.qmd
+          - solutions/ch06-solutions.qmd
+          - solutions/ch07-solutions.qmd
+          - solutions/ch08-solutions.qmd
+          - solutions/ch09-solutions.qmd
+          - solutions/ch10-solutions.qmd
+          - solutions/ch11-solutions.qmd
+          - solutions/ch12-solutions.qmd
+          - solutions/ch13-solutions.qmd
+          - solutions/ch14-solutions.qmd
+          - solutions/ch15-solutions.qmd
   page-footer:
     left: "HDS Companion · Quarto website"
     right:

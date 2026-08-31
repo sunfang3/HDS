@@ -23,19 +23,19 @@ execute:
 |---|---:|---|---|
 | 1 Introduction | 1–20 | [Notes](notes/ch01-notes.qmd) | [Solutions](solutions/ch01-solutions.qmd) |
 | 2 Basic tail and concentration bounds | 21–57 | [Notes](notes/ch02-notes.qmd) | 编写中 |
-| 3 Concentration of measure | 58–97 | 编写中 | 编写中 |
-| 4 Uniform laws of large numbers | 98–120 | 编写中 | 编写中 |
-| 5 Metric entropy and its uses | 121–158 | 编写中 | 编写中 |
-| 6 Random matrices and covariance estimation | 159–193 | 编写中 | 编写中 |
-| 7 Sparse linear models in high dimensions | 194–235 | 编写中 | 编写中 |
-| 8 Principal component analysis in high dimensions | 236–258 | 编写中 | 编写中 |
-| 9 Decomposability and restricted strong convexity | 259–311 | 编写中 | 编写中 |
-| 10 Matrix estimation with rank constraints | 312–346 | 编写中 | 编写中 |
-| 11 Graphical models for high-dimensional data | 347–382 | 编写中 | 编写中 |
-| 12 Reproducing kernel Hilbert spaces | 383–415 | 编写中 | 编写中 |
-| 13 Nonparametric least squares | 416–452 | 编写中 | 编写中 |
-| 14 Localization and uniform laws | 453–484 | 编写中 | 编写中 |
-| 15 Minimax lower bounds | 485–523 | 编写中 | 编写中 |
+| 3 Concentration of measure | 58–97 | [Notes](notes/ch03-notes.qmd) | [Solutions](solutions/ch03-solutions.qmd) |
+| 4 Uniform laws of large numbers | 98–120 | [Notes](notes/ch04-notes.qmd) | [Solutions](solutions/ch04-solutions.qmd) |
+| 5 Metric entropy and its uses | 121–158 | [Notes](notes/ch05-notes.qmd) | [Solutions](solutions/ch05-solutions.qmd) |
+| 6 Random matrices and covariance estimation | 159–193 | [Notes](notes/ch06-notes.qmd) | [Solutions](solutions/ch06-solutions.qmd) |
+| 7 Sparse linear models in high dimensions | 194–235 | [Notes](notes/ch07-notes.qmd) | [Solutions](solutions/ch07-solutions.qmd) |
+| 8 Principal component analysis in high dimensions | 236–258 | [Notes](notes/ch08-notes.qmd) | [Solutions](solutions/ch08-solutions.qmd) |
+| 9 Decomposability and restricted strong convexity | 259–311 | [Notes](notes/ch09-notes.qmd) | [Solutions](solutions/ch09-solutions.qmd) |
+| 10 Matrix estimation with rank constraints | 312–346 | [Notes](notes/ch10-notes.qmd) | [Solutions](solutions/ch10-solutions.qmd) |
+| 11 Graphical models for high-dimensional data | 347–382 | [Notes](notes/ch11-notes.qmd) | [Solutions](solutions/ch11-solutions.qmd) |
+| 12 Reproducing kernel Hilbert spaces | 383–415 | [Notes](notes/ch12-notes.qmd) | [Solutions](solutions/ch12-solutions.qmd) |
+| 13 Nonparametric least squares | 416–452 | [Notes](notes/ch13-notes.qmd) | [Solutions](solutions/ch13-solutions.qmd) |
+| 14 Localization and uniform laws | 453–484 | [Notes](notes/ch14-notes.qmd) | [Solutions](solutions/ch14-solutions.qmd) |
+| 15 Minimax lower bounds | 485–523 | [Notes](notes/ch15-notes.qmd) | [Solutions](solutions/ch15-solutions.qmd) |
 
 ## 怎么读
 
