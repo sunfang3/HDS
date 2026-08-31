@@ -1,0 +1,403 @@
+---
+title: "Chapter 2 Exercises"
+subtitle: "Wainwright, High-Dimensional Statistics §2.7"
+description: "Exercise list locked from the textbook; solved independently"
+execute:
+  enabled: false
+---
+
+# How to use this file
+
+- Textbook: *High-Dimensional Statistics*, Chapter 2, §2.7.
+- Coverage: Exercises 2.1--2.22, printed pp. 50--57.
+- The stems are abridged; notation and exercise numbers follow the textbook.
+- Companion notes: [`ch02-notes.qmd`](../notes/ch02-notes.qmd).
+
+### Exercise 2.1
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Give equality cases for Markov's and Chebyshev's inequalities.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+For any $t>0$, let $X=t$ with probability $p$ and $X=0$ otherwise. Then $\mathbb P(X\ge t)=p=\mathbb EX/t$, so Markov is exact. Let $Y$ take values $-t,t$ with probability $1/2$ each. Then $\mathbb EY=0$, $\operatorname{var}(Y)=t^2$, and $\mathbb P(|Y-\mathbb EY|\ge t)=1=\operatorname{var}(Y)/t^2$, so Chebyshev is exact.
+:::
+
+### Exercise 2.2
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Prove the stated two-sided Mills-ratio bound.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Differentiating $\phi(z)=(2\pi)^{-1/2}e^{-z^2/2}$ gives $\phi'(z)+z\phi(z)=0$. Write $\overline\Phi(z)=\int_z^\infty\phi(u)\,du$. Integration by parts gives
+$$
+ \overline\Phi(z)=\frac{\phi(z)}z-\int_z^\infty\frac{\phi(u)}{u^2}\,du
+ =\phi(z)\left(\frac1z-\frac1{z^3}\right)+3\int_z^\infty\frac{\phi(u)}{u^4}\,du .
+$$
+The final integral is nonnegative, proving the lower bound. Also $\overline\Phi(z)\le\phi(z)/z$, so the final integral is at most $\phi(z)/z^5$. This proves (2.59).
+:::
+
+### Exercise 2.3
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Compare the optimised polynomial-moment Markov bound with the Chernoff bound.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Fix $\lambda>0$ and put $a_k=\mathbb E[X^k]/\delta^k$. The Poisson weights $p_k=e^{-\lambda\delta}(\lambda\delta)^k/k!$ sum to one, and, since $X\ge0$,
+$$
+ \sum_{k\ge0}p_ka_k=e^{-\lambda\delta}\mathbb E[e^{\lambda X}].
+$$
+The infimum of the $a_k$ is no larger than any weighted average of them. Taking the infimum over $\lambda$ proves (2.60).
+:::
+
+### Exercise 2.4
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Prove the sharp $(b-a)/2$ sub-Gaussian parameter for a variable in $[a,b]$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+For $\psi(\lambda)=\log\mathbb E e^{\lambda X}$, direct differentiation gives $\psi(0)=0$ and $\psi'(0)=\mathbb EX=\mu$. Under the exponentially tilted law,
+$$
+ \psi''(\lambda)=\mathbb E_\lambda[X^2]-(\mathbb E_\lambda X)^2
+ =\operatorname{var}_\lambda(X)\le\frac{(b-a)^2}{4},
+$$
+where the last inequality is the maximal variance of a variable in an interval. Taylor's integral formula now yields
+$$
+ \psi(\lambda)-\lambda\mu\le\frac{(b-a)^2\lambda^2}{8}.
+$$
+Exponentiating proves the claim with $\sigma=(b-a)/2$.
+:::
+
+### Exercise 2.5
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Extract the mean and variance consequences of (2.61), and decide whether the optimal proxy equals the variance.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Expand both sides of (2.61) at $\lambda=0$. Comparing the linear terms from positive and negative $\lambda$ gives $\mathbb EX=\mu$; comparing the quadratic terms then gives $\mathbb EX^2\le\mu^2+\sigma^2$, hence $\operatorname{var}(X)\le\sigma^2$.
+
+Equality need not hold for the smallest admissible proxy. Let $B\sim\operatorname{Ber}(0.1)$ and $X=B-0.1$. Then $\operatorname{var}(X)=0.09$, whereas at $\lambda=\log9$,
+$$
+ \frac{2\log\mathbb E e^{\lambda X}}{\lambda^2}>0.09.
+$$
+Thus every valid sub-Gaussian proxy has square strictly larger than the variance.
+:::
+
+### Exercise 2.6
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Prove the lower-tail bound for the empirical mean of squared sub-Gaussian variables.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+A standard consequence of the sub-Gaussian moment bounds, applied to the negative centred square, is
+$$
+ \log\mathbb E\exp\{-\lambda(X^2-\mathbb EX^2)\}\le4\sigma^4\lambda^2
+ \qquad(\lambda\ge0).
+$$
+It follows either by expanding the exponential and bounding the even moments, or by the usual fact that $X^2-\mathbb EX^2$ is sub-exponential. Independence gives the same bound with factor $n$ for the sum. Chernoff's inequality with $\lambda=\delta/(8\sigma^2)$ gives
+$$
+ \mathbb P\{Z_n\le\mathbb EZ_n-\sigma^2\delta\}
+ \le\exp\{-n\delta^2/16\}.
+$$
+:::
+
+### Exercise 2.7
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Derive Bennett's inequality and compare it with Bernstein's inequality.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The scalar convexity inequality behind Bennett's bound is
+$$
+ e^{\lambda x}\le1+\lambda x+x^2\frac{e^{\lambda b}-1-\lambda b}{b^2}
+ \quad\text{for } |x|\le b.
+$$
+Taking expectations of a centred $X_i$, then using $\log(1+u)\le u$, proves part (a). For independent $X_i$, multiply the mgf bounds and apply Chernoff. The minimizer is $\lambda=b^{-1}\log(1+b\delta/\sigma^2)$, which yields
+$$
+ \mathbb P\left\{\sum_iX_i\ge n\delta\right\}
+ \le\exp\left\{-\frac{n\sigma^2}{b^2}h\!\left(\frac{b\delta}{\sigma^2}\right)\right\}.
+$$
+Finally $h(u)\ge u^2/[2(1+u/3)]$ for $u\ge0$ (differentiate the difference twice). Substitution gives Bernstein's exponent, so Bennett is at least as sharp.
+:::
+
+### Exercise 2.8
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Integrate the Bernstein tail (2.63), then apply it to an average under the Bernstein condition.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Use $\mathbb EZ=\int_0^\infty\mathbb P(Z\ge t)\,dt$. Splitting the integral at $2\nu\sqrt{\log C}+4b\log C$, and using the quadratic part before the crossover and the linear part afterwards, gives
+$$
+ \mathbb EZ\le2\nu(\sqrt\pi+\sqrt{\log C})+4b(1+\log C).
+$$
+For the average $n^{-1}\sum_iX_i$, the Bernstein parameters are $(\sigma/\sqrt n,b/n)$ and the two-sided tail has $C=2$. Substitution gives exactly the displayed bound in part (b).
+:::
+
+### Exercise 2.9
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Obtain the sharp lower binomial-tail upper bound and compare it with Hoeffding.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+For $s<0$,
+$$
+ \mathbb P(Z_n\le n\delta)
+ \le e^{-sn\delta}(1-\alpha+\alpha e^s)^n.
+$$
+Minimizing at $e^s=\delta(1-\alpha)/\{\alpha(1-\delta)\}$ gives $e^{-nD(\delta\Vert\alpha)}$. For $0<\delta<\alpha\le1/2$, strict convexity (or a direct derivative calculation) gives
+$$
+ D(\delta\Vert\alpha)>2(\alpha-\delta)^2.
+$$
+Thus its exponent is strictly more negative than Hoeffding's lower-tail exponent.
+:::
+
+### Exercise 2.10
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Prove the matching binomial lower bound up to a polynomial factor.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Let $m=\lfloor n\delta\rfloor$ and $\widetilde\delta=m/n$. Since $\{Z_n=m\}\subseteq\{Z_n\le n\delta\}$,
+$$
+ \frac1n\log\mathbb P(Z_n\le n\delta)
+ \ge\frac1n\log{n\choose m}+\widetilde\delta\log\alpha+(1-\widetilde\delta)\log(1-\alpha).
+$$
+If $Y\sim\operatorname{Bin}(n,\widetilde\delta)$, its largest mass is at $m$, so $1\le(n+1)\mathbb P(Y=m)$. Rearrangement yields (2.65a). Combining the two displays identifies the exponent as the Bernoulli relative entropy; the usual type-class rounding argument (with $m=\lfloor n\delta\rfloor$) yields
+$$
+ \mathbb P(Z_n\le n\delta)\ge\frac1{n+1}e^{-nD(\delta\Vert\alpha)},
+$$
+which is (2.65b).
+:::
+
+### Exercise 2.11
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Bound the expectation and second moment of the maximum of $n$ independent $N(0,\sigma^2)$ absolute values.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Put $a=\sigma\sqrt{2\log n}$. A union bound and the Gaussian Mills upper bound give
+$$
+ \mathbb EZ_n\le a+\int_a^\infty n\mathbb P(|X_1|\ge t)\,dt
+ \le\sqrt{2\sigma^2\log n}+\frac{4\sigma}{\sqrt{2\log n}}.
+$$
+For the lower bound, the Mills lower bound gives $\mathbb P(Z_n>u)=1-(1-\mathbb P(|X_1|>u))^n$. Choosing a level just below $\sigma\sqrt{2\log n}$ and using $1-x\le e^{-x}$ gives, after the elementary $n\ge5$ check,
+$$
+ \mathbb EZ_n\ge(1-1/e)\sigma\sqrt{2\log n}.
+$$
+Applying the same tail integration to $Z_n^2$ gives $\mathbb EZ_n^2\le2\sigma^2\log n+o(\log n)$; the preceding lower bound gives the matching liminf. Hence $\mathbb EZ_n^2/(2\sigma^2\log n)\to1$.
+:::
+
+### Exercise 2.12
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Bound maxima of zero-mean sub-Gaussian variables without assuming independence.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+For every $\lambda>0$,
+$$
+ \mathbb E\max_iX_i\le\frac1\lambda\log\sum_i\mathbb Ee^{\lambda X_i}
+ \le\frac{\log n}{\lambda}+\frac{\lambda\sigma^2}{2}.
+$$
+Optimizing at $\lambda=\sqrt{2\log n}/\sigma$ proves (2.66). Apply the same argument to the $2n$ variables $X_1,\ldots,X_n,-X_1,\ldots,-X_n$ to get $\mathbb E\max_i|X_i|\le\sqrt{2\sigma^2\log(2n)}\le2\sigma\sqrt{\log n}$ for $n\ge2$.
+:::
+
+### Exercise 2.13
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Establish the stated closure properties of sub-Gaussian variables.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Independence gives $\mathbb Ee^{\lambda(X_1+X_2)}\le\exp\{\lambda^2(\sigma_1^2+\sigma_2^2)/2\}$, proving (a). Without independence, Cauchy--Schwarz gives
+$$
+ \mathbb Ee^{\lambda(X_1+X_2)}
+ \le\{\mathbb Ee^{2\lambda X_1}\mathbb Ee^{2\lambda X_2}\}^{1/2},
+$$
+which proves (b). Hölder with exponents $(\sigma_1+\sigma_2)/\sigma_1$ and $(\sigma_1+\sigma_2)/\sigma_2$ proves (c).
+
+For (d), independence and the sub-Gaussian moment bounds imply the Bernstein moment condition for $X_1X_2$ with $(\nu,b)=(\sqrt2\sigma_1\sigma_2,\sqrt2\sigma_1\sigma_2)$. Its mean is zero by independence, so it is sub-exponential with the asserted parameters.
+:::
+
+### Exercise 2.14
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Relate sub-Gaussian concentration about the mean and about an arbitrary median.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The layer-cake identity gives
+$$
+ \operatorname{var}(X)=\int_0^\infty2t\,\mathbb P(|X-\mathbb EX|\ge t)\,dt\le c_1/c_2.
+$$
+For a symmetric two-point distribution on $\{-1,1\}$, every $m\in[-1,1]$ is a median, so medians need not be unique.
+
+Let $r=\sqrt{2\log(2c_1)/c_2}$. The median property and (2.68) imply $|m_X-\mathbb EX|\le r$. For $t\ge2r$, the triangle inequality gives $(t-r)^2\ge t^2/4$; for $t<2r$, the proposed right side is at least one. These two cases give (2.69) with $c_3=4c_1$, $c_4=c_2/8$. Conversely, integrate the median tail to bound $|\mathbb EX-m_X|$ and repeat the same two-case argument. This yields (2.68) with $c_1=2c_3$, $c_2=c_4/4$.
+:::
+
+### Exercise 2.15
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Use bounded differences for the $L^1$ error of a kernel density estimate.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Changing only $X_i$ changes $\widehat f_n$ by at most
+$$
+ \frac1{nh}\int\left|K\!\left(\frac{t-X_i}{h}\right)-K\!\left(\frac{t-X_i'}h\right)\right|dt
+ \le\frac2n
+$$
+in $L^1$, because $K\ge0$ and $\int K=1$. The reverse triangle inequality gives the same bounded-difference constant for $\|\widehat f_n-f\|_1$. McDiarmid therefore gives the stronger bound $\exp(-n\delta^2/2)$, which implies the requested $\exp(-n\delta^2/8)$.
+:::
+
+### Exercise 2.16
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Prove the Hilbert-space deviation inequalities for $S_n=\|\sum_iX_i\|_H$.
+:::
+
+::: {.callout-warning icon="false" title="Source issue (pending approval)"}
+Part (b) needs $\mathbb EX_i=0$ (or an equivalent control of the mean vector). As printed, deterministic $X_i=v\ne0$ contradict the claim. The conditional proof below uses the missing zero-mean assumption.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Changing $X_i$ changes $S_n$ by at most $2b_i$. McDiarmid gives the stronger inequality
+$$
+ \mathbb P\{|S_n-\mathbb ES_n|\ge n\delta\}
+ \le2\exp\{-n\delta^2/(2b^2)\},
+$$
+and hence part (a). Under the stated conditional zero-mean reading,
+$$
+ \mathbb ES_n\le\sqrt{\mathbb ES_n^2}
+ =\sqrt{\sum_i\mathbb E\|X_i\|_H^2}=na.
+$$
+The upper one-sided half of part (a) now proves part (b), again with a stronger exponent than displayed.
+:::
+
+### Exercise 2.17
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Prove Hanson--Wright in the standard-Gaussian special case.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Diagonalize $Q=U\operatorname{diag}(q_i)U^\top$. Rotation invariance makes $U^TX$ standard Gaussian, so
+$$
+ Z-\operatorname{tr}(Q)=\sum_iq_i(G_i^2-1).
+$$
+For $0<\lambda<(2\|Q\|_{\mathrm{op}})^{-1}$, the exact $\chi^2$ mgf and $-\log(1-u)-u\le u^2/[2(1-u)]$ yield
+$$
+ \log\mathbb Ee^{\lambda(Z-\operatorname{tr}Q)}
+ \le\frac{\lambda^2\|Q\|_F^2}{1-2\lambda\|Q\|_{\mathrm{op}}}.
+$$
+Chernoff optimisation gives $\mathbb P\{Z-\operatorname{tr}Q\ge t\}\le2\exp[-c\min\{t^2/\|Q\|_F^2,t/\|Q\|_{\mathrm{op}}\}]$, the required form for the Gaussian case.
+:::
+
+### Exercise 2.18
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Show the equivalence between finite $\psi_q$-Orlicz norm and a stretched-exponential tail.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Let $s=\|X\|_{\psi_q}$. Markov's inequality applied to $\exp((|X|/s)^q)$ gives
+$$
+ \mathbb P(|X|>t)\le2\exp\{-(t/s)^q\}.
+$$
+Conversely, if (2.73) holds, choose $s$ sufficiently large relative to $c_2^{-1/q}$ and use the layer-cake formula for $\mathbb E\exp((|X|/s)^q)$. The resulting integral is finite and can be made at most $2$, proving $\|X\|_{\psi_q}<\infty$.
+:::
+
+### Exercise 2.19
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Bound the expected maximum using an Orlicz norm.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Let $M=\max_i|X_i|$ and $\sigma=\|X_i\|_\psi$. Since $\psi$ is increasing,
+$$
+ \mathbb E\psi(M/\sigma)\le\sum_{i=1}^n\mathbb E\psi(|X_i|/\sigma)\le n.
+$$
+Jensen gives $\psi(\mathbb EM/\sigma)\le n$, hence $\mathbb EM\le\sigma\psi^{-1}(n)$.
+:::
+
+### Exercise 2.20
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Use Rosenthal's inequality to derive the stated moment-based tail bound.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+Rosenthal and $\|X_i\|_{2m}\le C_m$ give
+$$
+ \mathbb E\left|\sum_iX_i\right|^{2m}
+ \le R_m\left(nC_m^{2m}+(nC_m^2)^m\right)\le B_mn^m.
+$$
+Markov's inequality at $n\delta$ now gives
+$$
+ \mathbb P\left\{\left|n^{-1}\sum_iX_i\right|\ge\delta\right\}
+ \le B_m\left(\frac1{\sqrt n\,\delta}\right)^{2m}.
+$$
+:::
+
+### Exercise 2.21
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Use binomial-tail bounds to prove the Bernoulli rate--distortion threshold.
+:::
+
+::: {.callout-warning icon="false" title="Source erratum (pending approval)"}
+Part (b)(ii) prints $\mathbb P(V\ge1)\to+\infty$, which is impossible for a probability. The conditional conclusion below is $\mathbb P(V\ge1)\to1$.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+For a fixed codeword, $n\rho_H(X,z^j)\sim\operatorname{Bin}(n,1/2)$. Thus Exercise 2.9 and a union bound give
+$$
+ \mathbb P\{d(X)\le\delta\}\le\mathbb EV
+ \le2^{nR}2^{-nD_2(\delta\Vert1/2)}\longrightarrow0
+$$
+when $R<D_2(\delta\Vert1/2)$.
+
+For a random codebook, conditionally on $X$, the $V^j$ are i.i.d. Bernoulli. Cauchy--Schwarz (the second-moment method) gives $\mathbb P(V\ge1)\ge(\mathbb EV)^2/\mathbb EV^2$. Exercise 2.10 gives $\mathbb EV\ge2^{n\Delta R}/(n+1)\to\infty$, while independence gives $\mathbb EV^2=(\mathbb EV)^2+\mathbb EV(1-p)$. The ratio therefore tends to $1$, proving existence of a deterministic codebook with the desired distortion.
+:::
+
+### Exercise 2.22
+
+::: {.callout-note icon="false" title="Stem (abridged)"}
+Prove convexity, a Lipschitz bound, and concentration of the SK free energy.
+:::
+
+::: {.callout-warning icon="false" title="Source erratum (pending approval)"}
+In part (b), $F_d$ is scalar, so its difference requires absolute value. In part (c), direct Gaussian concentration gives an exponent proportional to $-dt^2/(2\beta^2)$, not the printed $-\beta dt^2/2$. The solution records this conditional correction rather than treating it as approved textbook text.
+:::
+
+::: {.callout-tip icon="false" title="Solution"}
+The map $\theta\mapsto\log\sum_xe^{\langle\theta,T(x)\rangle}$ is log-sum-exp, hence convex. Moreover
+$$
+ \frac{\partial F_d}{\partial\theta_{jk}}=d^{-1/2}\mathbb E_\theta[X_jX_k],
+ \qquad \|\nabla F_d(\theta)\|_2\le\sqrt d.
+$$
+The mean-value theorem proves $|F_d(\theta)-F_d(\theta')|\le\sqrt d\|\theta-\theta'\|_2$.
+
+Put $\theta=\beta g$ with standard Gaussian $g$. Then $g\mapsto F_d(\beta g)/d$ is $\beta/\sqrt d$-Lipschitz. Jensen's inequality gives
+$$
+ \mathbb E\frac{F_d(\theta)}d\le\frac1d\log\mathbb E\sum_x
+ e^{\beta d^{-1/2}\sum_{j<k}g_{jk}x_jx_k}
+ =\log2+\frac{\beta^2(d-1)}{4d}\le\log2+\frac{\beta^2}{4}.
+$$
+Gaussian concentration therefore yields the conditional corrected bound
+$$
+ \mathbb P\left\{\frac{F_d(\theta)}d\ge\log2+\frac{\beta^2}{4}+t\right\}
+ \le2\exp\left\{-\frac{dt^2}{2\beta^2}\right\}.
+$$
+:::

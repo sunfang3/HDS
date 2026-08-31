@@ -22,7 +22,7 @@ execute:
 | 章 | 印刷页 | Notes | Solutions |
 |---|---:|---|---|
 | 1 Introduction | 1–20 | [Notes](notes/ch01-notes.qmd) | [Solutions](solutions/ch01-solutions.qmd) |
-| 2 Basic tail and concentration bounds | 21–57 | [Notes](notes/ch02-notes.qmd) | 编写中 |
+| 2 Basic tail and concentration bounds | 21–57 | [Notes](notes/ch02-notes.qmd) | [Solutions](solutions/ch02-solutions.qmd) |
 | 3 Concentration of measure | 58–97 | [Notes](notes/ch03-notes.qmd) | [Solutions](solutions/ch03-solutions.qmd) |
 | 4 Uniform laws of large numbers | 98–120 | [Notes](notes/ch04-notes.qmd) | [Solutions](solutions/ch04-solutions.qmd) |
 | 5 Metric entropy and its uses | 121–158 | [Notes](notes/ch05-notes.qmd) | [Solutions](solutions/ch05-solutions.qmd) |

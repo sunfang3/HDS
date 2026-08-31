@@ -6,7 +6,7 @@ notes_path: "notes/ch02-notes.qmd"
 reviewed_at: "2026-08-31"
 delivery_status: "Notes 质检通过"
 ppt_status: "未请求"
-solutions_status: "未请求"
+solutions_status: "完成"
 ---
 
 # 第 2 章审核报告
@@ -15,26 +15,26 @@ solutions_status: "未请求"
 
 ## 范围与结论
 
-- 审核范围：第 2 章内容清单与 `notes/ch02-notes.qmd`（不含习题解答）
+- 审核范围：第 2 章内容清单、`notes/ch02-notes.qmd` 与 `solutions/ch02-solutions.qmd`；§2.7 Exercises 2.1–2.22 已按原页锁定，并逐题提供英文独立解答。
 - 主教材版本与页码：Martin J. Wainwright, *High-Dimensional Statistics: A Non-Asymptotic Viewpoint*, Cambridge Series in Statistical and Probabilistic Mathematics No. 48, 2019, ISBN 978-1-108-49802-9；印刷页 21–57，PDF 页 40–76（PDF = 印刷 + 19）
-- 当前结论：三个检查面均通过。关键定义、霍夫丁 / 伯恩斯坦 / 阿祖马–McDiarmid / 高斯利普希茨，以及 Notes 中出现的编号式 (2.1)–(2.46) 与原页一致。未改 Notes。
-- 未关闭问题：Example 2.24 的 $n$ 未定义；印刷页 28 把伯恩斯坦条件写成 (2.16)；Appendix B 把 $\gamma$ 说成幂级数收敛半径（与 Theorem 2.13(IV) 互斥）。习题页另有三处嫌疑，不进入 Notes。均保持 `勘误待批`。
-- 下一步允许动作：Notes 可作后续章合同；PPT / Solutions 仍为未请求。
+- 当前结论：三个检查面均通过。Notes 的关键定义和集中不等式保持原有核验；Solutions 覆盖 Exercises 2.1–2.22，并已完成写作后分离复算及渲染检查。
+- 未关闭问题：Example 2.24、印刷页 28 和 Appendix B 的既有疑点仍待批；习题页的 2.16(b)、2.21(b)(ii)、2.22(b)--(c) 也以 `勘误待批` 显示，未被静默改写。
+- 下一步允许动作：可继续保留勘误待批状态；PPT 未请求。
 
 ## 独立质检
 
 | 检查面 | 审核者 | 结果 | 简短证据或问题定位 |
 |---|---|---|---|
-| 内容清单与来源原页 | 独立质检代理（对照印刷页 PNG） | 通过 | §§2.1–2.7、Definition 2.2/2.7、Proposition 2.5/2.9/2.10/2.14、Theorem 2.6/2.13/2.19/2.26、Corollary 2.20/2.21、Lemma 2.27 及 (2.1)–(2.52) 均已入清单；Notes 按节序转写，习题 2.1–2.22 不进入 Notes。 |
-| 数学、假设与维度 | 独立质检代理（对照印刷页 PNG） | 通过 | 次高斯 / 次指数定义域、霍夫丁 $\sigma=(b-a)/2$、伯恩斯坦分母 $\sigma^2+bt$、鞅差条件矩母函数、McDiarmid $L_k$、Theorem 2.26 参数 $L$（正文证明 $\pi L/2$）均与原页一致。未发现 Notes 虚构定理。 |
-| 结构、可访问性、链接与渲染 | 独立质检代理（对照印刷页 PNG） | 通过 | 七个读者栏目齐全；学习目标 5 条；标题无跳级；Notes 汉语；来源定位含印刷/PDF 页。自测含「参考答案」。 |
+| 内容清单与来源原页 | 独立复核（对照印刷页 PNG） | 通过 | §§2.1–2.7、正式对象及 (2.1)–(2.52) 均已入清单；Notes 按节序转写。习题 2.1–2.22 已逐页锁定在印刷页 50–57 / PDF 页 69–76，并与 Solutions 题号逐一对应。 |
+| 数学、假设与维度 | 独立复算（与写作分离） | 通过 | Solutions 重算了 Markov/Chernoff、Mills、Hoeffding/Bennett/Bernstein、二项相对熵、最大值、Orlicz、Hanson--Wright 高斯特例与 SK 自由能。2.16(b) 以确定性反例识别出缺失零均值；2.21 概率极限与 2.22 高斯尺度均保留条件性读法。 |
+| 结构、可访问性、链接与渲染 | 独立复核 | 通过 | `quarto render solutions/ch02-solutions.qmd` 已生成 `_site/solutions/ch02-solutions.html`；2.1–2.22 均在 TOC，公式与三个 source-warning callout 均已渲染。Notes 的章节末链接指向该 HTML。 |
 
 ## 派生产物
 
 | 产物 | 请求范围 | 状态 | 自身检查证据或受阻原因 |
 |---|---|---|---|
 | PPT | 未请求 | 未请求 | 用户未请求 PPT。 |
-| Solutions | 未请求 | 未请求 | 用户要求本审核保持未请求；即使 Solutions 并行撰写，亦不在本报告验收。 |
+| Solutions | Exercises 2.1–2.22 的完整英文解答 | 完成 | `solutions/ch02-solutions.qmd` 含 22 个逐题 heading、abridged stem 与独立 Solution callout；2.16(b)、2.21(b)(ii)、2.22(b)--(c) 以 `勘误待批` 条件性解答。 |
 
 ## 核对摘记
 
@@ -76,7 +76,7 @@ solutions_status: "未请求"
 1. Example 2.24 印刷页 39：尾界含 $n$，本例未定义 $n$。边指示向量维数是 $\binom{d}{2}$；代入 (2.35)、$t=n\delta$、$L=1$ 才得到印刷的 $2e^{-2n\delta^2}$。Notes 写明 $n=\binom{d}{2}$，并标待批，未写成已批准勘误。
 2. 印刷页 28 段末：正文 “Bernstein condition (2.16)”。同页命题框与前一段均把 (2.15) 叫伯恩斯坦条件，(2.16) 是其矩母函数推论。Notes 命题与术语表按 (2.15) 解读。
 3. 印刷页 49 Appendix B：正文称 $\gamma$ 为 (2.58) 的收敛半径；Theorem 2.13(IV) 的 $\gamma=\sup_k(\mathbb E[\lvert X\rvert^k]/k!)^{1/k}$ 是根检验下半径的**倒数**。Notes 写「倒数」，与编号定义一致、与附录那句不一致。清单未单列此项，建议补进勘误表，仍 `勘误待批`。
-4. 习题 2.21–2.22 的三处嫌疑只影响 Solutions，本审核不验收。
+4. 习题 2.16(b)、2.21(b)(ii)、2.22(b)--(c) 的四处疑点只影响 Solutions；Solutions 已保留原题并在条件性读法下证明，均未获批准。
 
 ### 数学、假设与维度
 
@@ -102,4 +102,4 @@ solutions_status: "未请求"
 
 ### 结构、可访问性、链接与渲染
 
-读者栏目：本章导览、学习目标（5 个可观察动词，落在 3–7）、必要先修、常见错误、轻量自测（5 题，`<details>` 含「参考答案」）、本章小结、术语对照、来源定位。标题由 `#` 到 `##` 到 `### 关键推导`，无跳级。Notes 汉语；英文术语在次高斯 / 次指数 / 偏差 / 集中等处首次给出。作者补充标了 `作者解释`（塔性质、参数不是方差、多项式矩）。来源定位给出印刷页 21–50 / PDF 40–69，习题页 50–57 / PDF 69–76，以及 `../solutions/ch02-solutions.qmd`（Solutions 本审核不验收）。未把习题完整解答写入 Notes。术语表中文从通行名词委/教材译名；英文从教材。
+读者栏目：本章导览、学习目标（5 个可观察动词，落在 3–7）、必要先修、常见错误、轻量自测（5 题，`<details>` 含「参考答案」）、本章小结、术语对照、来源定位。标题由 `#` 到 `##` 到 `### 关键推导`，无跳级。Notes 汉语；英文术语在次高斯 / 次指数 / 偏差 / 集中等处首次给出。作者补充标了 `作者解释`（塔性质、参数不是方差、多项式矩）。来源定位给出印刷页 21–50 / PDF 40–69，习题页 50–57 / PDF 69–76，以及 `../solutions/ch02-solutions.qmd`。完整习题解答只放在 Solutions。术语表中文从通行名词委/教材译名；英文从教材。

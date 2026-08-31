@@ -164,6 +164,7 @@ map_status: "清单完成"
 | Example 2.24 印刷页 39；PDF 页 58 | 记号缺口 | 写出 $\mathbb P[n^{-1}\lvert C(G)-\mathbb E C(G)\rvert\ge\delta]\le 2e^{-2n\delta^2}$，本例未定义 $n$ | 原页；边指示向量维数是 $\binom d2$，(2.35) 的 $n$ 应为此 | 保留原文；Notes 标明 $n=\binom d2$；`勘误待批` | 作者 | 未批 |
 | 印刷页 28 段末；PDF 页 47 | 笔误嫌疑 | 正文 “any bounded variable satisfies the Bernstein condition (2.16)” | 原页；(2.15) 才是伯恩斯坦条件，(2.16) 是其矩母函数推论 | 保留原文；Notes 按 (2.15) 解读；`勘误待批` | 作者 | 未批 |
 | Exercise 2.21(b)(ii) 印刷页 56；PDF 页 75 | 笔误嫌疑 | “show that $\mathbb P[V\ge 1]\to+\infty$ as $n\to+\infty$” | 原页；概率不能趋于 $+\infty$；由 (i) 与 Exercise 2.10 应得 $\to 1$ | 保留原文；Solutions 按 $\to 1$ 证明并记录；`勘误待批` | 作者 | 未批 |
+| Exercise 2.16(b) 印刷页 54；PDF 页 73 | 假设缺失 | 仅假定独立且 $\lVert X_i\rVert_H\le b_i$，却以 $a^2=n^{-1}\sum_i\mathbb E\lVert X_i\rVert_H^2$ 为中心 | 原页；确定性 $X_i=v\ne0$ 反例表明结论不成立；加 $mathbb EX_i=0$ 后 Jensen 与正交交叉项给出所需中心 | 保留原文；Solutions 明示零均值条件性读法；`勘误待批` | 作者 | 未批 |
 | Exercise 2.22(b) 印刷页 56；PDF 页 75 | 记号嫌疑 | $\lVert F_d(\theta)-F_d(\theta')\rVert_2\le\sqrt d\,\lVert\theta-\theta'\rVert_2$ | 原页；$F_d$ 是标量，左端应为绝对值 | 保留原文；Solutions 按绝对值理解；`勘误待批` | 作者 | 未批 |
 | Exercise 2.22 (2.76) 印刷页 56；PDF 页 75 | 常数嫌疑 | 印刷尾界 $2e^{-\beta d t^2/2}$ | 原页；标准高斯利普希茨给出 $2\exp(-d t^2/(2\beta^2))$，指数中 $\beta$ 的位置不同 | 保留原文；Solutions 独立推导并对照；`勘误待批` | 作者 | 未批 |
 

@@ -21,7 +21,7 @@ quarto render
 | 章 | Notes | Solutions |
 |---|---|---|
 | 1 Introduction | [notes/ch01-notes.qmd](notes/ch01-notes.qmd) | [solutions/ch01-solutions.qmd](solutions/ch01-solutions.qmd) |
-| 2 Tail bounds | [notes/ch02-notes.qmd](notes/ch02-notes.qmd) | 编写中 |
+| 2 Tail bounds | [notes/ch02-notes.qmd](notes/ch02-notes.qmd) | [solutions/ch02-solutions.qmd](solutions/ch02-solutions.qmd) |
 | 3 Concentration of measure | [notes/ch03-notes.qmd](notes/ch03-notes.qmd) | [solutions/ch03-solutions.qmd](solutions/ch03-solutions.qmd) |
 | 4 Uniform laws | [notes/ch04-notes.qmd](notes/ch04-notes.qmd) | [solutions/ch04-solutions.qmd](solutions/ch04-solutions.qmd) |
 | 5 Metric entropy | [notes/ch05-notes.qmd](notes/ch05-notes.qmd) | [solutions/ch05-solutions.qmd](solutions/ch05-solutions.qmd) |
